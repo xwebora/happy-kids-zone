@@ -1,0 +1,8 @@
+{
+  "name": "Remix كيدز زون - منيو المطعم ولوحة التحكم",
+  "description": "منيو رقمي فاخر للمطعم مع واجهة رئيسية جذابة وبوابة تحكم للمدير لإضافة الأطباق وتحديث الأسعار ورفع الصور مع المزامنة عبر Google Drive",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
