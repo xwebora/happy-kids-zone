@@ -27,7 +27,7 @@ export async function testFirestore() {
   console.log('✅ Read successful:', snapshot.size);
 
   // حذف السجل التجريبي
-  await deleteDoc(doc(db, '__connection_test__', testDoc.id));
+  await deleteDoc(doc(db, 'firestoreConnectionTest', testDoc.id));
 
   console.log('✅ Delete successful');
 
