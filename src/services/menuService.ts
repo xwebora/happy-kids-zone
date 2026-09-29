@@ -150,12 +150,23 @@ export async function setCategory(
   id: string,
   category: Omit<Category, 'id'>
 ): Promise<void> {
-  await setDoc(
-    doc(db, CATEGORIES_COLLECTION, id),
-    category
-  );
-}
+  try {
+    console.log('🟡 Saving category:', {
+      id,
+      category,
+    });
 
+    await setDoc(
+      doc(db, CATEGORIES_COLLECTION, id),
+      category
+    );
+
+    console.log('🟢 Category saved successfully:', id);
+  } catch (error) {
+    console.error('🔴 Error saving category:', error);
+    throw error;
+  }
+}
 /**
  * حذف صنف
  */
