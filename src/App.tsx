@@ -369,6 +369,7 @@ export default function App() {
             onLanguageChange={setLanguage}
             restaurant={restaurant}
             hero={heroConfig}
+            adminonly={true}
             onSelectCustomerView={() => navigateToView('customer')}
             onAdminLoginSuccess={() => {
               setIsAdminAuthenticated(true);
