@@ -31,6 +31,7 @@ import {
   getRestaurantInfo,
   getHeroConfig,
   subscribeToMenuItems,
+  subscribeToCategories,
 } from './services/menuService';
 
 import { translations } from './utils/i18n';
@@ -506,6 +507,22 @@ export default function App() {
       unsubscribe();
     };
   }, []);
+  useEffect(() => {
+  console.log('🔥 Starting realtime categories listener...');
+
+  const unsubscribe = subscribeToCategories((firestoreCategories) => {
+    setCategories(firestoreCategories);
+
+    console.log(
+      `🔄 Categories updated from Firestore: ${firestoreCategories.length} categories`
+    );
+  });
+
+  return () => {
+    console.log('🛑 Stopping realtime categories listener...');
+    unsubscribe();
+  };
+}, []);
 
   // ============================================================
   // SYNC TO LOCALSTORAGE
