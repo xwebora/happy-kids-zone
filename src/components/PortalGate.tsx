@@ -110,37 +110,14 @@ export const PortalGate: React.FC<PortalGateProps> = ({
           </div>
         </div>
 
-        {/* The Two Main Portals (Customer vs Admin) */}
-{!adminOnly && (
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
+               {/* The Two Main Portals (Customer vs Admin) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
           
-    {/* OPTION 1: CUSTOMER VIEW (Dedicated Standalone Kids Menu Page) */}
-    <div
-      onClick={onSelectCustomerView}
-      className="group relative cursor-pointer rounded-3xl bg-gradient-to-b from-[#13286b]/90 to-[#0e1d52]/90 border-2 border-[#2855D9] hover:border-[#FFD11A] p-7 sm:p-8 transition-all duration-300 hover:shadow-2xl hover:shadow-[#2855D9]/40 flex flex-col justify-between overflow-hidden transform hover:-translate-y-1"
-    >
-      {/* محتوى Customer الحالي بالكامل هنا */}
-    </div>
-
-    {/* OPTION 2: ADMIN CONTROL PANEL */}
-    <div
-      onClick={() => setShowLoginModal(true)}
-      className="group relative cursor-pointer rounded-3xl bg-gradient-to-b from-[#13286b]/90 to-[#0e1d52]/90 border-2 border-[#2855D9] hover:border-[#71359B] p-7 sm:p-8 transition-all duration-300 hover:shadow-2xl hover:shadow-[#71359B]/40 flex flex-col justify-between overflow-hidden transform hover:-translate-y-1"
-    >
-      {/* محتوى Admin الحالي بالكامل هنا */}
-    </div>
-
-  </div>
-)}
-
-</main>
-          
-          {/* OPTION 1: CUSTOMER VIEW (Dedicated Standalone Kids Menu Page) */}
+          {/* OPTION 1: CUSTOMER VIEW */}
           <div
             onClick={onSelectCustomerView}
             className="group relative cursor-pointer rounded-3xl bg-gradient-to-b from-[#13286b]/90 to-[#0e1d52]/90 border-2 border-[#2855D9] hover:border-[#FFD11A] p-7 sm:p-8 transition-all duration-300 hover:shadow-2xl hover:shadow-[#2855D9]/40 flex flex-col justify-between overflow-hidden transform hover:-translate-y-1"
           >
-            {/* Ambient decorative glow */}
             <div className="absolute top-0 right-0 w-40 h-40 bg-[#FFD11A]/10 rounded-full blur-2xl group-hover:bg-[#FFD11A]/20 transition-all pointer-events-none" />
 
             <div className="space-y-5">
@@ -158,38 +135,42 @@ export const PortalGate: React.FC<PortalGateProps> = ({
 
               <div>
                 <span className="text-xs font-black text-[#FFD11A] uppercase tracking-wider block mb-1">
-                  {language === 'ar' ? 'للأطفال والعائلات والضيوف' : 'For Kids & Families'}
+                  {language === 'ar'
+                    ? 'للأطفال والعائلات والضيوف'
+                    : 'For Kids & Families'}
                 </span>
+
                 <h3 className="text-2xl sm:text-3xl font-bold text-white font-['Fredoka','Cairo',sans-serif] group-hover:text-[#FFD11A] transition-colors">
                   {t.customerView}
                 </h3>
+
                 <p className="text-sm text-[#c5d3fc] mt-2 leading-relaxed">
                   {t.customerViewDesc}
                 </p>
-                <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-[#78C943]/15 border border-[#78C943]/40 text-[#78C943] text-xs font-bold">
-                  <span className="w-2 h-2 rounded-full bg-[#78C943] animate-pulse" />
-                  <span>{language === 'ar' ? 'صفحة مستقلة بدون أي تحكم للمدير' : 'Standalone page without admin controls'}</span>
-                </div>
               </div>
             </div>
 
             <div className="pt-6 mt-6 border-t border-[#1e3b96] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-              <span className="text-sm font-black text-[#FFD11A] flex items-center gap-2 group-hover:gap-3 transition-all">
+              <span className="text-sm font-black text-[#FFD11A] flex items-center gap-2">
                 <span>{t.exploreMenuBtn}</span>
-                {isRtl ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
+                {isRtl
+                  ? <ArrowLeft className="w-4 h-4" />
+                  : <ArrowRight className="w-4 h-4" />}
               </span>
 
-              {/* Dedicated Button: Open in Separate Page / Tab */}
               <a
                 href="#/menu"
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
                 className="px-3.5 py-1.5 rounded-xl bg-[#12245e] hover:bg-[#1f3a8f] border-2 border-[#2855D9] hover:border-[#FFD11A] text-xs font-black text-[#d1dbff] hover:text-[#FFD11A] flex items-center justify-center gap-1.5 shadow-md transition-all active:scale-95"
-                title={language === 'ar' ? 'فتح صفحة المنيو في علامة تبويب جديدة مستقلة' : 'Open in a new separate tab'}
               >
                 <ExternalLink className="w-3.5 h-3.5 text-[#FFD11A]" />
-                <span>{language === 'ar' ? 'فتح بصفحة منفصلة ↗' : 'Open in New Tab ↗'}</span>
+                <span>
+                  {language === 'ar'
+                    ? 'فتح بصفحة منفصلة ↗'
+                    : 'Open in New Tab ↗'}
+                </span>
               </a>
             </div>
           </div>
@@ -199,7 +180,6 @@ export const PortalGate: React.FC<PortalGateProps> = ({
             onClick={() => setShowLoginModal(true)}
             className="group relative cursor-pointer rounded-3xl bg-gradient-to-b from-[#13286b]/90 to-[#0e1d52]/90 border-2 border-[#2855D9] hover:border-[#71359B] p-7 sm:p-8 transition-all duration-300 hover:shadow-2xl hover:shadow-[#71359B]/40 flex flex-col justify-between overflow-hidden transform hover:-translate-y-1"
           >
-            {/* Ambient purple/blue glow */}
             <div className="absolute top-0 right-0 w-40 h-40 bg-[#71359B]/20 rounded-full blur-2xl group-hover:bg-[#71359B]/30 transition-all pointer-events-none" />
 
             <div className="space-y-5">
@@ -217,26 +197,36 @@ export const PortalGate: React.FC<PortalGateProps> = ({
 
               <div>
                 <span className="text-xs font-black text-[#a975db] uppercase tracking-wider block mb-1">
-                  {language === 'ar' ? 'خاص بمدير المطعم' : 'Admin & Staff Portal'}
+                  {language === 'ar'
+                    ? 'خاص بمدير المطعم'
+                    : 'Admin & Staff Portal'}
                 </span>
+
                 <h3 className="text-2xl sm:text-3xl font-bold text-white font-['Fredoka','Cairo',sans-serif] group-hover:text-[#a975db] transition-colors">
                   {t.adminView}
                 </h3>
+
                 <p className="text-sm text-[#c5d3fc] mt-2 leading-relaxed">
                   {t.adminViewDesc}
                 </p>
+
                 <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-[#71359B]/15 border border-[#71359B]/40 text-purple-300 text-xs font-bold">
                   <Lock className="w-3.5 h-3.5 text-purple-300" />
-                  <span>{language === 'ar' ? 'لوحة تحكم معزولة محمية بكلمة مرور' : 'Isolated dashboard protected with password'}</span>
+                  <span>
+                    {language === 'ar'
+                      ? 'لوحة تحكم معزولة محمية بكلمة مرور'
+                      : 'Isolated dashboard protected with password'}
+                  </span>
                 </div>
               </div>
             </div>
 
             <div className="pt-6 mt-6 border-t border-[#1e3b96] flex items-center justify-between">
-              <span className="text-sm font-bold text-[#a975db] flex items-center gap-2 group-hover:gap-3 transition-all">
+              <span className="text-sm font-bold text-[#a975db] flex items-center gap-2">
                 <Lock className="w-4 h-4" />
                 <span>{t.enterAdminBtn}</span>
               </span>
+
               <span className="text-xs px-3 py-1 rounded-full bg-[#71359B]/40 text-purple-200 border border-[#71359B] font-bold">
                 {language === 'ar' ? 'محمي بكلمة مرور' : 'Secured'}
               </span>
@@ -244,7 +234,6 @@ export const PortalGate: React.FC<PortalGateProps> = ({
           </div>
 
         </div>
-
       </main>
 
       {/* Footer */}
