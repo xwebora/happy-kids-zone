@@ -36,6 +36,7 @@ import {
   deleteMenuItem,
   setMenuItem,
   migrateAllDataToFirestore,
+  setRestaurantInfo,
 } from '../services/menuService';
 
 interface AdminModalProps {
@@ -726,12 +727,33 @@ const handleQuickPriceSave = async (id: string) => {
   };
 
   // Save Settings & Credentials
-  const handleSaveSettings = (e: React.FormEvent) => {
-    e.preventDefault();
+const handleSaveSettings = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  try {
+    // حفظ البيانات في Firestore
+    await setRestaurantInfo(settingsForm);
+
+    // تحديث بيانات التطبيق مباشرة
     onUpdateRestaurant(settingsForm);
+
+    // إظهار رسالة النجاح
     setSettingsSavedAlert(true);
-    setTimeout(() => setSettingsSavedAlert(false), 3000);
-  };
+
+    setTimeout(() => {
+      setSettingsSavedAlert(false);
+    }, 3000);
+
+  } catch (error) {
+    console.error('Error saving restaurant settings:', error);
+
+    alert(
+      isAr
+        ? 'حدث خطأ أثناء حفظ الإعدادات في قاعدة البيانات'
+        : 'An error occurred while saving settings to the database'
+    );
+  }
+};
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
