@@ -37,6 +37,7 @@ import {
   setMenuItem,
   migrateAllDataToFirestore,
   setRestaurantInfo,
+  setCategory,
 } from '../services/menuService';
 
 interface AdminModalProps {
