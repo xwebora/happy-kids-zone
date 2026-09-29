@@ -249,15 +249,6 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(items));
   }, [items]);
- 
-  // Load menu items from Firestore
-
-  loadMenuItems();
-
-  return () => {
-    cancelled = true;
-  };
-}, []);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY_LAYOUT, layoutMode);
