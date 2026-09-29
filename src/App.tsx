@@ -952,13 +952,12 @@ export default function App() {
           onUpdateHero={
             setHeroConfig
           }
-          onUpdateRestaurant={(updatedRestaurant) => {
-  setRestaurant(updatedRestaurant);
-
-  localStorage.setItem(
-    STORAGE_KEY_RESTAURANT,
-    JSON.stringify(updatedRestaurant)
-  );
+          onUpdateRestaurant={setRestaurant}
+user={user}
+onUserChange={setUser}
+onAdminLogout={() => {
+  setIsAdminAuthenticated(false);
+  navigateToView('portal');
 }}
           user={user}
           onUserChange={setUser}
