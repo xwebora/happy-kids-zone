@@ -53,3 +53,25 @@ export async function deleteMenuItem(
     doc(db, COLLECTION_NAME, id)
   );
 }
+export async function testMenuItem(): Promise<string> {
+  const testItem: Omit<MenuItem, 'id'> = {
+    name: 'اختبار Firestore',
+    nameEn: 'Firestore Test',
+    description: 'هذا سجل اختبار وسيتم حذفه',
+    descriptionEn: 'This is a test record and will be deleted',
+    price: 1000,
+    category: 'main',
+    image: 'https://example.com/test.jpg',
+    available: true,
+    isPopular: false,
+    isChefSpecial: false,
+    preparationTime: '5 دقائق',
+    preparationTimeEn: '5 min',
+  };
+
+  const id = await addMenuItem(testItem);
+
+  console.log('✅ Menu item created:', id);
+
+  return id;
+}
