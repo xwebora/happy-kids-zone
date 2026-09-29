@@ -768,11 +768,52 @@ const handleSaveCategory = async (e: React.FormEvent) => {
 
   // Delete Category (checks linked items first)
   const handleDeleteCategory = (cat: Category) => {
-    const linkedItems = items.filter((i) => i.category === cat.id);
-    if (linkedItems.length > 0) {
-      alert(t.cannotDeleteCategoryHasItems);
-      return;
-    }
+  const linkedItems = items.filter(
+    (i) => i.category === cat.id
+  );
+
+  if (linkedItems.length > 0) {
+    alert(t.cannotDeleteCategoryHasItems);
+    return;
+  }
+
+  setConfirmDialog({
+    isOpen: true,
+    title: t.confirmTitle,
+    message: `${t.confirmDeleteCategory} (${isAr ? cat.name : cat.nameEn})`,
+
+    onConfirm: async () => {
+      setConfirmDialog(null);
+
+      try {
+        await deleteCategory(cat.id);
+
+        onUpdateCategories(
+          categories.filter(
+            (c) => c.id !== cat.id
+          )
+        );
+
+        console.log(
+          '🟢 Category deleted successfully:',
+          cat.id
+        );
+
+      } catch (error) {
+        console.error(
+          '🔴 Error deleting category:',
+          error
+        );
+
+        alert(
+          isAr
+            ? 'حدث خطأ أثناء حذف التصنيف من قاعدة البيانات'
+            : 'Error deleting category from database'
+        );
+      }
+    },
+  });
+};
 
     setConfirmDialog({
       isOpen: true,
