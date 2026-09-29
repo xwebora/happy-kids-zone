@@ -14,6 +14,12 @@ import {
   INITIAL_HERO_CONFIG 
 } from './data/mockData';
 import { initAuth } from './services/auth';
+import {
+  getMenuItems,
+  getCategories,
+  getRestaurantInfo,
+  getHeroConfig,
+} from './services/menuService';
 import { translations } from './utils/i18n';
 import { User } from 'firebase/auth';
 import { 
@@ -244,7 +250,61 @@ export default function App() {
 
   const menuSectionRef = useRef<HTMLDivElement>(null);
   const t = translations[language];
+// ============================================================
+// LOAD DATA FROM FIRESTORE
+// Firestore is the main source of data
+// ============================================================
 
+useEffect(() => {
+  const loadFirestoreData = async () => {
+    try {
+      console.log('🔥 Loading data from Firestore...');
+
+      const [
+        firestoreItems,
+        firestoreCategories,
+        firestoreRestaurant,
+        firestoreHero,
+      ] = await Promise.all([
+        getMenuItems(),
+        getCategories(),
+        getRestaurantInfo(),
+        getHeroConfig(),
+      ]);
+
+      // Menu Items
+      if (firestoreItems.length > 0) {
+        setItems(firestoreItems);
+        console.log(`✅ Loaded ${firestoreItems.length} menu items`);
+      }
+
+      // Categories
+      if (firestoreCategories.length > 0) {
+        setCategories(firestoreCategories);
+        console.log(`✅ Loaded ${firestoreCategories.length} categories`);
+      }
+
+      // Restaurant
+      if (firestoreRestaurant) {
+        setRestaurant(firestoreRestaurant);
+        console.log('✅ Loaded restaurant information');
+      }
+
+      // Hero
+      if (firestoreHero) {
+        setHeroConfig(firestoreHero);
+        console.log('✅ Loaded Hero configuration');
+      }
+
+      console.log('🎉 Firestore loading completed');
+
+    } catch (error) {
+      console.error('❌ Firestore loading failed:', error);
+    }
+  };
+
+  loadFirestoreData();
+}, []);
   // Sync to localStorage
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(items));
