@@ -251,6 +251,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
 
   // Save Item (Create or Update)
 const handleSaveItem = async (e: React.FormEvent) => {
+  console.log('🟡 handleSaveCategory CALLED');
   e.preventDefault();
 
   if (!formNameAr || formPrice === '') {
