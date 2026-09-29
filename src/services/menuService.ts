@@ -5,6 +5,7 @@ import {
   updateDoc,
   deleteDoc,
   doc,
+  setDoc,
 } from 'firebase/firestore';
 
 import { db } from './firestore';
@@ -12,9 +13,13 @@ import { MenuItem } from '../types';
 
 const COLLECTION_NAME = 'menuItems';
 
-// جلب جميع الوجبات
+const menuItemsCollection = collection(db, COLLECTION_NAME);
+
+/**
+ * جلب جميع الوجبات من Firestore
+ */
 export async function getMenuItems(): Promise<MenuItem[]> {
-  const snapshot = await getDocs(collection(db, COLLECTION_NAME));
+  const snapshot = await getDocs(menuItemsCollection);
 
   return snapshot.docs.map((item) => ({
     id: item.id,
@@ -22,19 +27,34 @@ export async function getMenuItems(): Promise<MenuItem[]> {
   })) as MenuItem[];
 }
 
-// إضافة وجبة
+/**
+ * إضافة وجبة جديدة
+ */
 export async function addMenuItem(
   item: Omit<MenuItem, 'id'>
 ): Promise<string> {
-  const docRef = await addDoc(
-    collection(db, COLLECTION_NAME),
-    item
-  );
+  const docRef = await addDoc(menuItemsCollection, item);
 
   return docRef.id;
 }
 
-// تعديل وجبة
+/**
+ * إضافة وجبة مع استخدام ID محدد
+ * سنستخدمها لاحقًا لنقل الوجبات القديمة إلى Firestore
+ */
+export async function setMenuItem(
+  id: string,
+  item: Omit<MenuItem, 'id'>
+): Promise<void> {
+  await setDoc(
+    doc(db, COLLECTION_NAME, id),
+    item
+  );
+}
+
+/**
+ * تعديل وجبة
+ */
 export async function updateMenuItem(
   id: string,
   item: Partial<Omit<MenuItem, 'id'>>
@@ -45,33 +65,13 @@ export async function updateMenuItem(
   );
 }
 
-// حذف وجبة
+/**
+ * حذف وجبة
+ */
 export async function deleteMenuItem(
   id: string
 ): Promise<void> {
   await deleteDoc(
     doc(db, COLLECTION_NAME, id)
   );
-}
-export async function testMenuItem(): Promise<string> {
-  const testItem: Omit<MenuItem, 'id'> = {
-    name: 'اختبار Firestore',
-    nameEn: 'Firestore Test',
-    description: 'هذا سجل اختبار وسيتم حذفه',
-    descriptionEn: 'This is a test record and will be deleted',
-    price: 1000,
-    category: 'main',
-    image: 'https://example.com/test.jpg',
-    available: true,
-    isPopular: false,
-    isChefSpecial: false,
-    preparationTime: '5 دقائق',
-    preparationTimeEn: '5 min',
-  };
-
-  const id = await addMenuItem(testItem);
-
-  console.log('✅ Menu item created:', id);
-
-  return id;
 }
