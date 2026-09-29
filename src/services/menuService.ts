@@ -127,6 +127,22 @@ export async function getCategories(): Promise<Category[]> {
   })) as Category[];
 }
 
+export function subscribeToCategories(
+  callback: (categories: Category[]) => void
+) {
+  return onSnapshot(
+    collection(db, CATEGORIES_COLLECTION),
+    (snapshot) => {
+      const categories = snapshot.docs.map((item) => ({
+        id: item.id,
+        ...item.data(),
+      })) as Category[];
+
+      callback(categories);
+    }
+  );
+}
+
 /**
  * حفظ صنف باستخدام ID محدد
  */
