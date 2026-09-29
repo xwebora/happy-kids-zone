@@ -34,6 +34,7 @@ import {
   addMenuItem,
   updateMenuItem,
   deleteMenuItem,
+  setMenuItem,
 } from '../services/menuService';
 
 interface AdminModalProps {
