@@ -738,9 +738,29 @@ const handleQuickPriceSave = async (id: string) => {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            {/* Google Drive Status Pill */}
-            {user ? (
+         <div className="flex items-center gap-3">
+
+  {/* Firestore Sync */}
+  <button
+    onClick={handleMigrateItemsToFirestore}
+    className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#172b68] hover:bg-[#21418f] text-xs font-bold text-white border border-[#2855D9]"
+    title={
+      isAr
+        ? 'نقل الوجبات الحالية إلى Firestore'
+        : 'Migrate current menu items to Firestore'
+    }
+  >
+    <RefreshCw className="w-3.5 h-3.5 text-[#FFD11A]" />
+
+    <span>
+      {isAr
+        ? 'مزامنة قاعدة البيانات'
+        : 'Sync Database'}
+    </span>
+  </button>
+
+  {/* Google Drive Status Pill */}
+  {user ? (
               <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#78C943]/20 border border-[#78C943] text-[#78C943] text-xs font-bold">
                 <span className="w-2 h-2 rounded-full bg-[#78C943] animate-pulse" />
                 <span>Drive: {user.email?.split('@')[0]}</span>
