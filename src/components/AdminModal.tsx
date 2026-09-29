@@ -489,11 +489,69 @@ const handleSaveItem = async (e: React.FormEvent) => {
         );
       }
     },
-  });
+  });};
+
+// نقل الوجبات الحالية إلى Firestore
+const handleMigrateItemsToFirestore = async () => {
+  if (!items || items.length === 0) {
+    alert(
+      isAr
+        ? 'لا توجد وجبات لنقلها إلى قاعدة البيانات'
+        : 'There are no menu items to migrate'
+    );
+    return;
+  }
+
+  const confirmed = window.confirm(
+    isAr
+      ? `سيتم نقل ${items.length} وجبة إلى Firestore.\n\nلن يتم حذف أي شيء من جهازك أو Google Drive.\n\nهل تريد المتابعة؟`
+      : `${items.length} menu items will be migrated to Firestore.\n\nNothing will be deleted from your device or Google Drive.\n\nContinue?`
+  );
+
+  if (!confirmed) return;
+
+  try {
+    setSyncBanner(
+      isAr
+        ? 'جاري نقل الوجبات إلى قاعدة البيانات...'
+        : 'Migrating menu items to database...'
+    );
+
+    let migratedCount = 0;
+
+    for (const item of items) {
+      const { id, ...itemData } = item;
+
+      await setMenuItem(id, itemData);
+
+      migratedCount++;
+    }
+
+    setSyncBanner(
+      isAr
+        ? `تم نقل ${migratedCount} وجبة إلى قاعدة البيانات بنجاح`
+        : `${migratedCount} menu items migrated successfully`
+    );
+
+    setTimeout(() => {
+      setSyncBanner(null);
+    }, 5000);
+
+  } catch (error: any) {
+    console.error('❌ Migration error:', error);
+
+    setSyncBanner(null);
+
+    alert(
+      isAr
+        ? `حدث خطأ أثناء نقل البيانات:\n${error.message || error}`
+        : `Migration failed:\n${error.message || error}`
+    );
+  }
 };
 
-  // Quick Inline Price Save
- const handleQuickPriceSave = async (id: string) => {
+// Quick Inline Price Save
+const handleQuickPriceSave = async (id: string) => {
   const newPrice = quickPrices[id];
 
   if (
