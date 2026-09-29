@@ -113,13 +113,26 @@ export const PortalGate: React.FC<PortalGateProps> = ({
         {/* The Two Main Portals (Customer vs Admin) */}
 {!adminOnly && (
   <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
+          
+    {/* OPTION 1: CUSTOMER VIEW (Dedicated Standalone Kids Menu Page) */}
+    <div
+      onClick={onSelectCustomerView}
+      className="group relative cursor-pointer rounded-3xl bg-gradient-to-b from-[#13286b]/90 to-[#0e1d52]/90 border-2 border-[#2855D9] hover:border-[#FFD11A] p-7 sm:p-8 transition-all duration-300 hover:shadow-2xl hover:shadow-[#2855D9]/40 flex flex-col justify-between overflow-hidden transform hover:-translate-y-1"
+    >
+      {/* محتوى Customer الحالي بالكامل هنا */}
+    </div>
 
-  {/* بطاقة Customer */}
-
-  {/* بطاقة Admin */}
+    {/* OPTION 2: ADMIN CONTROL PANEL */}
+    <div
+      onClick={() => setShowLoginModal(true)}
+      className="group relative cursor-pointer rounded-3xl bg-gradient-to-b from-[#13286b]/90 to-[#0e1d52]/90 border-2 border-[#2855D9] hover:border-[#71359B] p-7 sm:p-8 transition-all duration-300 hover:shadow-2xl hover:shadow-[#71359B]/40 flex flex-col justify-between overflow-hidden transform hover:-translate-y-1"
+    >
+      {/* محتوى Admin الحالي بالكامل هنا */}
+    </div>
 
   </div>
 )}
+
 </main>
           
           {/* OPTION 1: CUSTOMER VIEW (Dedicated Standalone Kids Menu Page) */}
