@@ -30,6 +30,11 @@ import { uploadImageToDrive, saveMenuBackupToDrive, deleteDriveFile } from '../s
 import { googleSignIn, logout } from '../services/auth';
 import { translations } from '../utils/i18n';
 import { User } from 'firebase/auth';
+import {
+  addMenuItem,
+  updateMenuItem,
+  deleteMenuItem,
+} from '../services/menuService';
 
 interface AdminModalProps {
   isOpen: boolean;
@@ -241,122 +246,337 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   };
 
   // Save Item (Create or Update)
-  const handleSaveItem = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formNameAr || formPrice === '') {
-      alert(isAr ? 'يرجى إدخال اسم الوجبة والسعر' : 'Please provide dish name and price');
-      return;
-    }
+const handleSaveItem = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    let finalImageUrl = formImageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80';
-    let driveFileId = editingItem?.driveFileId;
+  if (!formNameAr || formPrice === '') {
+    alert(
+      isAr
+        ? 'يرجى إدخال اسم الوجبة والسعر'
+        : 'Please provide dish name and price'
+    );
+    return;
+  }
 
-    if (selectedFile) {
-      if (user && uploadToDriveChecked) {
-        setIsUploadingImage(true);
-        try {
-          const fileName = `item_${Date.now()}_${selectedFile.name.replace(/\s+/g, '_')}`;
-          const uploadRes = await uploadImageToDrive(selectedFile, fileName);
-          finalImageUrl = uploadRes.directUrl;
-          driveFileId = uploadRes.fileId;
-        } catch (err: any) {
-          console.error('Drive upload failed, using local/fallback:', err);
-          finalImageUrl = filePreview || finalImageUrl;
-        } finally {
-          setIsUploadingImage(false);
-        }
-      } else if (filePreview) {
-        finalImageUrl = filePreview;
+  let finalImageUrl =
+    formImageUrl ||
+    'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80';
+
+  let driveFileId = editingItem?.driveFileId;
+
+  // رفع الصورة إلى Google Drive
+  if (selectedFile) {
+    if (user && uploadToDriveChecked) {
+      setIsUploadingImage(true);
+
+      try {
+        const fileName = `item_${Date.now()}_${selectedFile.name.replace(/\s+/g, '_')}`;
+
+        const uploadRes = await uploadImageToDrive(
+          selectedFile,
+          fileName
+        );
+
+        finalImageUrl = uploadRes.directUrl;
+        driveFileId = uploadRes.fileId;
+      } catch (err: any) {
+        console.error('Drive upload failed:', err);
+
+        finalImageUrl =
+          filePreview || finalImageUrl;
+      } finally {
+        setIsUploadingImage(false);
       }
+    } else if (filePreview) {
+      finalImageUrl = filePreview;
     }
+  }
 
+  try {
+    // ============================================
+    // تعديل وجبة موجودة
+    // ============================================
     if (editingItem) {
-      const updatedList = items.map((it) =>
-        it.id === editingItem.id
-          ? {
-              ...it,
-              name: formNameAr,
-              nameEn: formNameEn || formNameAr,
-              description: formDescAr,
-              descriptionEn: formDescEn || formDescAr,
-              price: Number(formPrice),
-              originalPrice: formOrigPrice ? Number(formOrigPrice) : undefined,
-              category: formCategory,
-              image: finalImageUrl,
-              driveFileId,
-              calories: formCalories ? Number(formCalories) : undefined,
-              preparationTime: formPrepTimeAr,
-              preparationTimeEn: formPrepTimeEn,
-              isChefSpecial: formIsSpecial,
-              isPopular: formIsPopular,
-              available: formAvailable,
-            }
-          : it
-      );
-      onUpdateItems(updatedList);
-    } else {
-      const newItem: MenuItem = {
-        id: `item-${Date.now()}`,
+      const updatedItem: Partial<Omit<MenuItem, 'id'>> = {
         name: formNameAr,
         nameEn: formNameEn || formNameAr,
         description: formDescAr,
         descriptionEn: formDescEn || formDescAr,
         price: Number(formPrice),
-        originalPrice: formOrigPrice ? Number(formOrigPrice) : undefined,
         category: formCategory,
         image: finalImageUrl,
-        driveFileId,
-        calories: formCalories ? Number(formCalories) : undefined,
-        preparationTime: formPrepTimeAr,
-        preparationTimeEn: formPrepTimeEn,
+        available: formAvailable,
         isChefSpecial: formIsSpecial,
         isPopular: formIsPopular,
-        available: formAvailable,
+        preparationTime: formPrepTimeAr,
+        preparationTimeEn: formPrepTimeEn,
       };
-      onUpdateItems([newItem, ...items]);
+
+      if (formOrigPrice !== '') {
+        updatedItem.originalPrice = Number(formOrigPrice);
+      }
+
+      if (formCalories !== '') {
+        updatedItem.calories = Number(formCalories);
+      }
+
+      if (driveFileId) {
+        updatedItem.driveFileId = driveFileId;
+      }
+
+      // حفظ في Firestore
+      await updateMenuItem(
+        editingItem.id,
+        updatedItem
+      );
+
+      // تحديث واجهة الموقع
+      const updatedList = items.map((it) =>
+        it.id === editingItem.id
+          ? {
+              ...it,
+              ...updatedItem,
+            }
+          : it
+      );
+
+      onUpdateItems(updatedList);
+
+      setSyncBanner(
+        isAr
+          ? 'تم تحديث الوجبة وحفظها في قاعدة البيانات'
+          : 'Item updated and saved to database'
+      );
     }
+
+    // ============================================
+    // إضافة وجبة جديدة
+    // ============================================
+    else {
+      const newItemData: Omit<MenuItem, 'id'> = {
+        name: formNameAr,
+        nameEn: formNameEn || formNameAr,
+        description: formDescAr,
+        descriptionEn: formDescEn || formDescAr,
+        price: Number(formPrice),
+        category: formCategory,
+        image: finalImageUrl,
+        available: formAvailable,
+        isChefSpecial: formIsSpecial,
+        isPopular: formIsPopular,
+        preparationTime: formPrepTimeAr,
+        preparationTimeEn: formPrepTimeEn,
+      };
+
+      if (formOrigPrice !== '') {
+        newItemData.originalPrice = Number(formOrigPrice);
+      }
+
+      if (formCalories !== '') {
+        newItemData.calories = Number(formCalories);
+      }
+
+      if (driveFileId) {
+        newItemData.driveFileId = driveFileId;
+      }
+
+      // حفظ في Firestore
+      const firestoreId = await addMenuItem(
+        newItemData
+      );
+
+      // استخدام Firestore ID كـ ID للوجبة
+      const newItem: MenuItem = {
+        id: firestoreId,
+        ...newItemData,
+      };
+
+      // تحديث الواجهة و localStorage
+      onUpdateItems([
+        newItem,
+        ...items,
+      ]);
+
+      setSyncBanner(
+        isAr
+          ? 'تمت إضافة الوجبة وحفظها في قاعدة البيانات'
+          : 'Item added and saved to database'
+      );
+    }
+
+    setTimeout(() => {
+      setSyncBanner(null);
+    }, 3000);
 
     resetItemForm();
     setActiveTab('items');
-  };
+
+  } catch (error: any) {
+    console.error(
+      '❌ Firestore save error:',
+      error
+    );
+
+    alert(
+      isAr
+        ? `حدث خطأ أثناء حفظ الوجبة في قاعدة البيانات:\n${error.message || error}`
+        : `Failed to save item to database:\n${error.message || error}`
+    );
+  }
+};
 
   // Delete Item Confirmation
-  const handleDeleteItem = (item: MenuItem) => {
-    setConfirmDialog({
-      isOpen: true,
-      title: isAr ? 'حذف الوجبة نهائياً' : 'Delete Dish Permanently',
-      message: isAr
-        ? `هل أنت متأكد من حذف طبق "${item.name}" من قائمة المطعم؟`
-        : `Are you sure you want to delete "${item.nameEn || item.name}" from the menu?`,
-      onConfirm: async () => {
-        setConfirmDialog(null);
+ const handleDeleteItem = (item: MenuItem) => {
+  setConfirmDialog({
+    isOpen: true,
+    title: isAr
+      ? 'حذف الوجبة نهائياً'
+      : 'Delete Dish Permanently',
+
+    message: isAr
+      ? `هل أنت متأكد من حذف طبق "${item.name}" من قائمة المطعم؟`
+      : `Are you sure you want to delete "${item.nameEn || item.name}" from the menu?`,
+
+    onConfirm: async () => {
+      setConfirmDialog(null);
+
+      try {
+        // حذف من Firestore
+        await deleteMenuItem(item.id);
+
+        // حذف الصورة من Google Drive إن وجدت
         if (item.driveFileId && user) {
           try {
-            await deleteDriveFile(item.driveFileId);
-          } catch (e) {
-            console.warn('Drive deletion error', e);
+            await deleteDriveFile(
+              item.driveFileId
+            );
+          } catch (driveError) {
+            console.warn(
+              'Drive deletion error:',
+              driveError
+            );
           }
         }
-        onUpdateItems(items.filter((i) => i.id !== item.id));
-      },
-    });
-  };
+
+        // تحديث الواجهة
+        onUpdateItems(
+          items.filter(
+            (i) => i.id !== item.id
+          )
+        );
+
+        setSyncBanner(
+          isAr
+            ? 'تم حذف الوجبة من قاعدة البيانات'
+            : 'Item deleted from database'
+        );
+
+        setTimeout(() => {
+          setSyncBanner(null);
+        }, 3000);
+
+      } catch (error: any) {
+        console.error(
+          '❌ Firestore delete error:',
+          error
+        );
+
+        alert(
+          isAr
+            ? `تعذر حذف الوجبة من قاعدة البيانات:\n${error.message || error}`
+            : `Failed to delete item:\n${error.message || error}`
+        );
+      }
+    },
+  });
+};
 
   // Quick Inline Price Save
-  const handleQuickPriceSave = (id: string) => {
-    const newPrice = quickPrices[id];
-    if (newPrice === undefined || isNaN(newPrice) || newPrice <= 0) return;
+ const handleQuickPriceSave = async (id: string) => {
+  const newPrice = quickPrices[id];
 
-    onUpdateItems(items.map((it) => (it.id === id ? { ...it, price: newPrice } : it)));
+  if (
+    newPrice === undefined ||
+    isNaN(newPrice) ||
+    newPrice <= 0
+  ) {
+    return;
+  }
+
+  try {
+    await updateMenuItem(id, {
+      price: newPrice,
+    });
+
+    onUpdateItems(
+      items.map((it) =>
+        it.id === id
+          ? {
+              ...it,
+              price: newPrice,
+            }
+          : it
+      )
+    );
+
     setSavedSuccessId(id);
-    setTimeout(() => setSavedSuccessId(null), 2000);
-  };
 
+    setTimeout(() => {
+      setSavedSuccessId(null);
+    }, 2000);
+
+  } catch (error: any) {
+    console.error(
+      '❌ Price update error:',
+      error
+    );
+
+    alert(
+      isAr
+        ? 'تعذر تحديث السعر في قاعدة البيانات'
+        : 'Failed to update price'
+    );
+  }
+};
   // Toggle Availability
-  const handleToggleAvailability = (id: string) => {
-    onUpdateItems(items.map((it) => (it.id === id ? { ...it, available: !it.available } : it)));
-  };
+ const handleToggleAvailability = async (id: string) => {
+  const item = items.find(
+    (it) => it.id === id
+  );
 
+  if (!item) return;
+
+  const newAvailable = !item.available;
+
+  try {
+    await updateMenuItem(id, {
+      available: newAvailable,
+    });
+
+    onUpdateItems(
+      items.map((it) =>
+        it.id === id
+          ? {
+              ...it,
+              available: newAvailable,
+            }
+          : it
+      )
+    );
+
+  } catch (error: any) {
+    console.error(
+      '❌ Availability update error:',
+      error
+    );
+
+    alert(
+      isAr
+        ? 'تعذر تحديث حالة التوفر'
+        : 'Failed to update availability'
+    );
+  }
+};
   // Category Actions: Add or Update Category
   const handleSaveCategory = (e: React.FormEvent) => {
     e.preventDefault();
