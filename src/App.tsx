@@ -14,7 +14,6 @@ import {
   INITIAL_HERO_CONFIG 
 } from './data/mockData';
 import { initAuth } from './services/auth';
-import { getMenuItems } from './services/menuService';
 import { translations } from './utils/i18n';
 import { User } from 'firebase/auth';
 import { 
@@ -252,30 +251,6 @@ export default function App() {
   }, [items]);
  
   // Load menu items from Firestore
-useEffect(() => {
-  let cancelled = false;
-
-  const loadMenuItems = async () => {
-    try {
-      const firestoreItems = await getMenuItems();
-
-      if (!cancelled && firestoreItems.length > 0) {
-        setItems(firestoreItems);
-        console.log(
-          `✅ Loaded ${firestoreItems.length} menu items from Firestore`
-        );
-      } else if (!cancelled) {
-        console.log(
-          'ℹ️ Firestore menuItems is empty. Keeping current local data.'
-        );
-      }
-    } catch (error) {
-      console.error(
-        '❌ Failed to load menu items from Firestore:',
-        error
-      );
-    }
-  };
 
   loadMenuItems();
 
