@@ -11,7 +11,7 @@ import { db } from './firestore';
 export async function testFirestore() {
   console.log('🔥 Testing Firestore connection...');
 
-  const testCollection = collection(db, '__connection_test__');
+  const testCollection = collection(db, 'firestoreConnectionTest');
 
   // كتابة سجل تجريبي
   const testDoc = await addDoc(testCollection, {
