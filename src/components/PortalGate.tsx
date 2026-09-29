@@ -120,6 +120,7 @@ export const PortalGate: React.FC<PortalGateProps> = ({
 
   </div>
 )}
+</main>
           
           {/* OPTION 1: CUSTOMER VIEW (Dedicated Standalone Kids Menu Page) */}
           <div
