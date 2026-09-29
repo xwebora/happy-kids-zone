@@ -25,6 +25,7 @@ interface PortalGateProps {
   hero?: HeroConfig;
   onSelectCustomerView: () => void;
   onAdminLoginSuccess: () => void;
+  adminOnly?: boolean;
 }
 
 export const PortalGate: React.FC<PortalGateProps> = ({
@@ -34,8 +35,9 @@ export const PortalGate: React.FC<PortalGateProps> = ({
   hero,
   onSelectCustomerView,
   onAdminLoginSuccess,
+  adminOnly = false,
 }) => {
-  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(adminOnly);
   const [usernameInput, setUsernameInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -109,7 +111,15 @@ export const PortalGate: React.FC<PortalGateProps> = ({
         </div>
 
         {/* The Two Main Portals (Customer vs Admin) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
+{!adminOnly && (
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
+
+  {/* بطاقة Customer */}
+
+  {/* بطاقة Admin */}
+
+  </div>
+)}
           
           {/* OPTION 1: CUSTOMER VIEW (Dedicated Standalone Kids Menu Page) */}
           <div
