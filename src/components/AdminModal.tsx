@@ -661,7 +661,7 @@ const handleQuickPriceSave = async (id: string) => {
   }
 };
   // Category Actions: Add or Update Category
-  const handleSaveCategory = (e: React.FormEvent) => {
+  const handleSaveCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!catNameAr.trim()) {
       alert(isAr ? 'يرجى إدخال اسم الصنف بالعربية' : 'Please provide category name');
@@ -676,17 +676,84 @@ const handleQuickPriceSave = async (id: string) => {
             : c
         )
       );
-      setEditingCat(null);
-    } else {
-      const newCat: Category = {
-        id: `cat-${Date.now()}`,
-        name: catNameAr,
-        nameEn: catNameEn || catNameAr,
-        icon: catIcon,
-      };
-      onUpdateCategories([...categories, newCat]);
-    }
+      if (editingCat) {
+  const updatedCategory: Category = {
+    ...editingCat,
+    name: catNameAr,
+    nameEn: catNameEn || catNameAr,
+    icon: catIcon,
+  };
 
+  try {
+    await setCategory(
+      editingCat.id,
+      {
+        name: updatedCategory.name,
+        nameEn: updatedCategory.nameEn,
+        icon: updatedCategory.icon,
+      }
+    );
+
+    onUpdateCategories(
+      categories.map((c) =>
+        c.id === editingCat.id
+          ? updatedCategory
+          : c
+      )
+    );
+
+    setEditingCat(null);
+  } catch (error) {
+    console.error(
+      'Error updating category:',
+      error
+    );
+
+    alert(
+      isAr
+        ? 'حدث خطأ أثناء حفظ التصنيف'
+        : 'Error saving category'
+    );
+
+    return;
+  }
+} else {
+  const newCat: Category = {
+    id: `cat-${Date.now()}`,
+    name: catNameAr,
+    nameEn: catNameEn || catNameAr,
+    icon: catIcon,
+  };
+
+  try {
+    await setCategory(
+      newCat.id,
+      {
+        name: newCat.name,
+        nameEn: newCat.nameEn,
+        icon: newCat.icon,
+      }
+    );
+
+    onUpdateCategories([
+      ...categories,
+      newCat,
+    ]);
+  } catch (error) {
+    console.error(
+      'Error adding category:',
+      error
+    );
+
+    alert(
+      isAr
+        ? 'حدث خطأ أثناء إضافة التصنيف'
+        : 'Error adding category'
+    );
+
+    return;
+  }
+}
     setCatNameAr('');
     setCatNameEn('');
     setCatIcon('Utensils');
