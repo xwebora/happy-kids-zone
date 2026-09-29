@@ -1,10 +1,7 @@
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
-import { getApps, getApp } from 'firebase/app';
+import firebaseConfig from '../../firebase-applet-config.json';
 
-const app = getApps().length ? getApp() : null;
-
-if (!app) {
-  throw new Error('Firebase app is not initialized');
-}
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
 export const db = getFirestore(app);
