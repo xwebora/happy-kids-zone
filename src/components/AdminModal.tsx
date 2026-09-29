@@ -35,6 +35,7 @@ import {
   updateMenuItem,
   deleteMenuItem,
   setMenuItem,
+  migrateAllDataToFirestore,
 } from '../services/menuService';
 
 interface AdminModalProps {
@@ -493,7 +494,10 @@ const handleSaveItem = async (e: React.FormEvent) => {
 
 // نقل الوجبات الحالية إلى Firestore
 const handleMigrateItemsToFirestore = async () => {
-  if (!items || items.length === 0) {
+  if (
+    !items ||
+    items.length === 0
+  ) {
     alert(
       isAr
         ? 'لا توجد وجبات لنقلها إلى قاعدة البيانات'
@@ -504,8 +508,26 @@ const handleMigrateItemsToFirestore = async () => {
 
   const confirmed = window.confirm(
     isAr
-      ? `سيتم نقل ${items.length} وجبة إلى Firestore.\n\nلن يتم حذف أي شيء من جهازك أو Google Drive.\n\nهل تريد المتابعة؟`
-      : `${items.length} menu items will be migrated to Firestore.\n\nNothing will be deleted from your device or Google Drive.\n\nContinue?`
+      ? `سيتم نقل جميع بيانات لوحة التحكم إلى Firestore:
+
+🍔 الوجبات: ${items.length}
+📂 الأصناف: ${categories.length}
+🏪 معلومات المطعم: نعم
+🖼️ إعدادات Hero: نعم
+
+لن يتم حذف أي شيء من جهازك أو Google Drive.
+
+هل تريد المتابعة؟`
+      : `All dashboard data will be migrated to Firestore:
+
+🍔 Menu items: ${items.length}
+📂 Categories: ${categories.length}
+🏪 Restaurant information: Yes
+🖼️ Hero settings: Yes
+
+Nothing will be deleted from your device or Google Drive.
+
+Continue?`
   );
 
   if (!confirmed) return;
@@ -513,24 +535,22 @@ const handleMigrateItemsToFirestore = async () => {
   try {
     setSyncBanner(
       isAr
-        ? 'جاري نقل الوجبات إلى قاعدة البيانات...'
-        : 'Migrating menu items to database...'
+        ? 'جاري مزامنة جميع البيانات...'
+        : 'Synchronizing all data...'
     );
 
-    let migratedCount = 0;
-
-    for (const item of items) {
-      const { id, ...itemData } = item;
-
-      await setMenuItem(id, itemData);
-
-      migratedCount++;
-    }
+    const result =
+      await migrateAllDataToFirestore(
+        items,
+        categories,
+        restaurant,
+        hero
+      );
 
     setSyncBanner(
       isAr
-        ? `تم نقل ${migratedCount} وجبة إلى قاعدة البيانات بنجاح`
-        : `${migratedCount} menu items migrated successfully`
+        ? `تمت المزامنة بنجاح: ${result.menuItems} وجبة و ${result.categories} صنف`
+        : `Sync successful: ${result.menuItems} items and ${result.categories} categories`
     );
 
     setTimeout(() => {
@@ -538,18 +558,20 @@ const handleMigrateItemsToFirestore = async () => {
     }, 5000);
 
   } catch (error: any) {
-    console.error('❌ Migration error:', error);
+    console.error(
+      '❌ Full Firestore migration error:',
+      error
+    );
 
     setSyncBanner(null);
 
     alert(
       isAr
-        ? `حدث خطأ أثناء نقل البيانات:\n${error.message || error}`
-        : `Migration failed:\n${error.message || error}`
+        ? `حدث خطأ أثناء مزامنة البيانات:\n${error.message || error}`
+        : `Database synchronization failed:\n${error.message || error}`
     );
   }
 };
-
 // Quick Inline Price Save
 const handleQuickPriceSave = async (id: string) => {
   const newPrice = quickPrices[id];
