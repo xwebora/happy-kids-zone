@@ -6,6 +6,7 @@ import {
   deleteDoc,
   doc,
   setDoc,
+  onSnapshot,
 } from 'firebase/firestore';
 
 import { db } from './firestore';
@@ -42,6 +43,21 @@ export async function getMenuItems(): Promise<MenuItem[]> {
   })) as MenuItem[];
 }
 
+/**
+ * مراقبة الوجبات بشكل مباشر
+ */
+export function subscribeToMenuItems(
+  callback: (items: MenuItem[]) => void
+) {
+  return onSnapshot(menuItemsCollection, (snapshot) => {
+    const items = snapshot.docs.map((item) => ({
+      id: item.id,
+      ...item.data(),
+    })) as MenuItem[];
+
+    callback(items);
+  });
+}
 /**
  * إضافة وجبة جديدة
  */
