@@ -1525,6 +1525,7 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                 <div className="flex justify-end pt-2">
                   <button
                     type="submit"
+                    onClick={() => console.log('🟢 SAVE CATEGORY BUTTON CLICKED')}
                     className="px-5 py-2 rounded-xl bg-[#d4af37] hover:bg-[#c29e2c] text-[#0c0d10] font-bold text-xs shadow flex items-center gap-1.5"
                   >
                     <Save className="w-3.5 h-3.5" />
