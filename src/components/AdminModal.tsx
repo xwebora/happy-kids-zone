@@ -781,7 +781,6 @@ const handleSaveCategory = async (e: React.FormEvent) => {
     isOpen: true,
     title: t.confirmTitle,
     message: `${t.confirmDeleteCategory} (${isAr ? cat.name : cat.nameEn})`,
-
     onConfirm: async () => {
       setConfirmDialog(null);
 
@@ -798,7 +797,6 @@ const handleSaveCategory = async (e: React.FormEvent) => {
           '🟢 Category deleted successfully:',
           cat.id
         );
-
       } catch (error) {
         console.error(
           '🔴 Error deleting category:',
@@ -814,17 +812,6 @@ const handleSaveCategory = async (e: React.FormEvent) => {
     },
   });
 };
-
-    setConfirmDialog({
-      isOpen: true,
-      title: t.confirmTitle,
-      message: `${t.confirmDeleteCategory} (${isAr ? cat.name : cat.nameEn})`,
-      onConfirm: () => {
-        setConfirmDialog(null);
-        onUpdateCategories(categories.filter((c) => c.id !== cat.id));
-      },
-    });
-  };
 
   // Save Hero Config
   const handleSaveHero = (e: React.FormEvent) => {
