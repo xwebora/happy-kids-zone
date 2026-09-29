@@ -952,9 +952,14 @@ export default function App() {
           onUpdateHero={
             setHeroConfig
           }
-          onUpdateRestaurant={
-            setRestaurant
-          }
+          onUpdateRestaurant={(updatedRestaurant) => {
+  setRestaurant(updatedRestaurant);
+
+  localStorage.setItem(
+    STORAGE_KEY_RESTAURANT,
+    JSON.stringify(updatedRestaurant)
+  );
+}}
           user={user}
           onUserChange={setUser}
           onAdminLogout={() => {
