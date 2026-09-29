@@ -75,3 +75,19 @@ export async function deleteMenuItem(
     doc(db, COLLECTION_NAME, id)
   );
 }
+
+export async function migrateMenuItems(
+  items: MenuItem[]
+): Promise<number> {
+  let migratedCount = 0;
+
+  for (const item of items) {
+    const { id, ...itemData } = item;
+
+    await setMenuItem(id, itemData);
+
+    migratedCount++;
+  }
+
+  return migratedCount;
+}
