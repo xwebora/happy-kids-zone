@@ -381,32 +381,62 @@ export default function App() {
     );
   }
 
-  // If in Admin mode, render Admin Panel directly
-  if (viewMode === 'admin') {
+// If in Admin mode, require admin authentication first
+if (viewMode === 'admin') {
+
+  // Direct access to #/admin is NOT allowed
+  // unless the user has already passed the admin login.
+  if (!isAdminAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#0a163e] text-white flex flex-col font-['Cairo',sans-serif]">
-        <AdminModal
-          isOpen={true}
-          onClose={() => navigateToView('portal')}
-          items={items}
-          categories={categories}
-          hero={heroConfig}
-          restaurant={restaurant}
-          language={language}
-          onUpdateItems={setItems}
-          onUpdateCategories={setCategories}
-          onUpdateHero={setHeroConfig}
-          onUpdateRestaurant={setRestaurant}
-          user={user}
-          onUserChange={setUser}
-          onAdminLogout={() => {
-            setIsAdminAuthenticated(false);
-            navigateToView('portal');
-          }}
-        />
-      </div>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key="admin-login-required"
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.98 }}
+          transition={{ duration: 0.3 }}
+        >
+          <PortalGate
+            language={language}
+            onLanguageChange={setLanguage}
+            restaurant={restaurant}
+            hero={heroConfig}
+            onSelectCustomerView={() => navigateToView('customer')}
+            onAdminLoginSuccess={() => {
+              setIsAdminAuthenticated(true);
+              navigateToView('admin');
+            }}
+          />
+        </motion.div>
+      </AnimatePresence>
     );
   }
+
+  // User is authenticated → show Admin Panel
+  return (
+    <div className="min-h-screen bg-[#0a163e] text-white flex flex-col font-['Cairo',sans-serif]">
+      <AdminModal
+        isOpen={true}
+        onClose={() => navigateToView('portal')}
+        items={items}
+        categories={categories}
+        hero={heroConfig}
+        restaurant={restaurant}
+        language={language}
+        onUpdateItems={setItems}
+        onUpdateCategories={setCategories}
+        onUpdateHero={setHeroConfig}
+        onUpdateRestaurant={setRestaurant}
+        user={user}
+        onUserChange={setUser}
+        onAdminLogout={() => {
+          setIsAdminAuthenticated(false);
+          navigateToView('portal');
+        }}
+      />
+    </div>
+  );
+}
 
   // Brand Theme background styles: Blue & Yellow
   const themeBackgroundClasses: Record<BrandThemeMode, string> = {
