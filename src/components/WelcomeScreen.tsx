@@ -8,7 +8,7 @@ interface WelcomeScreenProps {
 
 const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   config,
-  onLanguageSelect
+  onLanguageSelect,
 }) => {
   const [visible, setVisible] = useState(false);
 
@@ -32,6 +32,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       case 'zoom':
         return 'opacity-100 scale-100';
 
+      case 'fade':
       default:
         return 'opacity-100';
     }
@@ -40,7 +41,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   return (
     <div className="fixed inset-0 z-[9999] w-screen h-screen overflow-hidden bg-black">
 
-      {/* Background */}
+      {/* ==================== BACKGROUND ==================== */}
       {config.backgroundType === 'video' && config.backgroundUrl ? (
         <video
           className="absolute inset-0 w-full h-full object-cover"
@@ -61,30 +62,37 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         <div className="absolute inset-0 bg-[#0a163e]" />
       )}
 
-      {/* Dark overlay */}
+      {/* ==================== DARK OVERLAY ==================== */}
       <div
         className="absolute inset-0 bg-black"
         style={{
-          opacity: config.overlayOpacity
+          opacity: Math.max(
+            0,
+            Math.min(1, config.overlayOpacity ?? 0.45)
+          ),
         }}
       />
 
-      {/* Soft center glow */}
+      {/* ==================== GRADIENT ==================== */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60" />
 
-      {/* Content */}
+      {/* ==================== CONTENT ==================== */}
       <div
         className={`
           relative z-10
           w-full h-full
-          flex flex-col items-center justify-center
+          flex flex-col
+          items-center
+          justify-center
           px-5
-          transition-all duration-1000 ease-out
+          transition-all
+          duration-1000
+          ease-out
           ${getAnimationClass()}
         `}
       >
 
-        {/* Logo */}
+        {/* ==================== LOGO ==================== */}
         {config.logoUrl && (
           <div className="mb-8">
             <img
@@ -93,7 +101,10 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
               className="
                 max-w-[180px]
                 sm:max-w-[220px]
+                md:max-w-[260px]
                 max-h-[150px]
+                sm:max-h-[180px]
+                md:max-h-[200px]
                 object-contain
                 drop-shadow-[0_8px_25px_rgba(0,0,0,0.6)]
               "
@@ -101,7 +112,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           </div>
         )}
 
-        {/* Welcome text */}
+        {/* ==================== WELCOME TEXT ==================== */}
         <div className="text-center space-y-3">
 
           {/* Syriac */}
@@ -175,7 +186,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 
         </div>
 
-        {/* Language buttons */}
+        {/* ==================== LANGUAGE BUTTONS ==================== */}
         <div
           className="
             flex
@@ -187,66 +198,84 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           "
         >
 
+          {/* Kurdish */}
           <button
+            type="button"
             onClick={() => onLanguageSelect('ku')}
             className="
               min-w-[105px]
-              px-6 py-3
+              px-6
+              py-3
               rounded-2xl
               bg-white/15
               backdrop-blur-md
-              border border-white/40
+              border
+              border-white/40
               text-white
               font-black
               hover:bg-[#FFD11A]
               hover:text-[#0a163e]
               hover:border-[#FFD11A]
+              hover:scale-105
               active:scale-95
               transition-all
+              duration-300
               shadow-lg
             "
           >
             کوردی
           </button>
 
+          {/* Arabic */}
           <button
+            type="button"
             onClick={() => onLanguageSelect('ar')}
             className="
               min-w-[105px]
-              px-6 py-3
+              px-6
+              py-3
               rounded-2xl
               bg-white/15
               backdrop-blur-md
-              border border-white/40
+              border
+              border-white/40
               text-white
               font-black
               hover:bg-[#FFD11A]
               hover:text-[#0a163e]
               hover:border-[#FFD11A]
+              hover:scale-105
               active:scale-95
               transition-all
+              duration-300
               shadow-lg
             "
           >
             العربية
           </button>
 
+          {/* English */}
           <button
+            type="button"
             onClick={() => onLanguageSelect('en')}
             className="
               min-w-[105px]
-              px-6 py-3
+              px-6
+              py-3
               rounded-2xl
               bg-white/15
               backdrop-blur-md
-              border border-white/40
+              border
+              border-white/40
               text-white
               font-black
               hover:bg-[#FFD11A]
               hover:text-[#0a163e]
               hover:border-[#FFD11A]
+              hover:scale-105
               active:scale-95
               transition-all
+              duration-300
               shadow-lg
             "
           >
@@ -260,7 +289,4 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   );
 };
 
-export function WelcomeScreen({
-  config,
-  onLanguageSelect,
-}: WelcomeScreenProps) {
+export { WelcomeScreen };
