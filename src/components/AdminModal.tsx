@@ -851,7 +851,7 @@ const handleSaveSettings = async (e: React.FormEvent) => {
 };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-50 w-screen h-screen overflow-hidden">
       {/* Backdrop */}
       <div 
         className="fixed inset-0 bg-black/85 backdrop-blur-md transition-opacity"
@@ -859,7 +859,7 @@ const handleSaveSettings = async (e: React.FormEvent) => {
       />
 
       {/* Modal Dialog */}
-      <div className="relative w-full max-w-5xl bg-[#0a163e] border-2 border-[#2855D9] rounded-3xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden text-white z-10">
+      <div className="relative w-full h-full bg-[#0a163e] flex flex-col overflow-hidden text-white z-10">
         
         {/* Header */}
         <div className="px-6 py-5 border-b-2 border-[#1e3b96] flex items-center justify-between bg-[#0e2055]">
