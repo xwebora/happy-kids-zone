@@ -966,96 +966,179 @@ const handleSaveSettings = async (e: React.FormEvent) => {
           </div>
         )}
 
-        {/* Navigation Buttons */}
-<div className="sticky top-0 z-30 flex items-center gap-2 px-5 py-3 border-b-2 border-[#1e3b96] bg-[#0a163e]/95 backdrop-blur-md overflow-x-auto">
+        {/* Navigation Tabs */}
+        <div className="flex items-center gap-1 px-6 pt-2 border-b-2 border-[#1e3b96] bg-[#0a163e] overflow-x-auto scrollbar-none">
+          <button
+            onClick={() => { setActiveTab('items'); resetItemForm(); }}
+            className={`px-3.5 py-2.5 text-xs sm:text-sm font-black border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              activeTab === 'items'
+                ? 'border-[#FFD11A] text-[#FFD11A] bg-[#12245e]/80'
+                : 'border-transparent text-[#9ebbf9] hover:text-white'
+            }`}
+          >
+            <span>{t.tabItems} ({items.length})</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('add-item')}
+            className={`px-3.5 py-2.5 text-xs sm:text-sm font-black border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              activeTab === 'add-item'
+                ? 'border-[#FFD11A] text-[#FFD11A] bg-[#12245e]/80'
+                : 'border-transparent text-[#9ebbf9] hover:text-white'
+            }`}
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>{editingItem ? t.editItemTitle : t.addNewItem}</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('categories')}
+            className={`px-3.5 py-2.5 text-xs sm:text-sm font-black border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              activeTab === 'categories'
+                ? 'border-[#FFD11A] text-[#FFD11A] bg-[#12245e]/80'
+                : 'border-transparent text-[#9ebbf9] hover:text-white'
+            }`}
+          >
+            <Layers className="w-3.5 h-3.5" />
+            <span>{t.tabCategories} ({categories.length})</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('hero')}
+            className={`px-3.5 py-2.5 text-xs sm:text-sm font-black border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              activeTab === 'hero'
+                ? 'border-[#FFD11A] text-[#FFD11A] bg-[#12245e]/80'
+                : 'border-transparent text-[#9ebbf9] hover:text-white'
+            }`}
+          >
+            <LayoutTemplate className="w-3.5 h-3.5" />
+            <span>{t.tabHero}</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('settings')}
+            className={`px-3.5 py-2.5 text-xs sm:text-sm font-black border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              activeTab === 'settings'
+                ? 'border-[#FFD11A] text-[#FFD11A] bg-[#12245e]/80'
+                : 'border-transparent text-[#9ebbf9] hover:text-white'
+            }`}
+          >
+            <Settings className="w-3.5 h-3.5" />
+            <span>{t.tabSettings}</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('drive')}
+            className={`px-3.5 py-2.5 text-xs sm:text-sm font-black border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              activeTab === 'drive'
+                ? 'border-[#FFD11A] text-[#FFD11A] bg-[#12245e]/80'
+                : 'border-transparent text-[#9ebbf9] hover:text-white'
+            }`}
+          >
+            <HardDrive className="w-3.5 h-3.5" />
+            <span>{t.tabDrive}</span>
+          </button>
+        </div>
 
-  <button
-    onClick={() => {
-      setActiveTab('items');
-      resetItemForm();
-    }}
-    className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-2 whitespace-nowrap border ${
-      activeTab === 'items'
-        ? 'bg-[#FFD11A] text-[#0a163e] border-[#FFD11A] shadow-lg shadow-[#FFD11A]/20'
-        : 'bg-[#12245e] text-[#9ebbf9] border-[#2855D9] hover:bg-[#1a3382] hover:text-white'
-    }`}
-  >
-    <span>🍔</span>
-    <span>{t.tabItems}</span>
-    <span className="px-1.5 py-0.5 rounded-md bg-black/15 text-[10px]">
-      {items.length}
-    </span>
-  </button>
+        {/* Tab Contents Area */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          
+          {/* TAB 1: MEALS & LIVE PRICE EDITING */}
+          {activeTab === 'items' && (
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#12245e] p-4 rounded-2xl border-2 border-[#2855D9]">
+                <div>
+                  <h3 className="font-black text-sm text-white font-['Fredoka','Cairo',sans-serif]">
+                    {t.itemsList}
+                  </h3>
+                  <p className="text-xs text-[#a2bbf5]">
+                    {t.quickPriceHint}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => { resetItemForm(); setActiveTab('add-item'); }}
+                    className="px-4 py-2 rounded-xl bg-[#FFD11A] hover:bg-[#e8bd13] text-[#0a163e] font-black text-xs flex items-center gap-1.5 shadow"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>{t.addNewItem}</span>
+                  </button>
+                </div>
+              </div>
 
-  <button
-    onClick={() => setActiveTab('add-item')}
-    className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-2 whitespace-nowrap border ${
-      activeTab === 'add-item'
-        ? 'bg-[#FFD11A] text-[#0a163e] border-[#FFD11A] shadow-lg shadow-[#FFD11A]/20'
-        : 'bg-[#12245e] text-[#9ebbf9] border-[#2855D9] hover:bg-[#1a3382] hover:text-white'
-    }`}
-  >
-    <Plus className="w-4 h-4" />
-    <span>
-      {editingItem ? t.editItemTitle : t.addNewItem}
-    </span>
-  </button>
+              {/* Items Table */}
+              <div className="overflow-x-auto rounded-2xl border-2 border-[#2855D9] bg-[#0f2156]">
+                <table className="w-full text-start text-xs">
+                  <thead className="bg-[#12245e] text-[#a2bbf5] border-b-2 border-[#2855D9] font-bold">
+                    <tr>
+                      <th className="py-3 px-4">{isAr ? 'الصورة والاسم' : 'Image & Name'}</th>
+                      <th className="py-3 px-4">{t.category}</th>
+                      <th className="py-3 px-4">{isAr ? 'السعر الحالي' : 'Live Price'} ({isAr ? restaurant.currency : restaurant.currencyEn})</th>
+                      <th className="py-3 px-4">{isAr ? 'حالة التوفر' : 'Availability'}</th>
+                      <th className="py-3 px-4 text-center">{isAr ? 'إجراءات' : 'Actions'}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#211f18]">
+                    {items.map((item) => (
+                      <tr key={item.id} className="hover:bg-[#1a1d29] transition-colors">
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              className="w-12 h-12 rounded-xl object-cover border border-[#2b271f]"
+                            />
+                            <div>
+                              <div className="font-bold text-white text-sm font-['Amiri',serif] flex items-center gap-1.5">
+                                <span>{isAr ? item.name : (item.nameEn || item.name)}</span>
+                                {item.isChefSpecial && (
+                                  <Sparkles className="w-3.5 h-3.5 text-[#d4af37]" />
+                                )}
+                              </div>
+                              <div className="text-[11px] text-[#7f786c]">
+                                {isAr ? (item.nameEn || '') : item.name}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
 
-  <button
-    onClick={() => setActiveTab('categories')}
-    className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-2 whitespace-nowrap border ${
-      activeTab === 'categories'
-        ? 'bg-[#FFD11A] text-[#0a163e] border-[#FFD11A] shadow-lg shadow-[#FFD11A]/20'
-        : 'bg-[#12245e] text-[#9ebbf9] border-[#2855D9] hover:bg-[#1a3382] hover:text-white'
-    }`}
-  >
-    <Layers className="w-4 h-4" />
-    <span>{t.tabCategories}</span>
-    <span className="px-1.5 py-0.5 rounded-md bg-black/15 text-[10px]">
-      {categories.length}
-    </span>
-  </button>
+                        <td className="py-3 px-4">
+                          <span className="px-2.5 py-1 rounded-lg bg-[#1f212d] text-[#cfc7b9] font-medium text-[11px] border border-[#2f2b20]">
+                            {(() => {
+                              const found = categories.find((c) => c.id === item.category);
+                              return found ? (isAr ? found.name : found.nameEn) : item.category;
+                            })()}
+                          </span>
+                        </td>
 
-  <button
-    onClick={() => setActiveTab('hero')}
-    className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-2 whitespace-nowrap border ${
-      activeTab === 'hero'
-        ? 'bg-[#FFD11A] text-[#0a163e] border-[#FFD11A] shadow-lg shadow-[#FFD11A]/20'
-        : 'bg-[#12245e] text-[#9ebbf9] border-[#2855D9] hover:bg-[#1a3382] hover:text-white'
-    }`}
-  >
-    <LayoutTemplate className="w-4 h-4" />
-    <span>{t.tabHero}</span>
-  </button>
+                        {/* Inline Live Price Editor */}
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-1.5">
+                            <input
+                              type="number"
+                              defaultValue={item.price}
+                              step="250"
+                              onChange={(e) =>
+                                setQuickPrices((prev) => ({
+                                  ...prev,
+                                  [item.id]: Number(e.target.value),
+                                }))
+                              }
+                              className="w-24 px-2.5 py-1.5 rounded-lg bg-[#0e1017] border border-[#332f25] text-white font-bold text-xs focus:border-[#d4af37] focus:outline-none"
+                            />
+                            <button
+                              onClick={() => handleQuickPriceSave(item.id)}
+                              className={`p-1.5 rounded-lg border transition-all ${
+                                savedSuccessId === item.id
+                                  ? 'bg-emerald-600 border-emerald-500 text-white'
+                                  : 'bg-[#222634] hover:bg-[#d4af37] text-[#9c9586] hover:text-[#0c0d10] border-[#363227]'
+                              }`}
+                              title={t.savePrice}
+                            >
+                              <Save className="w-3.5 h-3.5" />
+                            </button>
+                            {savedSuccessId === item.id && (
+                              <span className="text-[10px] text-emerald-400 font-bold">{t.savedSuccess}</span>
+                            )}
+                          </div>
+                        </td>
 
-  <button
-    onClick={() => setActiveTab('settings')}
-    className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-2 whitespace-nowrap border ${
-      activeTab === 'settings'
-        ? 'bg-[#FFD11A] text-[#0a163e] border-[#FFD11A] shadow-lg shadow-[#FFD11A]/20'
-        : 'bg-[#12245e] text-[#9ebbf9] border-[#2855D9] hover:bg-[#1a3382] hover:text-white'
-    }`}
-  >
-    <Settings className="w-4 h-4" />
-    <span>{t.tabSettings}</span>
-  </button>
-
-  <button
-    onClick={() => setActiveTab('drive')}
-    className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-2 whitespace-nowrap border ${
-      activeTab === 'drive'
-        ? 'bg-[#FFD11A] text-[#0a163e] border-[#FFD11A] shadow-lg shadow-[#FFD11A]/20'
-        : 'bg-[#12245e] text-[#9ebbf9] border-[#2855D9] hover:bg-[#1a3382] hover:text-white'
-    }`}
-  >
-    <HardDrive className="w-4 h-4" />
-    <span>{t.tabDrive}</span>
-  </button>
-
-</div>
-        </tr>
-        
-                        {/* Tab Contents Area */}
+                        {/* Availability Toggle */}
                         <td className="py-3 px-4">
                           <button
                             onClick={() => handleToggleAvailability(item.id)}
