@@ -984,16 +984,14 @@ export default function App() {
           restaurant={restaurant}
           language={language}
           onUpdateItems={setItems}
-          onUpdateCategories={
-            setCategories
-          }
-          onUpdateHero={
-            setHeroConfig
-          }
+          onUpdateCategories={setCategories}
+          onUpdateHero={setHeroConfig}
+          welcomeConfig={welcomeConfig}
+          onUpdateWelcome={setWelcomeConfig}
           onUpdateRestaurant={setRestaurant}
-user={user}
-onUserChange={setUser}
-onAdminLogout={() => {
+          user={user}
+          onUserChange={setUser}
+          onAdminLogout={() => {
   setIsAdminAuthenticated(false);
   navigateToView('portal');
 }}
