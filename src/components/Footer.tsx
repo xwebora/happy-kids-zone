@@ -72,7 +72,7 @@ export const Footer: React.FC<FooterProps> = ({ restaurant, language }) => {
           </div>
           
           <div className="flex items-center gap-1.5 font-bold text-white">
-            <span>{isAr ? 'صُنع بحب لأجمل ابتسامة' : 'Crafted with joy for happiest kids'}</span>
+            <span>{isAr ? 'Created by xwebora' : 'Created by xwebora'}</span>
             <Smile className="w-4 h-4 text-[#FFD11A]" />
           </div>
         </div>
