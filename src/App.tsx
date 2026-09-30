@@ -126,18 +126,20 @@ export default function App() {
   const navigateToView = (
   view: 'portal' | 'customer' | 'admin' | 'welcome'
 ) => {
-    setViewMode(mode);
+  setViewMode(view);
 
-    if (typeof window !== 'undefined') {
-      if (mode === 'customer') {
-        window.location.hash = '/menu';
-      } else if (mode === 'admin') {
-        window.location.hash = '/admin';
-      } else {
-        window.location.hash = '/portal';
-      }
+  if (typeof window !== 'undefined') {
+    if (view === 'customer') {
+      window.location.hash = '/menu';
+    } else if (view === 'admin') {
+      window.location.hash = '/admin';
+    } else if (view === 'welcome') {
+      window.location.hash = '/welcome';
+    } else {
+      window.location.hash = '/portal';
     }
-  };
+  }
+};
 
   // Synchronize viewMode whenever user navigates
   useEffect(() => {
