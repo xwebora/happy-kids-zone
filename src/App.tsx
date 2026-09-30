@@ -990,22 +990,11 @@ export default function App() {
           onUpdateWelcome={setWelcomeConfig}
           onUpdateRestaurant={setRestaurant}
           user={user}
-          onUserChange={setUser}
-          onAdminLogout={() => {
+onUserChange={setUser}
+onAdminLogout={() => {
   setIsAdminAuthenticated(false);
   navigateToView('portal');
 }}
-          user={user}
-          onUserChange={setUser}
-          onAdminLogout={() => {
-            setIsAdminAuthenticated(
-              false
-            );
-
-            navigateToView(
-              'portal'
-            );
-          }}
         />
 
       </div>
