@@ -966,74 +966,91 @@ const handleSaveSettings = async (e: React.FormEvent) => {
           </div>
         )}
 
-        {/* Navigation Tabs */}
-        <div className="flex items-center gap-1 px-6 pt-2 border-b-2 border-[#1e3b96] bg-[#0a163e] overflow-x-auto scrollbar-none">
-          <button
-            onClick={() => { setActiveTab('items'); resetItemForm(); }}
-            className={`px-3.5 py-2.5 text-xs sm:text-sm font-black border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap ${
-              activeTab === 'items'
-                ? 'border-[#FFD11A] text-[#FFD11A] bg-[#12245e]/80'
-                : 'border-transparent text-[#9ebbf9] hover:text-white'
-            }`}
-          >
-            <span>{t.tabItems} ({items.length})</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('add-item')}
-            className={`px-3.5 py-2.5 text-xs sm:text-sm font-black border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap ${
-              activeTab === 'add-item'
-                ? 'border-[#FFD11A] text-[#FFD11A] bg-[#12245e]/80'
-                : 'border-transparent text-[#9ebbf9] hover:text-white'
-            }`}
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>{editingItem ? t.editItemTitle : t.addNewItem}</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('categories')}
-            className={`px-3.5 py-2.5 text-xs sm:text-sm font-black border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap ${
-              activeTab === 'categories'
-                ? 'border-[#FFD11A] text-[#FFD11A] bg-[#12245e]/80'
-                : 'border-transparent text-[#9ebbf9] hover:text-white'
-            }`}
-          >
-            <Layers className="w-3.5 h-3.5" />
-            <span>{t.tabCategories} ({categories.length})</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('hero')}
-            className={`px-3.5 py-2.5 text-xs sm:text-sm font-black border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap ${
-              activeTab === 'hero'
-                ? 'border-[#FFD11A] text-[#FFD11A] bg-[#12245e]/80'
-                : 'border-transparent text-[#9ebbf9] hover:text-white'
-            }`}
-          >
-            <LayoutTemplate className="w-3.5 h-3.5" />
-            <span>{t.tabHero}</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('settings')}
-            className={`px-3.5 py-2.5 text-xs sm:text-sm font-black border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap ${
-              activeTab === 'settings'
-                ? 'border-[#FFD11A] text-[#FFD11A] bg-[#12245e]/80'
-                : 'border-transparent text-[#9ebbf9] hover:text-white'
-            }`}
-          >
-            <Settings className="w-3.5 h-3.5" />
-            <span>{t.tabSettings}</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('drive')}
-            className={`px-3.5 py-2.5 text-xs sm:text-sm font-black border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap ${
-              activeTab === 'drive'
-                ? 'border-[#FFD11A] text-[#FFD11A] bg-[#12245e]/80'
-                : 'border-transparent text-[#9ebbf9] hover:text-white'
-            }`}
-          >
-            <HardDrive className="w-3.5 h-3.5" />
-            <span>{t.tabDrive}</span>
-          </button>
-        </div>
+        {/* Navigation Buttons */}
+<div className="sticky top-0 z-30 flex items-center gap-2 px-5 py-3 border-b-2 border-[#1e3b96] bg-[#0a163e]/95 backdrop-blur-md overflow-x-auto">
+
+  <button
+    onClick={() => {
+      setActiveTab('items');
+      resetItemForm();
+    }}
+    className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-2 whitespace-nowrap border ${
+      activeTab === 'items'
+        ? 'bg-[#FFD11A] text-[#0a163e] border-[#FFD11A] shadow-lg shadow-[#FFD11A]/20'
+        : 'bg-[#12245e] text-[#9ebbf9] border-[#2855D9] hover:bg-[#1a3382] hover:text-white'
+    }`}
+  >
+    🍔
+    <span>{t.tabItems}</span>
+    <span className="px-1.5 py-0.5 rounded-md bg-black/15 text-[10px]">
+      {items.length}
+    </span>
+  </button>
+
+  <button
+    onClick={() => setActiveTab('add-item')}
+    className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-2 whitespace-nowrap border ${
+      activeTab === 'add-item'
+        ? 'bg-[#FFD11A] text-[#0a163e] border-[#FFD11A] shadow-lg shadow-[#FFD11A]/20'
+        : 'bg-[#12245e] text-[#9ebbf9] border-[#2855D9] hover:bg-[#1a3382] hover:text-white'
+    }`}
+  >
+    <Plus className="w-4 h-4" />
+    <span>{editingItem ? t.editItemTitle : t.addNewItem}</span>
+  </button>
+
+  <button
+    onClick={() => setActiveTab('categories')}
+    className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-2 whitespace-nowrap border ${
+      activeTab === 'categories'
+        ? 'bg-[#FFD11A] text-[#0a163e] border-[#FFD11A] shadow-lg shadow-[#FFD11A]/20'
+        : 'bg-[#12245e] text-[#9ebbf9] border-[#2855D9] hover:bg-[#1a3382] hover:text-white'
+    }`}
+  >
+    <Layers className="w-4 h-4" />
+    <span>{t.tabCategories}</span>
+    <span className="px-1.5 py-0.5 rounded-md bg-black/15 text-[10px]">
+      {categories.length}
+    </span>
+  </button>
+
+  <button
+    onClick={() => setActiveTab('hero')}
+    className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-2 whitespace-nowrap border ${
+      activeTab === 'hero'
+        ? 'bg-[#FFD11A] text-[#0a163e] border-[#FFD11A] shadow-lg shadow-[#FFD11A]/20'
+        : 'bg-[#12245e] text-[#9ebbf9] border-[#2855D9] hover:bg-[#1a3382] hover:text-white'
+    }`}
+  >
+    <LayoutTemplate className="w-4 h-4" />
+    <span>{t.tabHero}</span>
+  </button>
+
+  <button
+    onClick={() => setActiveTab('settings')}
+    className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-2 whitespace-nowrap border ${
+      activeTab === 'settings'
+        ? 'bg-[#FFD11A] text-[#0a163e] border-[#FFD11A] shadow-lg shadow-[#FFD11A]/20'
+        : 'bg-[#12245e] text-[#9ebbf9] border-[#2855D9] hover:bg-[#1a3382] hover:text-white'
+    }`}
+  >
+    <Settings className="w-4 h-4" />
+    <span>{t.tabSettings}</span>
+  </button>
+
+  <button
+    onClick={() => setActiveTab('drive')}
+    className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-2 whitespace-nowrap border ${
+      activeTab === 'drive'
+        ? 'bg-[#FFD11A] text-[#0a163e] border-[#FFD11A] shadow-lg shadow-[#FFD11A]/20'
+        : 'bg-[#12245e] text-[#9ebbf9] border-[#2855D9] hover:bg-[#1a3382] hover:text-white'
+    }`}
+  >
+    <HardDrive className="w-4 h-4" />
+    <span>{t.tabDrive}</span>
+  </button>
+
+</div>
 
         {/* Tab Contents Area */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
