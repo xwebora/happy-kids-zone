@@ -26,6 +26,7 @@ import {
 import { initAuth } from './services/auth';
 
 import {
+  getWelcomeConfig,
   getMenuItems,
   getCategories,
   getRestaurantInfo,
@@ -291,6 +292,12 @@ export default function App() {
     });
 
   // ============================================================
+  // WELCOME / PORTAL STATE
+  // ============================================================
+
+  const [welcomeConfig, setWelcomeConfig] = useState<any>(null);
+
+  // ============================================================
   // FILTERS
   // ============================================================
 
@@ -414,11 +421,13 @@ export default function App() {
           firestoreCategories,
           firestoreRestaurant,
           firestoreHero,
+          firestoreWelcome,
         ] = await Promise.all([
           getMenuItems(),
           getCategories(),
           getRestaurantInfo(),
           getHeroConfig(),
+          getWelcomeConfig(),
         ]);
 
         // Menu Items
@@ -478,6 +487,15 @@ export default function App() {
     loadFirestoreData();
   }, []);
 
+  
+  // Welcome / Portal
+if (firestoreWelcome) {
+  setWelcomeConfig(firestoreWelcome);
+
+  console.log(
+    '✅ Loaded Welcome configuration'
+  );
+}
   // ============================================================
   // REALTIME MENU ITEMS
   // Firestore updates the menu automatically
