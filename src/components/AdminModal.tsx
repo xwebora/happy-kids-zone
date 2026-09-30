@@ -1053,6 +1053,8 @@ const handleSaveSettings = async (e: React.FormEvent) => {
   </button>
 
 </div>
+        </tr>
+        
                         {/* Tab Contents Area */}
                         <td className="py-3 px-4">
                           <button
