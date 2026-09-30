@@ -65,9 +65,12 @@ export const Footer: React.FC<FooterProps> = ({ restaurant, language }) => {
         </div>
 
         <div className="pt-6 border-t border-[#12245e] flex flex-col sm:flex-row items-center justify-between text-xs text-[#708ecb] gap-4">
-          <div>
-            © {new Date().getFullYear()} Happy Kids Zone. All Rights Reserved.
+          <div dir={isAr ? 'rtl' : 'ltr'} style={{ unicodeBidi: 'isolate' }}>
+            {isAr
+              ? `© 2026 هابي كيدز زون. جميع الحقوق محفوظة.`
+            : `© 2026 Happy Kids Zone. All Rights Reserved.`}
           </div>
+          
           <div className="flex items-center gap-1.5 font-bold text-white">
             <span>{isAr ? 'صُنع بحب لأجمل ابتسامة' : 'Crafted with joy for happiest kids'}</span>
             <Smile className="w-4 h-4 text-[#FFD11A]" />
