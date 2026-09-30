@@ -25,7 +25,14 @@ import {
   ExternalLink,
   Copy
 } from 'lucide-react';
-import { MenuItem, Category, RestaurantInfo, HeroConfig, Language } from '../types';
+import {
+  MenuItem,
+  Category,
+  RestaurantInfo,
+  HeroConfig,
+  Language,
+  WelcomeConfig
+} from '../types';
 import { uploadImageToDrive, saveMenuBackupToDrive, deleteDriveFile } from '../services/driveService';
 import { googleSignIn, logout } from '../services/auth';
 import { translations } from '../utils/i18n';
@@ -53,6 +60,8 @@ interface AdminModalProps {
   onUpdateCategories: (newCats: Category[]) => void;
   onUpdateHero: (newHero: HeroConfig) => void;
   onUpdateRestaurant: (info: RestaurantInfo) => void;
+  welcomeConfig: WelcomeConfig;
+  onUpdateWelcome: (config: WelcomeConfig) => void;
   user: User | null;
   onUserChange: (user: User | null) => void;
   onAdminLogout: () => void;
@@ -70,6 +79,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   onUpdateCategories,
   onUpdateHero,
   onUpdateRestaurant,
+  welcomeConfig,
+  onUpdateWelcome,
   user,
   onUserChange,
   onAdminLogout,
@@ -77,10 +88,10 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const t = translations[language];
   const isAr = language === 'ar';
 
-  // Tabs: 'items' | 'add-item' | 'categories' | 'hero' | 'settings' | 'drive'
-  const [activeTab, setActiveTab] = useState<'items' | 'add-item' | 'categories' | 'hero' | 'settings' | 'drive'>('items');
-  const [isDriveSyncing, setIsDriveSyncing] = useState(false);
-  const [syncBanner, setSyncBanner] = useState<string | null>(null);
+    // Admin Dashboard Tabs
+  const [activeTab, setActiveTab] = useState<
+    'items' | 'add-item' | 'categories' | 'hero' | 'welcome' | 'settings' | 'drive'
+  >('items');
 
   // Item Form State
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
@@ -119,6 +130,15 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   // Hero Edit Form State
   const [heroForm, setHeroForm] = useState<HeroConfig>(hero);
   const [heroSavedAlert, setHeroSavedAlert] = useState(false);
+
+    // Welcome Screen Edit Form State
+  const [welcomeForm, setWelcomeForm] = useState<WelcomeConfig>(welcomeConfig);
+  const [welcomeSavedAlert, setWelcomeSavedAlert] = useState(false);
+
+  // Sync welcomeForm whenever welcomeConfig changes
+  React.useEffect(() => {
+    setWelcomeForm(welcomeConfig);
+  }, [welcomeConfig]);
 
   // Sync heroForm whenever hero prop changes
   React.useEffect(() => {
@@ -821,6 +841,34 @@ const handleSaveCategory = async (e: React.FormEvent) => {
     setTimeout(() => setHeroSavedAlert(false), 3000);
   };
 
+    // Save Welcome Screen Config
+  const handleSaveWelcome = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const { setWelcomeConfig } = await import('../services/menuService');
+
+      await setWelcomeConfig(welcomeForm);
+
+      onUpdateWelcome(welcomeForm);
+
+      setWelcomeSavedAlert(true);
+
+      setTimeout(() => {
+        setWelcomeSavedAlert(false);
+      }, 3000);
+
+    } catch (error) {
+      console.error('Error saving welcome configuration:', error);
+
+      alert(
+        isAr
+          ? 'حدث خطأ أثناء حفظ إعدادات شاشة الترحيب'
+          : 'An error occurred while saving welcome screen settings'
+      );
+    }
+  };
+
   // Save Settings & Credentials
 const handleSaveSettings = async (e: React.FormEvent) => {
   e.preventDefault();
@@ -1024,6 +1072,18 @@ const handleSaveSettings = async (e: React.FormEvent) => {
   >
     <LayoutTemplate className="w-4 h-4" />
     <span>{t.tabHero}</span>
+  </button>
+
+    <button
+    onClick={() => setActiveTab('welcome')}
+    className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-2 whitespace-nowrap border ${
+      activeTab === 'welcome'
+        ? 'bg-[#FFD11A] text-[#0a163e] border-[#FFD11A] shadow-lg shadow-[#FFD11A]/20'
+        : 'bg-[#12245e] text-[#9ebbf9] border-[#2855D9] hover:bg-[#1a3382] hover:text-white'
+    }`}
+  >
+    <span className="text-base">👋</span>
+    <span>{isAr ? 'الترحيب' : 'Welcome'}</span>
   </button>
 
   <button
@@ -1912,6 +1972,380 @@ const handleSaveSettings = async (e: React.FormEvent) => {
               </div>
             </form>
           )}
+
+                    {/* TAB 5: WELCOME SCREEN */}
+          {activeTab === 'welcome' && (
+            <form onSubmit={handleSaveWelcome} className="space-y-6">
+              <div className="bg-[#161822] p-6 rounded-2xl border border-[#2b271e] space-y-6">
+
+                {/* Header */}
+                <div className="flex items-center justify-between pb-4 border-b border-[#252219]">
+                  <div>
+                    <h3 className="font-bold text-base text-white font-['Amiri',serif]">
+                      {isAr ? 'إعدادات شاشة الترحيب' : 'Welcome Screen Settings'}
+                    </h3>
+
+                    <p className="text-xs text-[#9d9689] mt-1">
+                      {isAr
+                        ? 'تخصيص شاشة الترحيب التي تظهر للزبون قبل دخول المنيو'
+                        : 'Customize the welcome screen shown before entering the menu'}
+                    </p>
+                  </div>
+
+                  <div className="w-11 h-11 rounded-xl bg-[#FFD11A]/10 border border-[#FFD11A]/30 flex items-center justify-center text-2xl">
+                    👋
+                  </div>
+                </div>
+
+                {/* Saved Alert */}
+                {welcomeSavedAlert && (
+                  <div className="p-3 rounded-xl bg-emerald-950/80 border border-emerald-600/50 text-emerald-300 text-xs flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>
+                      {isAr
+                        ? 'تم حفظ إعدادات شاشة الترحيب بنجاح!'
+                        : 'Welcome screen settings saved successfully!'}
+                    </span>
+                  </div>
+                )}
+
+                {/* Background Type */}
+                <div className="space-y-3">
+                  <label className="block text-xs font-semibold text-[#a8a192]">
+                    {isAr ? 'نوع الخلفية' : 'Background Type'}
+                  </label>
+
+                  <div className="flex flex-wrap gap-3">
+
+                    <label className={`flex items-center gap-2 px-4 py-3 rounded-xl border cursor-pointer transition-all ${
+                      welcomeForm.backgroundType === 'video'
+                        ? 'bg-[#FFD11A]/10 border-[#FFD11A] text-[#FFD11A]'
+                        : 'bg-[#101218] border-[#312c21] text-[#a8a192]'
+                    }`}>
+                      <input
+                        type="radio"
+                        name="welcomeBackgroundType"
+                        value="video"
+                        checked={welcomeForm.backgroundType === 'video'}
+                        onChange={() =>
+                          setWelcomeForm({
+                            ...welcomeForm,
+                            backgroundType: 'video'
+                          })
+                        }
+                      />
+
+                      <span>
+                        {isAr ? 'فيديو' : 'Video'}
+                      </span>
+                    </label>
+
+                    <label className={`flex items-center gap-2 px-4 py-3 rounded-xl border cursor-pointer transition-all ${
+                      welcomeForm.backgroundType === 'image'
+                        ? 'bg-[#FFD11A]/10 border-[#FFD11A] text-[#FFD11A]'
+                        : 'bg-[#101218] border-[#312c21] text-[#a8a192]'
+                    }`}>
+                      <input
+                        type="radio"
+                        name="welcomeBackgroundType"
+                        value="image"
+                        checked={welcomeForm.backgroundType === 'image'}
+                        onChange={() =>
+                          setWelcomeForm({
+                            ...welcomeForm,
+                            backgroundType: 'image'
+                          })
+                        }
+                      />
+
+                      <span>
+                        {isAr ? 'صورة' : 'Image'}
+                      </span>
+                    </label>
+
+                  </div>
+                </div>
+
+                {/* Background URL */}
+                <div>
+                  <label className="block text-xs font-semibold text-[#a8a192] mb-1.5">
+                    {welcomeForm.backgroundType === 'video'
+                      ? (isAr ? 'رابط الفيديو' : 'Video URL')
+                      : (isAr ? 'رابط الصورة' : 'Image URL')}
+                  </label>
+
+                  <input
+                    type="url"
+                    value={welcomeForm.backgroundUrl}
+                    onChange={(e) =>
+                      setWelcomeForm({
+                        ...welcomeForm,
+                        backgroundUrl: e.target.value
+                      })
+                    }
+                    placeholder={
+                      welcomeForm.backgroundType === 'video'
+                        ? 'https://example.com/welcome-video.mp4'
+                        : 'https://example.com/welcome-image.jpg'
+                    }
+                    className="w-full bg-[#101218] border border-[#312c21] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#d4af37]"
+                    dir="ltr"
+                  />
+                </div>
+
+                {/* Logo URL */}
+                <div>
+                  <label className="block text-xs font-semibold text-[#a8a192] mb-1.5">
+                    {isAr ? 'شعار المطعم' : 'Restaurant Logo'}
+                  </label>
+
+                  <input
+                    type="url"
+                    value={welcomeForm.logoUrl}
+                    onChange={(e) =>
+                      setWelcomeForm({
+                        ...welcomeForm,
+                        logoUrl: e.target.value
+                      })
+                    }
+                    placeholder="https://example.com/logo.png"
+                    className="w-full bg-[#101218] border border-[#312c21] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#d4af37]"
+                    dir="ltr"
+                  />
+
+                  {welcomeForm.logoUrl && (
+                    <div className="mt-3 flex items-center gap-3 p-3 rounded-xl bg-[#11131a] border border-[#2b271d]">
+                      <img
+                        src={welcomeForm.logoUrl}
+                        alt="Restaurant Logo"
+                        className="w-16 h-16 rounded-xl object-contain bg-black/20"
+                      />
+
+                      <span className="text-xs text-emerald-400">
+                        {isAr ? 'معاينة الشعار' : 'Logo Preview'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Welcome Texts */}
+                <div className="pt-4 border-t border-[#252219] space-y-4">
+
+                  <div>
+                    <h4 className="text-sm font-bold text-[#FFD11A]">
+                      {isAr ? 'نصوص الترحيب' : 'Welcome Texts'}
+                    </h4>
+
+                    <p className="text-[11px] text-[#8e877c] mt-1">
+                      {isAr
+                        ? 'ستظهر النصوص الأربعة معًا في شاشة الترحيب'
+                        : 'All four texts will appear together on the welcome screen'}
+                    </p>
+                  </div>
+
+                  {/* Arabic */}
+                  <div>
+                    <label className="block text-xs font-semibold text-[#a8a192] mb-1.5">
+                      العربية
+                    </label>
+
+                    <input
+                      type="text"
+                      value={welcomeForm.welcomeAr}
+                      onChange={(e) =>
+                        setWelcomeForm({
+                          ...welcomeForm,
+                          welcomeAr: e.target.value
+                        })
+                      }
+                      placeholder="أهلاً وسهلاً بكم"
+                      className="w-full bg-[#101218] border border-[#312c21] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#d4af37]"
+                      dir="rtl"
+                    />
+                  </div>
+
+                  {/* Kurdish */}
+                  <div>
+                    <label className="block text-xs font-semibold text-[#a8a192] mb-1.5">
+                      الكردية
+                    </label>
+
+                    <input
+                      type="text"
+                      value={welcomeForm.welcomeKu}
+                      onChange={(e) =>
+                        setWelcomeForm({
+                          ...welcomeForm,
+                          welcomeKu: e.target.value
+                        })
+                      }
+                      placeholder="بەخێربێن"
+                      className="w-full bg-[#101218] border border-[#312c21] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#d4af37]"
+                      dir="rtl"
+                    />
+                  </div>
+
+                  {/* English */}
+                  <div>
+                    <label className="block text-xs font-semibold text-[#a8a192] mb-1.5">
+                      English
+                    </label>
+
+                    <input
+                      type="text"
+                      value={welcomeForm.welcomeEn}
+                      onChange={(e) =>
+                        setWelcomeForm({
+                          ...welcomeForm,
+                          welcomeEn: e.target.value
+                        })
+                      }
+                      placeholder="Welcome"
+                      className="w-full bg-[#101218] border border-[#312c21] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#d4af37]"
+                      dir="ltr"
+                    />
+                  </div>
+
+                  {/* Syriac */}
+                  <div>
+                    <label className="block text-xs font-semibold text-[#a8a192] mb-1.5">
+                      السريانية
+                    </label>
+
+                    <input
+                      type="text"
+                      value={welcomeForm.welcomeSy}
+                      onChange={(e) =>
+                        setWelcomeForm({
+                          ...welcomeForm,
+                          welcomeSy: e.target.value
+                        })
+                      }
+                      placeholder="ܐܚܝܐ ܘܫܠܡܐ"
+                      className="w-full bg-[#101218] border border-[#312c21] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#d4af37]"
+                      dir="rtl"
+                    />
+                  </div>
+
+                </div>
+
+                {/* Overlay Opacity */}
+                <div className="pt-4 border-t border-[#252219]">
+
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-semibold text-[#a8a192]">
+                      {isAr ? 'قوة الظل' : 'Overlay Darkness'}
+                    </label>
+
+                    <span className="text-xs font-bold text-[#FFD11A]">
+                      {Math.round(welcomeForm.overlayOpacity * 100)}%
+                    </span>
+                  </div>
+
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value={welcomeForm.overlayOpacity}
+                    onChange={(e) =>
+                      setWelcomeForm({
+                        ...welcomeForm,
+                        overlayOpacity: Number(e.target.value)
+                      })
+                    }
+                    className="w-full accent-[#FFD11A]"
+                  />
+
+                </div>
+
+                {/* Animation */}
+                <div>
+                  <label className="block text-xs font-semibold text-[#a8a192] mb-1.5">
+                    {isAr ? 'التأثير' : 'Animation'}
+                  </label>
+
+                  <select
+                    value={welcomeForm.animation}
+                    onChange={(e) =>
+                      setWelcomeForm({
+                        ...welcomeForm,
+                        animation: e.target.value as WelcomeConfig['animation']
+                      })
+                    }
+                    className="w-full bg-[#101218] border border-[#312c21] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#d4af37]"
+                  >
+                    <option value="fade">
+                      Fade
+                    </option>
+
+                    <option value="slide">
+                      Slide
+                    </option>
+
+                    <option value="zoom">
+                      Zoom
+                    </option>
+                  </select>
+                </div>
+
+                {/* Enabled */}
+                <div className="p-4 rounded-xl bg-[#11131a] border border-[#2b271d]">
+
+                  <label className="flex items-center justify-between cursor-pointer">
+
+                    <div>
+                      <div className="text-xs font-bold text-white">
+                        {isAr
+                          ? 'تفعيل شاشة الترحيب'
+                          : 'Enable Welcome Screen'}
+                      </div>
+
+                      <div className="text-[11px] text-[#817a6e] mt-1">
+                        {isAr
+                          ? 'عند التعطيل سيتم تجاوز شاشة الترحيب'
+                          : 'When disabled, the welcome screen will be skipped'}
+                      </div>
+                    </div>
+
+                    <input
+                      type="checkbox"
+                      checked={welcomeForm.enabled}
+                      onChange={(e) =>
+                        setWelcomeForm({
+                          ...welcomeForm,
+                          enabled: e.target.checked
+                        })
+                      }
+                      className="w-5 h-5 rounded text-[#FFD11A]"
+                    />
+
+                  </label>
+
+                </div>
+
+                {/* Save */}
+                <div className="pt-4 border-t border-[#252219] flex justify-end">
+
+                  <button
+                    type="submit"
+                    className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#FFD11A] to-[#F7941D] text-[#0c0d10] font-black text-xs shadow-lg flex items-center gap-2 hover:brightness-110 transition-all"
+                  >
+                    <Save className="w-4 h-4" />
+
+                    <span>
+                      {isAr
+                        ? 'حفظ الإعدادات'
+                        : 'Save Settings'}
+                    </span>
+                  </button>
+
+                </div>
+
+              </div>
+            </form>
+          )}
+
 
           {/* TAB 5: RESTAURANT SETTINGS & ADMIN PASSWORD */}
           {activeTab === 'settings' && (
