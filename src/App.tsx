@@ -6,6 +6,7 @@ import { Hero } from './components/Hero';
 import { MenuCard } from './components/MenuCard';
 import { AdminModal } from './components/AdminModal';
 import { Footer } from './components/Footer';
+import { WelcomeScreen } from './components/WelcomeScreen';
 import {
   MenuItem,
   Category,
@@ -88,39 +89,43 @@ const gridContainerVariants: Variants = {
 export default function App() {
 
   // Helper to determine view mode from current URL
-  const getViewFromUrl = (): 'portal' | 'customer' | 'admin' => {
-    if (typeof window === 'undefined') return 'portal';
+  const getViewFromUrl = (): 'portal' | 'customer' | 'admin' | 'welcome' => {
+  if (typeof window === 'undefined') return 'portal';
 
-    const hash = window.location.hash.toLowerCase();
-    const search = new URLSearchParams(window.location.search);
+  const hash = window.location.hash.toLowerCase();
+  const search = new URLSearchParams(window.location.search);
 
-    const viewParam =
-      search.get('view')?.toLowerCase() ||
-      search.get('page')?.toLowerCase();
+  const viewParam =
+    search.get('view')?.toLowerCase() ||
+    search.get('page')?.toLowerCase();
 
-    if (hash.includes('menu') || viewParam === 'menu') {
-      return 'customer';
-    }
+  if (hash.includes('welcome') || viewParam === 'welcome') {
+    return 'welcome';
+  }
 
-    if (hash.includes('admin') || viewParam === 'admin') {
-      return 'admin';
-    }
+  if (hash.includes('menu') || viewParam === 'menu') {
+    return 'customer';
+  }
 
-    if (hash.includes('portal') || viewParam === 'portal') {
-      return 'portal';
-    }
+  if (hash.includes('admin') || viewParam === 'admin') {
+    return 'admin';
+  }
 
+  if (hash.includes('portal') || viewParam === 'portal') {
     return 'portal';
-  };
+  }
+
+  return 'portal';
+};
 
   // Current view mode
   const [viewMode, setViewMode] = useState<
-    'portal' | 'customer' | 'admin'
-  >(() => getViewFromUrl());
+  'portal' | 'customer' | 'admin' | 'welcome'
+>(() => getViewFromUrl());
 
   const navigateToView = (
-    mode: 'portal' | 'customer' | 'admin'
-  ) => {
+  view: 'portal' | 'customer' | 'admin' | 'welcome'
+) => {
     setViewMode(mode);
 
     if (typeof window !== 'undefined') {
@@ -831,6 +836,26 @@ export default function App() {
   // ============================================================
   // PORTAL
   // ============================================================
+
+  if (viewMode === 'welcome') {
+  if (!welcomeConfig) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-black text-white">
+        Loading...
+      </div>
+    );
+  }
+
+  return (
+    <WelcomeScreen
+      config={welcomeConfig}
+      onLanguageSelect={(selectedLanguage) => {
+        setLanguage(selectedLanguage);
+        navigateToView('customer');
+      }}
+    />
+  );
+}
 
   if (viewMode === 'portal') {
     return (
