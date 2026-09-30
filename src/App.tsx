@@ -410,92 +410,85 @@ export default function App() {
   // ============================================================
 
   useEffect(() => {
-    const loadFirestoreData = async () => {
-      try {
-        console.log(
-          '🔥 Loading data from Firestore...'
-        );
+  const loadFirestoreData = async () => {
+    try {
+      console.log(
+        '🔥 Loading data from Firestore...'
+      );
 
-        const [
-          firestoreItems,
-          firestoreCategories,
-          firestoreRestaurant,
-          firestoreHero,
-          firestoreWelcome,
-        ] = await Promise.all([
-          getMenuItems(),
-          getCategories(),
-          getRestaurantInfo(),
-          getHeroConfig(),
-          getWelcomeConfig(),
-        ]);
+      const [
+        firestoreItems,
+        firestoreCategories,
+        firestoreRestaurant,
+        firestoreHero,
+        firestoreWelcome,
+      ] = await Promise.all([
+        getMenuItems(),
+        getCategories(),
+        getRestaurantInfo(),
+        getHeroConfig(),
+        getWelcomeConfig(),
+      ]);
 
-        // Menu Items
-        if (firestoreItems.length > 0) {
-          setItems(firestoreItems);
-
-          console.log(
-            `✅ Loaded ${firestoreItems.length} menu items`
-          );
-        }
-
-        // Categories
-        if (firestoreCategories.length > 0) {
-          setCategories(
-            firestoreCategories
-          );
-
-          console.log(
-            `✅ Loaded ${firestoreCategories.length} categories`
-          );
-        }
-
-        // Restaurant
-        if (firestoreRestaurant) {
-          setRestaurant(
-            firestoreRestaurant
-          );
-
-          console.log(
-            '✅ Loaded restaurant information'
-          );
-        }
-
-        // Hero
-        if (firestoreHero) {
-          setHeroConfig(
-            firestoreHero
-          );
-
-          console.log(
-            '✅ Loaded Hero configuration'
-          );
-        }
+      // Menu Items
+      if (firestoreItems.length > 0) {
+        setItems(firestoreItems);
 
         console.log(
-          '🎉 Firestore loading completed'
-        );
-
-      } catch (error) {
-        console.error(
-          '❌ Firestore loading failed:',
-          error
+          `✅ Loaded ${firestoreItems.length} menu items`
         );
       }
-    };
 
-    loadFirestoreData();
-  }, []);
+      // Categories
+      if (firestoreCategories.length > 0) {
+        setCategories(firestoreCategories);
 
-  
-  // Welcome / Portal
-if (firestoreWelcome) {
-  setWelcomeConfig(firestoreWelcome);
+        console.log(
+          `✅ Loaded ${firestoreCategories.length} categories`
+        );
+      }
 
-  console.log(
-    '✅ Loaded Welcome configuration'
-  );
-}
+      // Restaurant
+      if (firestoreRestaurant) {
+        setRestaurant(firestoreRestaurant);
+
+        console.log(
+          '✅ Loaded restaurant information'
+        );
+      }
+
+      // Hero
+      if (firestoreHero) {
+        setHeroConfig(firestoreHero);
+
+        console.log(
+          '✅ Loaded Hero configuration'
+        );
+      }
+
+      // Welcome
+      if (firestoreWelcome) {
+        setWelcomeConfig(firestoreWelcome);
+
+        console.log(
+          '✅ Loaded Welcome configuration'
+        );
+      }
+
+      console.log(
+        '🎉 Firestore loading completed'
+      );
+
+    } catch (error) {
+      console.error(
+        '❌ Firestore loading failed:',
+        error
+      );
+    }
+  };
+
+  loadFirestoreData();
+}, []);
   // ============================================================
   // REALTIME MENU ITEMS
   // Firestore updates the menu automatically
