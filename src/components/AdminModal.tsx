@@ -966,80 +966,9 @@ const handleSaveSettings = async (e: React.FormEvent) => {
           </div>
         )}
 
-        {/* Navigation Tabs */}
-        <div className="flex items-center gap-1 px-6 pt-2 border-b-2 border-[#1e3b96] bg-[#0a163e] overflow-x-auto scrollbar-none">
-          <button
-            onClick={() => { setActiveTab('items'); resetItemForm(); }}
-            className={`px-3.5 py-2.5 text-xs sm:text-sm font-black border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap ${
-              activeTab === 'items'
-                ? 'border-[#FFD11A] text-[#FFD11A] bg-[#12245e]/80'
-                : 'border-transparent text-[#9ebbf9] hover:text-white'
-            }`}
-          >
-            <span>{t.tabItems} ({items.length})</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('add-item')}
-            className={`px-3.5 py-2.5 text-xs sm:text-sm font-black border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap ${
-              activeTab === 'add-item'
-                ? 'border-[#FFD11A] text-[#FFD11A] bg-[#12245e]/80'
-                : 'border-transparent text-[#9ebbf9] hover:text-white'
-            }`}
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>{editingItem ? t.editItemTitle : t.addNewItem}</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('categories')}
-            className={`px-3.5 py-2.5 text-xs sm:text-sm font-black border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap ${
-              activeTab === 'categories'
-                ? 'border-[#FFD11A] text-[#FFD11A] bg-[#12245e]/80'
-                : 'border-transparent text-[#9ebbf9] hover:text-white'
-            }`}
-          >
-            <Layers className="w-3.5 h-3.5" />
-            <span>{t.tabCategories} ({categories.length})</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('hero')}
-            className={`px-3.5 py-2.5 text-xs sm:text-sm font-black border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap ${
-              activeTab === 'hero'
-                ? 'border-[#FFD11A] text-[#FFD11A] bg-[#12245e]/80'
-                : 'border-transparent text-[#9ebbf9] hover:text-white'
-            }`}
-          >
-            <LayoutTemplate className="w-3.5 h-3.5" />
-            <span>{t.tabHero}</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('settings')}
-            className={`px-3.5 py-2.5 text-xs sm:text-sm font-black border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap ${
-              activeTab === 'settings'
-                ? 'border-[#FFD11A] text-[#FFD11A] bg-[#12245e]/80'
-                : 'border-transparent text-[#9ebbf9] hover:text-white'
-            }`}
-          >
-            <Settings className="w-3.5 h-3.5" />
-            <span>{t.tabSettings}</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('drive')}
-            className={`px-3.5 py-2.5 text-xs sm:text-sm font-black border-b-2 transition-all flex items-center gap-1.5 whitespace-nowrap ${
-              activeTab === 'drive'
-                ? 'border-[#FFD11A] text-[#FFD11A] bg-[#12245e]/80'
-                : 'border-transparent text-[#9ebbf9] hover:text-white'
-            }`}
-          >
-            <HardDrive className="w-3.5 h-3.5" />
-            <span>{t.tabDrive}</span>
-          </button>
-        </div>
+        {/* Navigation Buttons */}
+<div className="sticky top-0 z-30 flex items-center gap-2 px-5 py-3 border-b-2 border-[#1e3b96] bg-[#0a163e]/95 backdrop-blur-md overflow-x-auto">
 
-        ```tsx
-{/* Navigation Buttons */}
-<div className="sticky top-0 z-30 flex items-center gap-2 px-5 py-3 border-b-2 border-[#1e3b96] bg-[#0a163e]/95 backdrop-blur-md overflow-x-auto scrollbar-none">
-
-  {/* Menu Items */}
   <button
     onClick={() => {
       setActiveTab('items');
@@ -1058,7 +987,6 @@ const handleSaveSettings = async (e: React.FormEvent) => {
     </span>
   </button>
 
-  {/* Add / Edit Item */}
   <button
     onClick={() => setActiveTab('add-item')}
     className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-2 whitespace-nowrap border ${
@@ -1073,7 +1001,6 @@ const handleSaveSettings = async (e: React.FormEvent) => {
     </span>
   </button>
 
-  {/* Categories */}
   <button
     onClick={() => setActiveTab('categories')}
     className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-2 whitespace-nowrap border ${
@@ -1089,7 +1016,6 @@ const handleSaveSettings = async (e: React.FormEvent) => {
     </span>
   </button>
 
-  {/* Hero */}
   <button
     onClick={() => setActiveTab('hero')}
     className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-2 whitespace-nowrap border ${
@@ -1102,7 +1028,6 @@ const handleSaveSettings = async (e: React.FormEvent) => {
     <span>{t.tabHero}</span>
   </button>
 
-  {/* Settings */}
   <button
     onClick={() => setActiveTab('settings')}
     className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-2 whitespace-nowrap border ${
@@ -1115,7 +1040,6 @@ const handleSaveSettings = async (e: React.FormEvent) => {
     <span>{t.tabSettings}</span>
   </button>
 
-  {/* Google Drive */}
   <button
     onClick={() => setActiveTab('drive')}
     className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-2 whitespace-nowrap border ${
@@ -1129,8 +1053,7 @@ const handleSaveSettings = async (e: React.FormEvent) => {
   </button>
 
 </div>
-
-{/* Tab Contents Area */}
+                        {/* Tab Contents Area */}
                         <td className="py-3 px-4">
                           <button
                             onClick={() => handleToggleAvailability(item.id)}
