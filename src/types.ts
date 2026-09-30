@@ -21,6 +21,14 @@ export interface MenuItem {
   available: boolean;
 }
 
+import {
+  MenuItem,
+  Category,
+  RestaurantInfo,
+  Language,
+  WelcomeConfig
+} from './types';
+
 export interface Category {
   id: string;
   name: string;
