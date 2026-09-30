@@ -260,4 +260,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   );
 };
 
-export default WelcomeScreen;
+export function WelcomeScreen({
+  config,
+  onLanguageSelect,
+}: WelcomeScreenProps) {
