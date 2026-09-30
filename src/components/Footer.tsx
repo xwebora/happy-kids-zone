@@ -71,9 +71,9 @@ export const Footer: React.FC<FooterProps> = ({ restaurant, language }) => {
             : `© 2026 Happy Kids Zone. All Rights Reserved.`}
           </div>
           
-          <div className="flex items-center gap-1.5 font-bold text-white">
+          <div className="flex items-center gap-1.5 font text-white">
             <span>{isAr ? 'Created by xwebora' : 'Created by xwebora'}</span>
-            <Smile className="w-4 h-4 text-[#FFD11A]" />
+            
           </div>
         </div>
       </div>
