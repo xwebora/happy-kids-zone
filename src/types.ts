@@ -1,4 +1,4 @@
-export type Language = 'ar' | 'en';
+export type Language = 'ar' | 'en' | 'ku';
 export type MenuLayoutMode = 'grid' | 'horizontal' | 'carousel';
 export type BrandThemeMode = 'blue' | 'yellow';
 
@@ -72,4 +72,23 @@ export interface RestaurantInfo {
   driveFolderName?: string;
   adminUsername: string;
   adminPassword: string;
+}
+
+export interface WelcomeConfig {
+  enabled: boolean;
+
+  backgroundType: 'video' | 'image';
+
+  backgroundUrl: string;
+
+  logoUrl: string;
+
+  welcomeAr: string;
+  welcomeKu: string;
+  welcomeEn: string;
+  welcomeSy: string;
+
+  overlayOpacity: number;
+
+  animation: 'fade' | 'slide' | 'zoom';
 }
