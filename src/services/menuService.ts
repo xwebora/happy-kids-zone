@@ -15,12 +15,14 @@ import {
   Category,
   RestaurantInfo,
   HeroConfig,
+  WelcomeConfig
 } from '../types';
 
 const MENU_ITEMS_COLLECTION = 'menuItems';
 const CATEGORIES_COLLECTION = 'categories';
 const RESTAURANT_COLLECTION = 'restaurant';
 const HERO_COLLECTION = 'hero';
+const WELCOME_COLLECTION = 'welcome';
 
 // ============================================================
 // MENU ITEMS
@@ -330,4 +332,52 @@ export async function migrateAllDataToFirestore(
     restaurant: true,
     hero: true,
   };
+}
+
+const DEFAULT_WELCOME_CONFIG: WelcomeConfig = {
+  enabled: true,
+
+  backgroundType: 'video',
+
+  backgroundUrl: '/happy-kids-zone/welcome-video.mp4',
+
+  logoUrl: '',
+
+  welcomeAr: 'أهلاً وسهلاً بكم',
+  welcomeKu: 'بەخێربێن',
+  welcomeEn: 'Welcome',
+  welcomeSy: 'ܐܚܝܐ ܘܫܠܡܐ',
+
+  overlayOpacity: 0.45,
+
+  animation: 'fade'
+};
+
+export async function getWelcomeConfig(): Promise<WelcomeConfig> {
+  try {
+    const snapshot = await getDoc(
+      doc(db, WELCOME_COLLECTION, 'main')
+    );
+
+    if (snapshot.exists()) {
+      return {
+        ...DEFAULT_WELCOME_CONFIG,
+        ...snapshot.data()
+      } as WelcomeConfig;
+    }
+
+    return DEFAULT_WELCOME_CONFIG;
+  } catch (error) {
+    console.error('Error loading welcome configuration:', error);
+    return DEFAULT_WELCOME_CONFIG;
+  }
+}
+
+export async function setWelcomeConfig(
+  config: WelcomeConfig
+): Promise<void> {
+  await setDoc(
+    doc(db, WELCOME_COLLECTION, 'main'),
+    config
+  );
 }
