@@ -109,6 +109,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [formIsSpecial, setFormIsSpecial] = useState(false);
   const [formIsPopular, setFormIsPopular] = useState(false);
   const [formAvailable, setFormAvailable] = useState(true);
+  const [syncBanner, setSyncBanner] = useState<string | null>(null);
 
   // File Upload State
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
