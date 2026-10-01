@@ -151,31 +151,28 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         <div className="flex flex-wrap justify-center gap-3 mt-10 max-w-[500px]">
 
           {/* Kurdish */}
-          <button
-            type="button"
-            onClick={() => onLanguageSelect('ku')}
-            className="min-w-[105px] px-6 py-3 rounded-2xl bg-white/15 backdrop-blur-md border border-white/40 text-white font-black hover:bg-[#FFD11A] hover:text-[#0a163e] hover:border-[#FFD11A] hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg"
+          <a
+            href="#/menu-kr"
+            className="min-w-[105px] px-6 py-3 rounded-2xl bg-white/15 backdrop-blur-md border border-white/40 text-white font-black hover:bg-[#FFD11A] hover:text-[#0a163e] hover:border-[#FFD11A] hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg text-center"
           >
             کوردی
-          </button>
+          </a>
 
           {/* Arabic */}
-          <button
-            type="button"
-            onClick={() => onLanguageSelect('ar')}
-            className="min-w-[105px] px-6 py-3 rounded-2xl bg-white/15 backdrop-blur-md border border-white/40 text-white font-black hover:bg-[#FFD11A] hover:text-[#0a163e] hover:border-[#FFD11A] hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg"
+          <a
+            href="#/menu-ar"
+            className="min-w-[105px] px-6 py-3 rounded-2xl bg-white/15 backdrop-blur-md border border-white/40 text-white font-black hover:bg-[#FFD11A] hover:text-[#0a163e] hover:border-[#FFD11A] hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg text-center"
           >
             العربية
-          </button>
+          </a>
 
           {/* English */}
-          <button
-            type="button"
-            onClick={() => onLanguageSelect('en')}
-            className="min-w-[105px] px-6 py-3 rounded-2xl bg-white/15 backdrop-blur-md border border-white/40 text-white font-black hover:bg-[#FFD11A] hover:text-[#0a163e] hover:border-[#FFD11A] hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg"
+          <a
+            href="#/menu-en"
+            className="min-w-[105px] px-6 py-3 rounded-2xl bg-white/15 backdrop-blur-md border border-white/40 text-white font-black hover:bg-[#FFD11A] hover:text-[#0a163e] hover:border-[#FFD11A] hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg text-center"
           >
             English
-          </button>
+          </a>
 
         </div>
 
