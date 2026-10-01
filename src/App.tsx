@@ -656,11 +656,10 @@ export default function App() {
             item.nameEn &&
             item.nameEn
               .toLowerCase()
-              .includes(
-                searchQuery.toLowerCase()
-              )
+              .includes(searchQuery.toLowerCase())
           ) ||
-          item.nameKu &&
+          (
+            item.nameKu &&
             item.nameKu
               .toLowerCase()
               .includes(searchQuery.toLowerCase())
