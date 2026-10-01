@@ -64,7 +64,7 @@ export const MenuCard: React.FC<MenuCardProps> = ({
   const isAr = language === 'ar';
 
   const displayName = isAr ? item.name : (item.nameEn || item.name);
-  const secondaryName = isAr ? item.nameEn : item.name;
+  const secondaryName = '';
   const displayDesc = isAr 
     ? item.description 
     : (item.descriptionEn || item.description);
@@ -202,11 +202,7 @@ export const MenuCard: React.FC<MenuCardProps> = ({
                 <h3 className="text-xl font-black text-white font-['Noto_Kufi_Arabic'] group-hover:text-[#FFD11A] transition-colors leading-snug">
                   {displayName}
                 </h3>
-                {secondaryName && secondaryName !== displayName && (
-                  <p className="text-xs text-[#a2baf6] font-sans -mt-0.5 mb-2 line-clamp-1 font-semibold">
-                    {secondaryName}
-                  </p>
-                )}
+                
               </div>
 
               {/* Prep time & calories tag in horizontal card */}
