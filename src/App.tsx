@@ -35,11 +35,25 @@ type ViewMode = 'portal' | 'customer' | 'admin' | 'welcome';
 export default function App() {
   const getRoute = () => {
     if (typeof window === 'undefined') return { view: 'welcome' as ViewMode, language: null as Language | null };
-    const hash = window.location.hash.toLowerCase().replace(/^#/, '');
-    const route = hash.replace(/^\//, '');
+
+    const hash = decodeURIComponent(window.location.hash || '').toLowerCase();
+    const route = hash.replace(/^#/, '').replace(/^\//, '').replace(/\/$/, '').split('?')[0];
+
+    // Primary public menu URLs.
     if (route === 'menu-ar') return { view: 'customer' as ViewMode, language: 'ar' as Language };
     if (route === 'menu-en') return { view: 'customer' as ViewMode, language: 'en' as Language };
-    if (route === 'menu-kr') return { view: 'customer' as ViewMode, language: 'ku' as Language };
+    if (route === 'menu-kr' || route === 'menu-ku') return { view: 'customer' as ViewMode, language: 'ku' as Language };
+
+    // Query-string fallback, useful when a link is opened by a client that strips hash fragments.
+    const params = new URLSearchParams(window.location.search);
+    const queryView = params.get('view')?.toLowerCase();
+    const queryLanguage = params.get('lang')?.toLowerCase();
+    if (queryView === 'menu') {
+      if (queryLanguage === 'en') return { view: 'customer' as ViewMode, language: 'en' as Language };
+      if (queryLanguage === 'ku' || queryLanguage === 'kr') return { view: 'customer' as ViewMode, language: 'ku' as Language };
+      return { view: 'customer' as ViewMode, language: 'ar' as Language };
+    }
+
     if (route === 'welcome' || route === '') return { view: 'welcome' as ViewMode, language: null };
     if (route === 'portal') return { view: 'portal' as ViewMode, language: null };
     if (route === 'admin') return { view: 'admin' as ViewMode, language: null };
