@@ -47,7 +47,7 @@ export const Hero: React.FC<HeroProps> = ({
 
             {/* Main Title Line 1 + Highlight */}
             {(!isAr || (hero.titleLine1Ar && hero.titleHighlightAr)) && (
-              <h1 className={`text-3xl sm:text-5xl lg:text-6xl font-black font-['Fredoka','Cairo',sans-serif] leading-tight lg:leading-[1.15] ${
+              <h1 className={`text-3xl sm:text-5xl lg:text-6xl font-black font-['Noto_Kufi_Arabic'] leading-tight lg:leading-[1.15] ${
                 isLight ? 'text-slate-900' : 'text-white'
               }`}>
                 {isAr ? hero.titleLine1Ar : hero.titleLine1En} {hero.titleHighlightAr && <br />}
@@ -86,7 +86,7 @@ export const Hero: React.FC<HeroProps> = ({
                 }`}>
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-[#FFD11A]/20 via-[#F7941D]/20 to-[#F2292E]/20 border-2 border-[#FFD11A] text-[#FFD11A] text-xs sm:text-sm font-black shadow-md">
                     <Sparkles className="w-4 h-4 text-[#FFD11A] shrink-0 animate-pulse" />
-                    <span className="font-['Cairo','Fredoka',sans-serif] tracking-wide text-amber-600 dark:text-[#FFD11A]">
+                    <span className="font-['Noto_Kufi_Arabic'] tracking-wide text-amber-600 dark:text-[#FFD11A]">
                       {isAr ? hero.featuredTagAr : hero.featuredTagEn}
                     </span>
                   </div>
@@ -134,7 +134,7 @@ export const Hero: React.FC<HeroProps> = ({
                 <div className={`p-4 sm:p-5 space-y-2 border-t ${
                   isLight ? 'bg-white border-blue-100' : 'bg-gradient-to-b from-[#0c1a47] to-[#081335] border-[#1e3b96]'
                 }`}>
-                  <h4 className={`font-black text-lg sm:text-xl font-['Fredoka','Cairo',sans-serif] leading-snug ${
+                  <h4 className={`font-black text-lg sm:text-xl font-['Noto_Kufi_Arabic'] leading-snug ${
                     isLight ? 'text-slate-900' : 'text-white'
                   }`}>
                     {isAr ? hero.featuredDishTitleAr : hero.featuredDishTitleEn}
