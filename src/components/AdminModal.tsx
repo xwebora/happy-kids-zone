@@ -953,25 +953,6 @@ const handleSaveSettings = async (e: React.FormEvent) => {
 
          <div className="flex items-center gap-3">
 
-  {/* Firestore Sync */}
-  <button
-    onClick={handleMigrateItemsToFirestore}
-    className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#172b68] hover:bg-[#21418f] text-xs font-bold text-white border border-[#2855D9]"
-    title={
-      isAr
-        ? 'نقل الوجبات الحالية إلى Firestore'
-        : 'Migrate current menu items to Firestore'
-    }
-  >
-    <RefreshCw className="w-3.5 h-3.5 text-[#FFD11A]" />
-
-    <span>
-      {isAr
-        ? 'مزامنة قاعدة البيانات'
-        : 'Sync Database'}
-    </span>
-  </button>
-
   {/* Google Drive Status Pill */}
   {user ? (
               <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#78C943]/20 border border-[#78C943] text-[#78C943] text-xs font-bold">
@@ -2603,92 +2584,40 @@ const handleSaveSettings = async (e: React.FormEvent) => {
           {/* TAB 6: GOOGLE DRIVE BACKUP */}
           {activeTab === 'drive' && (
             <div className="space-y-6">
-              <div className="bg-[#161824] p-6 rounded-2xl border border-[#2b271d] space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-sky-950/80 border border-sky-500/30 flex items-center justify-center text-sky-400">
-                    <HardDrive className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-base text-white font-['Amiri',serif]">
-                      Google Drive Cloud Storage
-                    </h3>
-                    <p className="text-xs text-[#9d9689]">
-                      {isAr 
-                        ? 'تخزين صور الوجبات ونسخ قائمة الطعام والأسعار سحابياً بأمان تام على حساب Google Drive الخاص بك.'
-                        : 'Store food photos and backup entire menu pricing data securely to your Google Drive.'}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-xl bg-[#10121a] border border-[#26241c] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div>
-                    <span className="text-xs text-[#7e7769]">{isAr ? 'حالة الربط:' : 'Status:'}</span>
-                    <div className="text-sm font-bold text-white flex items-center gap-2 mt-1">
-                      {user ? (
-                        <>
-                          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                          <span>{user.email}</span>
-                        </>
-                      ) : (
-                        <>
-                          <AlertTriangle className="w-4 h-4 text-amber-400" />
-                          <span>{isAr ? 'غير متصل بحساب Google' : 'Not Connected'}</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  <div>
-                    {user ? (
-                      <button
-                        onClick={handleGoogleLogout}
-                        className="px-4 py-2 rounded-xl bg-red-950/40 hover:bg-red-900 border border-red-800/40 text-red-300 text-xs font-bold flex items-center gap-2"
-                      >
-                        <LogOut className="w-3.5 h-3.5" />
-                        <span>{isAr ? 'تسجيل الخروج من Drive' : 'Disconnect'}</span>
-                      </button>
-                    ) : (
-                      <button
-                        onClick={handleGoogleLogin}
-                        className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 text-white font-bold text-xs shadow flex items-center gap-2"
-                      >
-                        <CloudUpload className="w-4 h-4" />
-                        <span>{isAr ? 'ربط حساب Google Drive' : 'Connect Google Drive'}</span>
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-xl bg-[#12141d] border border-[#2b271d] space-y-3">
-                  <div className="flex items-center gap-2 text-white font-bold text-sm font-['Amiri',serif]">
-                    <Save className="w-4 h-4 text-[#d4af37]" />
-                    <span>{isAr ? 'تصدير وحفظ نسخة المنيو والأسعار' : 'Export & Sync Menu Backup'}</span>
-                  </div>
-                  <p className="text-xs text-[#8c8577]">
-                    {isAr ? `عدد الوجبات الجاهزة للحفظ: ${items.length} وجبة` : `Total meals to backup: ${items.length}`}
+              <div className="bg-[#12245e] p-6 rounded-2xl border-2 border-[#2855D9] space-y-5">
+                <div>
+                  <h3 className="font-black text-base text-white font-['Noto_Kufi_Arabic']">
+                    {isAr ? 'مزامنة قاعدة البيانات' : 'Database Synchronization'}
+                  </h3>
+                  <p className="text-xs text-[#9eb9fc] mt-1">
+                    {isAr ? 'مزامنة جميع بيانات لوحة التحكم مع قاعدة البيانات.' : 'Synchronize all dashboard data with the database.'}
                   </p>
-                  <button
-                    onClick={handleSyncToDrive}
-                    disabled={!user || isDriveSyncing}
-                    className={`w-full py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
-                      user && !isDriveSyncing
-                        ? 'bg-[#d4af37] hover:bg-[#c39f2c] text-[#0c0d10]'
-                        : 'bg-[#1e202c] text-[#555] cursor-not-allowed'
-                    }`}
-                  >
-                    {isDriveSyncing ? (
-                      <>
-                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                        <span>Syncing...</span>
-                      </>
-                    ) : (
-                      <>
-                        <CloudUpload className="w-3.5 h-3.5" />
-                        <span>{isAr ? 'تصدير وحفظ المنيو إلى Drive' : 'Sync Menu to Drive'}</span>
-                      </>
-                    )}
-                  </button>
                 </div>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="rounded-xl bg-[#0f2156] border border-[#2855D9] p-4 text-center">
+                    <div className="text-2xl font-black text-[#FFD11A]">{items.length}</div>
+                    <div className="text-xs text-[#a2bbf5] mt-1">{isAr ? 'الوجبات' : 'Meals'}</div>
+                  </div>
+                  <div className="rounded-xl bg-[#0f2156] border border-[#2855D9] p-4 text-center">
+                    <div className="text-2xl font-black text-[#FFD11A]">{categories.length}</div>
+                    <div className="text-xs text-[#a2bbf5] mt-1">{isAr ? 'الأصناف' : 'Categories'}</div>
+                  </div>
+                  <div className="rounded-xl bg-[#0f2156] border border-[#2855D9] p-4 text-center">
+                    <div className="text-2xl font-black text-[#FFD11A]">{restaurant ? 1 : 0}</div>
+                    <div className="text-xs text-[#a2bbf5] mt-1">{isAr ? 'معلومات المطعم' : 'Restaurant Info'}</div>
+                  </div>
+                  <div className="rounded-xl bg-[#0f2156] border border-[#2855D9] p-4 text-center">
+                    <div className="text-2xl font-black text-[#FFD11A]">{hero ? 1 : 0}</div>
+                    <div className="text-xs text-[#a2bbf5] mt-1">{isAr ? 'إعدادات Hero' : 'Hero Settings'}</div>
+                  </div>
+                </div>
+                <button
+                  onClick={handleMigrateItemsToFirestore}
+                  className="w-full py-3 rounded-xl bg-[#FFD11A] hover:bg-[#e8bd13] text-[#0a163e] text-sm font-black flex items-center justify-center gap-2"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  <span>{isAr ? 'مزامنة قاعدة البيانات' : 'Sync Database'}</span>
+                </button>
               </div>
             </div>
           )}
