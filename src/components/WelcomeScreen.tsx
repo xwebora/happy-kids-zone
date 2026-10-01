@@ -1,3 +1,4 @@
+```tsx
 import React, { useEffect, useState } from 'react';
 import { Language, WelcomeConfig } from '../types';
 
@@ -22,7 +23,17 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 
   const getAnimationClass = () => {
     if (!visible) {
-      return 'opacity-0 translate-y-4 scale-95';
+      switch (config.animation) {
+        case 'slide':
+          return 'opacity-0 translate-y-10';
+
+        case 'zoom':
+          return 'opacity-0 scale-75';
+
+        case 'fade':
+        default:
+          return 'opacity-0';
+      }
     }
 
     switch (config.animation) {
@@ -115,7 +126,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         {/* ==================== WELCOME TEXT ==================== */}
         <div className="text-center space-y-3">
 
-          {/* Syriac */}
+          {/* 1. Syriac */}
           {config.welcomeSy && (
             <div
               dir="rtl"
@@ -132,24 +143,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             </div>
           )}
 
-          {/* Arabic */}
-          {config.welcomeAr && (
-            <div
-              dir="rtl"
-              className="
-                text-3xl
-                sm:text-4xl
-                md:text-5xl
-                font-black
-                text-white
-                drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]
-              "
-            >
-              {config.welcomeAr}
-            </div>
-          )}
-
-          {/* Kurdish */}
+          {/* 2. Kurdish */}
           {config.welcomeKu && (
             <div
               dir="rtl"
@@ -166,7 +160,24 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             </div>
           )}
 
-          {/* English */}
+          {/* 3. Arabic */}
+          {config.welcomeAr && (
+            <div
+              dir="rtl"
+              className="
+                text-3xl
+                sm:text-4xl
+                md:text-5xl
+                font-black
+                text-white
+                drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]
+              "
+            >
+              {config.welcomeAr}
+            </div>
+          )}
+
+          {/* 4. English */}
           {config.welcomeEn && (
             <div
               dir="ltr"
@@ -290,3 +301,4 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 };
 
 export { WelcomeScreen };
+```
