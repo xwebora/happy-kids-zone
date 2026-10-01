@@ -155,6 +155,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [settingsForm, setSettingsForm] = useState<RestaurantInfo>(restaurant);
   const [settingsSavedAlert, setSettingsSavedAlert] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [isDriveSyncing, setIsDriveSyncing] = useState(false);
 
   const handleCopyMenuLink = () => {
     if (typeof window !== 'undefined') {
