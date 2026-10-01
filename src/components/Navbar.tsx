@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, X, Menu as MenuIcon, Languages, Palette, Check, ChevronDown, LayoutGrid, StretchHorizontal, GalleryHorizontal } from 'lucide-react';
+import { Search, X, Menu as MenuIcon, Languages, Check, ChevronDown, LayoutGrid, StretchHorizontal, GalleryHorizontal } from 'lucide-react';
 import { Language, RestaurantInfo, MenuLayoutMode } from '../types';
 import { translations } from '../utils/i18n';
 import { HappyKidsLogo } from './HappyKidsLogo';
@@ -161,57 +161,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               )}
             </div>
 
-            {/* Language Selector */}
-            <div className="relative">
-              <button
-                onClick={() => setShowThemeMenu(!showThemeMenu)}
-                className="p-2 sm:px-3 sm:py-2 rounded-2xl border-2 border-white/20 bg-white/10 hover:bg-white/15 flex items-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer text-white"
-                title={language === 'ar' ? `لون الثيم (${currentTheme.labelAr})` : `Brand Theme (${currentTheme.labelEn})`}
-                aria-label="Select Brand Theme"
-              >
-                <span className={`w-3.5 h-3.5 rounded-full ${currentTheme.dotClass} ring-2 ring-white/50 shadow-sm`} />
-                <Palette className="w-4 h-4 text-white/90" />
-              </button>
-
-              {/* Theme Dropdown */}
-              {showThemeMenu && (
-                <>
-                  <div 
-                    className="fixed inset-0 z-40" 
-                    onClick={() => setShowThemeMenu(false)} 
-                  />
-                  <div className="absolute end-0 mt-2 w-48 rounded-2xl bg-[#0b1638] border-2 border-white/20 shadow-2xl z-50 p-2 space-y-1 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150">
-                    <div className="text-[10px] font-black uppercase tracking-wider text-white/50 px-2.5 py-1">
-                      {language === 'ar' ? 'ألوان ثيم الشعار' : 'Brand Theme Colors'}
-                    </div>
-                    {themeOptions.map((opt) => {
-                      const isActive = theme === opt.id;
-                      return (
-                        <button
-                          key={opt.id}
-                          onClick={() => {
-                            onThemeChange?.(opt.id);
-                            setShowThemeMenu(false);
-                          }}
-                          className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition-all text-start cursor-pointer ${
-                            isActive 
-                              ? 'bg-white/15 text-white shadow-sm ring-1 ring-white/30' 
-                              : 'text-white/80 hover:bg-white/10 hover:text-white'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2.5">
-                            <span className={`w-3.5 h-3.5 rounded-full ${opt.dotClass} ring-2 ring-white/40 shadow-sm`} />
-                            <span>{language === 'ar' ? opt.labelAr : opt.labelEn}</span>
-                          </div>
-                          {isActive && <Check className="w-4 h-4 text-emerald-400" />}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </>
-              )}
-            </div>
-
             {/* Mobile Menu Toggle */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -285,30 +234,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </div>
               </div>
             )}
-
-            <div className="pt-2">
-              <div className="text-[11px] font-black text-white/60 mb-2">
-                {language === 'ar' ? 'ثيم الخلفية (شعار كيدز زون):' : 'Background Theme:'}
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                {themeOptions.map((opt) => (
-                  <button
-                    key={opt.id}
-                    onClick={() => {
-                      onThemeChange?.(opt.id);
-                    }}
-                    className={`py-2 px-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 border transition-all ${
-                      theme === opt.id
-                        ? 'border-white bg-white/20 text-white shadow-md'
-                        : 'border-white/15 bg-white/5 text-white/70'
-                    }`}
-                  >
-                    <span className={`w-2.5 h-2.5 rounded-full ${opt.dotClass}`} />
-                    <span>{language === 'ar' ? opt.labelAr : opt.labelEn}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
 
             <div className="pt-2">
               <div className="text-[11px] font-black text-white/60 mb-2">
