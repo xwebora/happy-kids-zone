@@ -60,7 +60,7 @@ export const MenuCard: React.FC<MenuCardProps> = ({
 }) => {
   const [isLiked, setIsLiked] = useState(false);
   const [floatingParticles, setFloatingParticles] = useState<Array<{ id: number; x: number; y: number; color: string }>>([]);
-  const t = translations[language];
+  const t = translations[language] ?? translations.ar;
   const isAr = language === 'ar';
   const isKu = language === 'ku';
 
@@ -235,14 +235,14 @@ export const MenuCard: React.FC<MenuCardProps> = ({
                 whileHover={{ scale: 1.1 }}
                 className="text-2xl sm:text-3xl font-black text-[#FFD11A] font-['Fredoka',sans-serif] inline-block tracking-tight"
               >
-                {item.price.toLocaleString()}
+                {Number(item.price || 0).toLocaleString()}
               </motion.span>
               <span className="text-xs sm:text-sm text-[#9ebbf9] font-bold">
                 {currency}
               </span>
               {item.originalPrice && item.originalPrice > item.price && (
                 <span className="text-xs sm:text-sm text-[#7897dc] line-through mx-1.5">
-                  {item.originalPrice.toLocaleString()} {currency}
+                  {Number(item.originalPrice || 0).toLocaleString()} {currency}
                 </span>
               )}
             </div>
