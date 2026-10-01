@@ -38,7 +38,6 @@ import { uploadMenuImage, deleteMenuImage } from '../services/storage';
 import { translations } from '../utils/i18n';
 import { User } from 'firebase/auth';
 import {
-  addMenuItem,
   updateMenuItem,
   deleteMenuItem,
   setMenuItem,
@@ -1361,8 +1360,8 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                       <label className="flex items-center gap-1.5 text-xs text-sky-300 cursor-pointer">
                         <input
                           type="checkbox"
-                          checked={uploadToDriveChecked}
-                          onChange={(e) => setUploadToDriveChecked(e.target.checked)}
+                          checked={}
+                          onChange={(e) =>(e.target.checked)}
                           className="rounded text-[#d4af37]"
                         />
                         <span>{t.saveToDriveAuto}</span>
