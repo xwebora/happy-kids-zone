@@ -1089,18 +1089,6 @@ const handleSaveSettings = async (e: React.FormEvent) => {
   </button>
 
   <button
-    onClick={() => setActiveTab('hero')}
-    className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-2 whitespace-nowrap border ${
-      activeTab === 'hero'
-        ? 'bg-[#FFD11A] text-[#0a163e] border-[#FFD11A] shadow-lg shadow-[#FFD11A]/20'
-        : 'bg-[#12245e] text-[#9ebbf9] border-[#2855D9] hover:bg-[#1a3382] hover:text-white'
-    }`}
-  >
-    <LayoutTemplate className="w-4 h-4" />
-    <span>{t.tabHero}</span>
-  </button>
-
-    <button
     onClick={() => setActiveTab('welcome')}
     className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-2 whitespace-nowrap border ${
       activeTab === 'welcome'
