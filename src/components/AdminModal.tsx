@@ -718,6 +718,7 @@ const handleSaveCategory = async (e: React.FormEvent) => {
       ...editingCat,
       name: catNameAr,
       nameEn: catNameEn || catNameAr,
+      nameKu: catNameKu || catNameEn || catNameAr,
       icon: catIcon,
     };
 
@@ -760,6 +761,7 @@ const handleSaveCategory = async (e: React.FormEvent) => {
       id: `cat-${Date.now()}`,
       name: catNameAr,
       nameEn: catNameEn || catNameAr,
+      nameKu: catNameKu || catNameEn || catNameAr,
       icon: catIcon,
     };
 
