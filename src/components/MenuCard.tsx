@@ -62,8 +62,9 @@ export const MenuCard: React.FC<MenuCardProps> = ({
   const [floatingParticles, setFloatingParticles] = useState<Array<{ id: number; x: number; y: number; color: string }>>([]);
   const t = translations[language];
   const isAr = language === 'ar';
+  const isKu = language === 'ku';
 
-  const displayName = isAr ? item.name : (item.nameEn || item.name);
+  const displayName = isAr ? item.name : isKu ? (item.nameKu || item.nameEn || item.name) : (item.nameEn || item.name);
   const secondaryName = '';
   const displayDesc = isAr 
     ? item.description 
