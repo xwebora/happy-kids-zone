@@ -1,4 +1,3 @@
-```tsx
 import React, { useEffect, useState } from 'react';
 import { Language, WelcomeConfig } from '../types';
 
@@ -52,7 +51,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   return (
     <div className="fixed inset-0 z-[9999] w-screen h-screen overflow-hidden bg-black">
 
-      {/* ==================== BACKGROUND ==================== */}
+      {/* BACKGROUND */}
       {config.backgroundType === 'video' && config.backgroundUrl ? (
         <video
           className="absolute inset-0 w-full h-full object-cover"
@@ -73,7 +72,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         <div className="absolute inset-0 bg-[#0a163e]" />
       )}
 
-      {/* ==================== DARK OVERLAY ==================== */}
+      {/* DARK OVERLAY */}
       <div
         className="absolute inset-0 bg-black"
         style={{
@@ -84,60 +83,33 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         }}
       />
 
-      {/* ==================== GRADIENT ==================== */}
+      {/* GRADIENT */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60" />
 
-      {/* ==================== CONTENT ==================== */}
+      {/* CONTENT */}
       <div
-        className={`
-          relative z-10
-          w-full h-full
-          flex flex-col
-          items-center
-          justify-center
-          px-5
-          transition-all
-          duration-1000
-          ease-out
-          ${getAnimationClass()}
-        `}
+        className={`relative z-10 w-full h-full flex flex-col items-center justify-center px-5 transition-all duration-1000 ease-out ${getAnimationClass()}`}
       >
 
-        {/* ==================== LOGO ==================== */}
+        {/* LOGO */}
         {config.logoUrl && (
           <div className="mb-8">
             <img
               src={config.logoUrl}
               alt="Restaurant Logo"
-              className="
-                max-w-[180px]
-                sm:max-w-[220px]
-                md:max-w-[260px]
-                max-h-[150px]
-                sm:max-h-[180px]
-                md:max-h-[200px]
-                object-contain
-                drop-shadow-[0_8px_25px_rgba(0,0,0,0.6)]
-              "
+              className="max-w-[180px] sm:max-w-[220px] md:max-w-[260px] max-h-[150px] sm:max-h-[180px] md:max-h-[200px] object-contain drop-shadow-[0_8px_25px_rgba(0,0,0,0.6)]"
             />
           </div>
         )}
 
-        {/* ==================== WELCOME TEXT ==================== */}
+        {/* WELCOME TEXT */}
         <div className="text-center space-y-3">
 
           {/* 1. Syriac */}
           {config.welcomeSy && (
             <div
               dir="rtl"
-              className="
-                text-2xl
-                sm:text-3xl
-                md:text-4xl
-                font-bold
-                text-white
-                drop-shadow-[0_3px_10px_rgba(0,0,0,0.8)]
-              "
+              className="text-2xl sm:text-3xl md:text-4xl font-bold text-white drop-shadow-[0_3px_10px_rgba(0,0,0,0.8)]"
             >
               {config.welcomeSy}
             </div>
@@ -147,14 +119,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           {config.welcomeKu && (
             <div
               dir="rtl"
-              className="
-                text-2xl
-                sm:text-3xl
-                md:text-4xl
-                font-bold
-                text-white
-                drop-shadow-[0_3px_10px_rgba(0,0,0,0.8)]
-              "
+              className="text-2xl sm:text-3xl md:text-4xl font-bold text-white drop-shadow-[0_3px_10px_rgba(0,0,0,0.8)]"
             >
               {config.welcomeKu}
             </div>
@@ -164,14 +129,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           {config.welcomeAr && (
             <div
               dir="rtl"
-              className="
-                text-3xl
-                sm:text-4xl
-                md:text-5xl
-                font-black
-                text-white
-                drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]
-              "
+              className="text-3xl sm:text-4xl md:text-5xl font-black text-white drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]"
             >
               {config.welcomeAr}
             </div>
@@ -181,15 +139,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           {config.welcomeEn && (
             <div
               dir="ltr"
-              className="
-                text-xl
-                sm:text-2xl
-                md:text-3xl
-                font-semibold
-                text-white/95
-                tracking-wide
-                drop-shadow-[0_3px_10px_rgba(0,0,0,0.8)]
-              "
+              className="text-xl sm:text-2xl md:text-3xl font-semibold text-white/95 tracking-wide drop-shadow-[0_3px_10px_rgba(0,0,0,0.8)]"
             >
               {config.welcomeEn}
             </div>
@@ -197,42 +147,14 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 
         </div>
 
-        {/* ==================== LANGUAGE BUTTONS ==================== */}
-        <div
-          className="
-            flex
-            flex-wrap
-            justify-center
-            gap-3
-            mt-10
-            max-w-[500px]
-          "
-        >
+        {/* LANGUAGE BUTTONS */}
+        <div className="flex flex-wrap justify-center gap-3 mt-10 max-w-[500px]">
 
           {/* Kurdish */}
           <button
             type="button"
             onClick={() => onLanguageSelect('ku')}
-            className="
-              min-w-[105px]
-              px-6
-              py-3
-              rounded-2xl
-              bg-white/15
-              backdrop-blur-md
-              border
-              border-white/40
-              text-white
-              font-black
-              hover:bg-[#FFD11A]
-              hover:text-[#0a163e]
-              hover:border-[#FFD11A]
-              hover:scale-105
-              active:scale-95
-              transition-all
-              duration-300
-              shadow-lg
-            "
+            className="min-w-[105px] px-6 py-3 rounded-2xl bg-white/15 backdrop-blur-md border border-white/40 text-white font-black hover:bg-[#FFD11A] hover:text-[#0a163e] hover:border-[#FFD11A] hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg"
           >
             کوردی
           </button>
@@ -241,26 +163,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           <button
             type="button"
             onClick={() => onLanguageSelect('ar')}
-            className="
-              min-w-[105px]
-              px-6
-              py-3
-              rounded-2xl
-              bg-white/15
-              backdrop-blur-md
-              border
-              border-white/40
-              text-white
-              font-black
-              hover:bg-[#FFD11A]
-              hover:text-[#0a163e]
-              hover:border-[#FFD11A]
-              hover:scale-105
-              active:scale-95
-              transition-all
-              duration-300
-              shadow-lg
-            "
+            className="min-w-[105px] px-6 py-3 rounded-2xl bg-white/15 backdrop-blur-md border border-white/40 text-white font-black hover:bg-[#FFD11A] hover:text-[#0a163e] hover:border-[#FFD11A] hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg"
           >
             العربية
           </button>
@@ -269,26 +172,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           <button
             type="button"
             onClick={() => onLanguageSelect('en')}
-            className="
-              min-w-[105px]
-              px-6
-              py-3
-              rounded-2xl
-              bg-white/15
-              backdrop-blur-md
-              border
-              border-white/40
-              text-white
-              font-black
-              hover:bg-[#FFD11A]
-              hover:text-[#0a163e]
-              hover:border-[#FFD11A]
-              hover:scale-105
-              active:scale-95
-              transition-all
-              duration-300
-              shadow-lg
-            "
+            className="min-w-[105px] px-6 py-3 rounded-2xl bg-white/15 backdrop-blur-md border border-white/40 text-white font-black hover:bg-[#FFD11A] hover:text-[#0a163e] hover:border-[#FFD11A] hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg"
           >
             English
           </button>
@@ -301,4 +185,3 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 };
 
 export { WelcomeScreen };
-```
