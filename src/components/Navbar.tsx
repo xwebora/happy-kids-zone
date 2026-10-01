@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, X, Menu as MenuIcon, Languages, Palette, Check, LayoutGrid, StretchHorizontal, GalleryHorizontal } from 'lucide-react';
+import { Search, X, Menu as MenuIcon, Languages, Palette, Check, ChevronDown, LayoutGrid, StretchHorizontal, GalleryHorizontal } from 'lucide-react';
 import { Language, RestaurantInfo, BrandThemeMode, MenuLayoutMode } from '../types';
 import { translations } from '../utils/i18n';
 import { HappyKidsLogo } from './HappyKidsLogo';
@@ -30,6 +30,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showThemeMenu, setShowThemeMenu] = useState(false);
+  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
   const t = translations[language];
 
   const themeOptions: { id: BrandThemeMode; labelAr: string; labelEn: string; colorHex: string; dotClass: string }[] = [
@@ -120,14 +121,58 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
             )}
 
-            {/* Language Switcher */}
-            <button
-              onClick={() => onLanguageChange(language === 'ar' ? 'en' : 'ar')}
-              className="px-3.5 py-2 rounded-2xl border-2 border-[#2855D9] hover:border-[#FFD11A] bg-[#12245e] hover:bg-[#1a3382] text-[#FFD11A] text-xs font-bold flex items-center justify-center transition-all shadow-md active:scale-95"
-              title="تغيير اللغة / Change Language"
-            >
-              <span>{language === 'ar' ? 'English' : 'عربي'}</span>
-            </button>
+            {/* Language Dropdown - menu only */}
+            <div className="relative">
+              <button
+                onClick={() => {
+                  setShowLanguageMenu(!showLanguageMenu);
+                  setShowThemeMenu(false);
+                }}
+                className="px-3.5 py-2 rounded-2xl border-2 border-[#2855D9] hover:border-[#FFD11A] bg-[#12245e] hover:bg-[#1a3382] text-[#FFD11A] text-xs font-bold flex items-center gap-1.5 justify-center transition-all shadow-md active:scale-95"
+                title="تغيير اللغة / Change Language"
+                aria-label="Select language"
+                aria-expanded={showLanguageMenu}
+              >
+                <Languages className="w-4 h-4" />
+                <span>{language === 'ar' ? 'العربية' : language === 'en' ? 'English' : 'کوردی'}</span>
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showLanguageMenu ? 'rotate-180' : ''}`} />
+              </button>
+
+              {showLanguageMenu && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setShowLanguageMenu(false)}
+                  />
+                  <div className="absolute end-0 mt-2 w-40 rounded-2xl bg-[#0b1638] border-2 border-white/20 shadow-2xl z-50 p-2 space-y-1 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150">
+                    {([
+                      { id: 'ar' as Language, label: 'العربية' },
+                      { id: 'en' as Language, label: 'English' },
+                      { id: 'ku' as Language, label: 'کوردی' },
+                    ]).map((opt) => {
+                      const isActive = language === opt.id;
+                      return (
+                        <button
+                          key={opt.id}
+                          onClick={() => {
+                            onLanguageChange(opt.id);
+                            setShowLanguageMenu(false);
+                          }}
+                          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-start cursor-pointer ${
+                            isActive
+                              ? 'bg-[#FFD11A] text-[#0a163e] shadow-sm'
+                              : 'text-white/85 hover:bg-white/10 hover:text-white'
+                          }`}
+                        >
+                          <span>{opt.label}</span>
+                          {isActive && <Check className="w-4 h-4" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
 
             {/* Brand Theme Selector Inspired by Restaurant Logo */}
             <div className="relative">
@@ -279,13 +324,32 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2">
-              <button
-                onClick={() => onLanguageChange(language === 'ar' ? 'en' : 'ar')}
-                className="text-xs font-bold text-[#FFD11A]"
-              >
-                {language === 'ar' ? 'Switch to English' : 'التحويل للعربية'}
-              </button>
+            <div className="pt-2">
+              <div className="text-[11px] font-black text-white/60 mb-2">
+                {language === 'ar' ? 'اللغة:' : language === 'en' ? 'Language:' : 'زمان:'}
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {([
+                  { id: 'ar' as Language, label: 'العربية' },
+                  { id: 'en' as Language, label: 'English' },
+                  { id: 'ku' as Language, label: 'کوردی' },
+                ]).map((opt) => (
+                  <button
+                    key={opt.id}
+                    onClick={() => {
+                      onLanguageChange(opt.id);
+                      setMobileMenuOpen(false);
+                    }}
+                    className={`py-2 px-2 rounded-xl text-xs font-black border transition-all ${
+                      language === opt.id
+                        ? 'border-[#FFD11A] bg-[#FFD11A] text-[#0a163e] shadow-md'
+                        : 'border-white/15 bg-white/5 text-white/80 hover:bg-white/10'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}
