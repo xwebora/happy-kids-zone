@@ -34,8 +34,7 @@ import {
   Language,
   WelcomeConfig
 } from '../types';
-import { uploadImageToDrive, saveMenuBackupToDrive, deleteDriveFile } from '../services/driveService';
-import { googleSignIn, logout } from '../services/auth';
+import { uploadMenuImage, deleteMenuImage } from '../services/storage';
 import { translations } from '../utils/i18n';
 import { User } from 'firebase/auth';
 import {
@@ -120,7 +119,6 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
-  const [uploadToDriveChecked, setUploadToDriveChecked] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Quick Price State
@@ -156,7 +154,6 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [settingsForm, setSettingsForm] = useState<RestaurantInfo>(restaurant);
   const [settingsSavedAlert, setSettingsSavedAlert] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
-  const [isDriveSyncing, setIsDriveSyncing] = useState(false);
 
   const handleCopyMenuLink = () => {
     if (typeof window !== 'undefined') {
@@ -177,55 +174,6 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   } | null>(null);
 
   if (!isOpen) return null;
-
-  // Google Drive Auth
-  const handleGoogleLogin = async () => {
-    try {
-      const res = await googleSignIn();
-      if (res) {
-        onUserChange(res.user);
-        setSyncBanner(isAr ? 'تم تسجيل الدخول بنجاح مع Google Drive' : 'Successfully connected to Google Drive');
-        setTimeout(() => setSyncBanner(null), 4000);
-      }
-    } catch (err: any) {
-      alert(err.message || 'Google login failed');
-    }
-  };
-
-  const handleGoogleLogout = async () => {
-    await logout();
-    onUserChange(null);
-  };
-
-  // Sync to Drive
-  const handleSyncToDrive = async () => {
-    if (!user) {
-      alert(isAr ? 'يرجى تسجيل الدخول بحساب Google أولاً' : 'Please connect Google account first');
-      return;
-    }
-
-    setConfirmDialog({
-      isOpen: true,
-      title: isAr ? 'حفظ وتحديث نسخة Google Drive' : 'Sync Menu to Google Drive',
-      message: isAr 
-        ? `هل تريد حفظ قائمة المطعم الحالية (${items.length} وجبة) إلى مجلد Google Drive؟` 
-        : `Do you want to backup current menu (${items.length} items) to your Google Drive?`,
-      onConfirm: async () => {
-        setConfirmDialog(null);
-        setIsDriveSyncing(true);
-        setSyncBanner(isAr ? 'جارٍ رفع البيانات إلى Google Drive...' : 'Uploading data to Google Drive...');
-        try {
-          const res = await saveMenuBackupToDrive(items);
-          setSyncBanner(isAr ? `تمت المزامنة بنجاح! معرف الملف: ${res.fileId}` : `Successfully synced! File ID: ${res.fileId}`);
-        } catch (err: any) {
-          setSyncBanner(err.message);
-        } finally {
-          setIsDriveSyncing(false);
-          setTimeout(() => setSyncBanner(null), 5000);
-        }
-      },
-    });
-  };
 
   // Image Upload handler
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -302,33 +250,22 @@ const handleSaveItem = async (e: React.FormEvent) => {
     formImageUrl ||
     'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80';
 
-  let driveFileId = editingItem?.driveFileId;
+  // Firebase Storage is now the image source for new uploads.
+  let storagePath = editingItem?.storagePath;
 
-  // رفع الصورة إلى Google Drive
   if (selectedFile) {
-    if (user && uploadToDriveChecked) {
-      setIsUploadingImage(true);
-
-      try {
-        const fileName = `item_${Date.now()}_${selectedFile.name.replace(/\s+/g, '_')}`;
-
-        const uploadRes = await uploadImageToDrive(
-          selectedFile,
-          fileName
-        );
-
-        finalImageUrl = uploadRes.directUrl;
-        driveFileId = uploadRes.fileId;
-      } catch (err: any) {
-        console.error('Drive upload failed:', err);
-
-        finalImageUrl =
-          filePreview || finalImageUrl;
-      } finally {
-        setIsUploadingImage(false);
-      }
-    } else if (filePreview) {
-      finalImageUrl = filePreview;
+    setIsUploadingImage(true);
+    try {
+      const uploadItemId = editingItem?.id || crypto.randomUUID();
+      const uploadRes = await uploadMenuImage(selectedFile, uploadItemId, selectedFile.name);
+      finalImageUrl = uploadRes.downloadUrl;
+      storagePath = uploadRes.storagePath;
+    } catch (err: any) {
+      console.error('Firebase Storage upload failed:', err);
+      alert(isAr ? `فشل رفع الصورة إلى Firebase Storage:\\n${err.message || err}` : `Failed to upload image to Firebase Storage:\\n${err.message || err}`);
+      return;
+    } finally {
+      setIsUploadingImage(false);
     }
   }
 
@@ -369,10 +306,10 @@ const handleSaveItem = async (e: React.FormEvent) => {
       updatedItem.preparationTimeEn = formPrepTimeEn.trim() ? formPrepTimeEn.trim() : deleteField();
       updatedItem.preparationTimeKu = formPrepTimeKu.trim() ? formPrepTimeKu.trim() : deleteField();
 
-      if (driveFileId) {
-        updatedItem.driveFileId = driveFileId;
-      } else if (editingItem.driveFileId) {
-        updatedItem.driveFileId = deleteField();
+      if (storagePath) {
+        updatedItem.storagePath = storagePath;
+      } else if (editingItem.storagePath) {
+        updatedItem.storagePath = deleteField();
       }
 
       // حفظ في Firestore
@@ -380,6 +317,14 @@ const handleSaveItem = async (e: React.FormEvent) => {
         editingItem.id,
         updatedItem as Partial<Omit<MenuItem, 'id'>>
       );
+
+      if (selectedFile && editingItem.storagePath && editingItem.storagePath !== storagePath) {
+        try {
+          await deleteMenuImage(editingItem.storagePath);
+        } catch (storageDeleteError) {
+          console.warn('Old Firebase Storage image could not be deleted:', storageDeleteError);
+        }
+      }
 
       // تحديث واجهة الموقع
       const updatedList = items.map((it) =>
@@ -425,10 +370,14 @@ const handleSaveItem = async (e: React.FormEvent) => {
       if (formPrepTimeAr.trim()) newItemData.preparationTime = formPrepTimeAr.trim();
       if (formPrepTimeEn.trim()) newItemData.preparationTimeEn = formPrepTimeEn.trim();
       if (formPrepTimeKu.trim()) newItemData.preparationTimeKu = formPrepTimeKu.trim();
-      if (driveFileId) newItemData.driveFileId = driveFileId;
+      if (storagePath) newItemData.storagePath = storagePath;
+
+      // Generate the document ID before uploading so the Storage path and item stay linked.
+      const firestoreId = crypto.randomUUID();
 
       // حفظ في Firestore
-      const firestoreId = await addMenuItem(
+      await setMenuItem(
+        firestoreId,
         newItemData
       );
 
@@ -491,17 +440,12 @@ const handleSaveItem = async (e: React.FormEvent) => {
         // حذف من Firestore
         await deleteMenuItem(item.id);
 
-        // حذف الصورة من Google Drive إن وجدت
-        if (item.driveFileId && user) {
+        // حذف صورة Firebase Storage المرتبطة بالوجبة، إن وجدت.
+        if (item.storagePath) {
           try {
-            await deleteDriveFile(
-              item.driveFileId
-            );
-          } catch (driveError) {
-            console.warn(
-              'Drive deletion error:',
-              driveError
-            );
+            await deleteMenuImage(item.storagePath);
+          } catch (storageError) {
+            console.warn('Firebase Storage deletion error:', storageError);
           }
         }
 
@@ -1070,18 +1014,6 @@ const handleSaveSettings = async (e: React.FormEvent) => {
     <span>{t.tabSettings}</span>
   </button>
 
-  <button
-    onClick={() => setActiveTab('drive')}
-    className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-2 whitespace-nowrap border ${
-      activeTab === 'drive'
-        ? 'bg-[#FFD11A] text-[#0a163e] border-[#FFD11A] shadow-lg shadow-[#FFD11A]/20'
-        : 'bg-[#12245e] text-[#9ebbf9] border-[#2855D9] hover:bg-[#1a3382] hover:text-white'
-    }`}
-  >
-    <HardDrive className="w-4 h-4" />
-    <span>{t.tabDrive}</span>
-  </button>
-
 </div>
 
         {/* Tab Contents Area */}
@@ -1424,7 +1356,8 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                       <ImageIcon className="w-4 h-4 text-[#d4af37]" />
                       <span>{t.itemImage}</span>
                     </span>
-                    {user && (
+                    <span className="text-[11px] text-emerald-400 font-semibold">Firebase Storage</span>
+                    {false && (
                       <label className="flex items-center gap-1.5 text-xs text-sky-300 cursor-pointer">
                         <input
                           type="checkbox"
@@ -1482,7 +1415,7 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                       <div className="text-xs">
                         <span className="font-semibold text-emerald-400 block">{isAr ? 'تم تحديد الصورة' : 'Image Selected'}</span>
                         <span className="text-[11px] text-[#817a6e]">
-                          {selectedFile && uploadToDriveChecked && user ? 'Google Drive Upload Ready' : 'Ready'}
+                          {selectedFile ? (isUploadingImage ? 'Uploading to Firebase Storage...' : 'Firebase Storage Ready') : 'Ready'}
                         </span>
                       </div>
                     </div>
