@@ -199,7 +199,7 @@ export const MenuCard: React.FC<MenuCardProps> = ({
           <div>
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
               <div>
-                <h3 className="text-xl font-black text-white font-['Fredoka','Cairo',sans-serif] group-hover:text-[#FFD11A] transition-colors leading-snug">
+                <h3 className="text-xl font-black text-white font-['Noto_Kufi_Arabic'] group-hover:text-[#FFD11A] transition-colors leading-snug">
                   {displayName}
                 </h3>
                 {secondaryName && secondaryName !== displayName && (
@@ -429,7 +429,7 @@ export const MenuCard: React.FC<MenuCardProps> = ({
       <div className="p-5 flex-1 flex flex-col justify-between">
         <div>
           <div className="flex items-start justify-between gap-2">
-            <h3 className="text-lg font-black text-white font-['Fredoka','Cairo',sans-serif] group-hover:text-[#FFD11A] transition-colors leading-snug">
+            <h3 className="text-lg font-black text-white font-['Noto_Kufi_Arabic'] group-hover:text-[#FFD11A] transition-colors leading-snug">
               {displayName}
             </h3>
           </div>
