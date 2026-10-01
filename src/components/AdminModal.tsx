@@ -953,29 +953,6 @@ const handleSaveSettings = async (e: React.FormEvent) => {
 
          <div className="flex items-center gap-3">
 
-  {/* Google Drive Status Pill */}
-  {user ? (
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#78C943]/20 border border-[#78C943] text-[#78C943] text-xs font-bold">
-                <span className="w-2 h-2 rounded-full bg-[#78C943] animate-pulse" />
-                <span>Drive: {user.email?.split('@')[0]}</span>
-                <button
-                  onClick={handleGoogleLogout}
-                  className="mr-1 text-white hover:text-red-300"
-                  title="تسجيل الخروج من Drive"
-                >
-                  <LogOut className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={handleGoogleLogin}
-                className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#12245e] hover:bg-[#1c3587] text-xs font-bold text-white border border-[#2855D9]"
-              >
-                <CloudUpload className="w-3.5 h-3.5 text-[#FFD11A]" />
-                <span>Google Drive</span>
-              </button>
-            )}
-
             {/* View / Open Separate Kids Menu Page */}
             <a
               href="#/menu"
