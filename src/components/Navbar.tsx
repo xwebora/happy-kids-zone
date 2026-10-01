@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Search, X, Menu as MenuIcon, Languages, Palette, Check, ChevronDown, LayoutGrid, StretchHorizontal, GalleryHorizontal } from 'lucide-react';
-import { Language, RestaurantInfo, BrandThemeMode, MenuLayoutMode } from '../types';
+import { Language, RestaurantInfo, MenuLayoutMode } from '../types';
 import { translations } from '../utils/i18n';
 import { HappyKidsLogo } from './HappyKidsLogo';
 
@@ -9,8 +9,6 @@ interface NavbarProps {
   language: Language;
   onLanguageChange: (lang: Language) => void;
   onBackToPortal?: () => void;
-  theme?: BrandThemeMode;
-  onThemeChange?: (theme: BrandThemeMode) => void;
   onSearchChange: (query: string) => void;
   searchQuery: string;
   layoutMode?: MenuLayoutMode;
@@ -21,24 +19,14 @@ export const Navbar: React.FC<NavbarProps> = ({
   restaurant,
   language,
   onLanguageChange,
-  theme = 'blue',
-  onThemeChange,
   onSearchChange,
   searchQuery,
   layoutMode = 'grid',
   onLayoutModeChange,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [showThemeMenu, setShowThemeMenu] = useState(false);
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
   const t = translations[language] ?? translations.ar;
-
-  const themeOptions: { id: BrandThemeMode; labelAr: string; labelEn: string; colorHex: string; dotClass: string }[] = [
-    { id: 'blue', labelAr: 'أزرق كيدز', labelEn: 'Kids Blue', colorHex: '#1d4ed8', dotClass: 'bg-[#2855D9]' },
-    { id: 'yellow', labelAr: 'أصفر بهجة', labelEn: 'Joy Yellow', colorHex: '#d97706', dotClass: 'bg-[#FFD11A]' },
-  ];
-
-  const currentTheme = themeOptions.find((t) => t.id === theme) || themeOptions[0];
 
   return (
     <header className="sticky top-0 z-40 transition-colors duration-300 bg-[#0a163e]/95 backdrop-blur-md border-b-2 border-white/10 shadow-lg shadow-black/30">
@@ -126,7 +114,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 onClick={() => {
                   setShowLanguageMenu(!showLanguageMenu);
-                  setShowThemeMenu(false);
                 }}
                 className="px-3.5 py-2 rounded-2xl border-2 border-[#2855D9] hover:border-[#FFD11A] bg-[#12245e] hover:bg-[#1a3382] text-[#FFD11A] text-xs font-bold flex items-center gap-1.5 justify-center transition-all shadow-md active:scale-95"
                 title="تغيير اللغة / Change Language"
@@ -174,7 +161,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               )}
             </div>
 
-            {/* Brand Theme Selector Inspired by Restaurant Logo */}
+            {/* Language Selector */}
             <div className="relative">
               <button
                 onClick={() => setShowThemeMenu(!showThemeMenu)}
@@ -299,7 +286,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
             )}
 
-            {/* Mobile Brand Theme Selector */}
             <div className="pt-2">
               <div className="text-[11px] font-black text-white/60 mb-2">
                 {language === 'ar' ? 'ثيم الخلفية (شعار كيدز زون):' : 'Background Theme:'}
