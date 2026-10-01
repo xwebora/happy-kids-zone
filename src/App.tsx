@@ -7,44 +7,13 @@ import { MenuCard } from './components/MenuCard';
 import { AdminModal } from './components/AdminModal';
 import { Footer } from './components/Footer';
 import { WelcomeScreen } from './components/WelcomeScreen';
-import {
-  MenuItem,
-  Category,
-  RestaurantInfo,
-  HeroConfig,
-  Language,
-  MenuLayoutMode,
-  BrandThemeMode
-} from './types';
-import {
-  INITIAL_MENU_ITEMS,
-  INITIAL_CATEGORIES,
-  INITIAL_RESTAURANT_INFO,
-  INITIAL_HERO_CONFIG
-} from './data/mockData';
+import { MenuItem, Category, RestaurantInfo, HeroConfig, Language, MenuLayoutMode, BrandThemeMode } from './types';
+import { INITIAL_MENU_ITEMS, INITIAL_CATEGORIES, INITIAL_RESTAURANT_INFO, INITIAL_HERO_CONFIG } from './data/mockData';
 import { initAuth } from './services/auth';
-import {
-  getWelcomeConfig,
-  getMenuItems,
-  getCategories,
-  getRestaurantInfo,
-  getHeroConfig,
-  subscribeToMenuItems,
-  subscribeToCategories,
-} from './services/menuService';
+import { getWelcomeConfig, getMenuItems, getCategories, getRestaurantInfo, getHeroConfig, subscribeToMenuItems, subscribeToCategories } from './services/menuService';
 import { translations } from './utils/i18n';
 import { User } from 'firebase/auth';
-import {
-  Utensils,
-  Flame,
-  Beef,
-  Salad,
-  Cake,
-  Coffee,
-  Smile,
-  ChevronLeft,
-  ChevronRight
-} from 'lucide-react';
+import { Utensils, Flame, Beef, Salad, Cake, Coffee, Smile } from 'lucide-react';
 
 const STORAGE_KEY_ITEMS = 'happy_kids_items_v4';
 const STORAGE_KEY_RESTAURANT = 'happy_kids_restaurant_v4';
@@ -57,99 +26,63 @@ const STORAGE_KEY_THEME = 'happy_kids_theme_v1';
 
 const gridContainerVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.25, staggerChildren: 0.055, delayChildren: 0.03 },
-  },
-  exit: {
-    opacity: 0,
-    y: -15,
-    scale: 0.98,
-    transition: { duration: 0.18, ease: 'easeIn' as const },
-  },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.25, staggerChildren: 0.055, delayChildren: 0.03 } },
+  exit: { opacity: 0, y: -15, scale: 0.98, transition: { duration: 0.18, ease: 'easeIn' as const } },
 };
 
+type ViewMode = 'portal' | 'customer' | 'admin' | 'welcome';
+
 export default function App() {
-  const getViewFromUrl = (): 'portal' | 'customer' | 'admin' | 'welcome' => {
-    if (typeof window === 'undefined') return 'welcome';
-
-    const hash = window.location.hash.toLowerCase();
-    const search = new URLSearchParams(window.location.search);
-    const viewParam = search.get('view')?.toLowerCase() || search.get('page')?.toLowerCase();
-
-    if (hash.includes('welcome') || viewParam === 'welcome') return 'welcome';
-    if (hash.includes('menu') || viewParam === 'menu') return 'customer';
-    if (hash.includes('admin') || viewParam === 'admin') return 'admin';
-    if (hash.includes('portal') || viewParam === 'portal') return 'portal';
-
-    // Public root always starts at the Welcome screen.
-    return 'welcome';
+  const getRoute = () => {
+    if (typeof window === 'undefined') return { view: 'welcome' as ViewMode, language: null as Language | null };
+    const hash = window.location.hash.toLowerCase().replace(/^#/, '');
+    const route = hash.replace(/^\//, '');
+    if (route === 'menu-ar') return { view: 'customer' as ViewMode, language: 'ar' as Language };
+    if (route === 'menu-en') return { view: 'customer' as ViewMode, language: 'en' as Language };
+    if (route === 'menu-kr') return { view: 'customer' as ViewMode, language: 'ku' as Language };
+    if (route === 'welcome' || route === '') return { view: 'welcome' as ViewMode, language: null };
+    if (route === 'portal') return { view: 'portal' as ViewMode, language: null };
+    if (route === 'admin') return { view: 'admin' as ViewMode, language: null };
+    return { view: 'welcome' as ViewMode, language: null };
   };
 
-  const getMenuLanguageFromUrl = (): Language | null => {
-    if (typeof window === 'undefined') return null;
-    const hash = window.location.hash.toLowerCase();
-    if (hash.includes('menu-kr')) return 'ku';
-    if (hash.includes('menu-en')) return 'en';
-    if (hash.includes('menu-ar')) return 'ar';
-    return null;
-  };
-
-  const [viewMode, setViewMode] = useState<'portal' | 'customer' | 'admin' | 'welcome'>(() => getViewFromUrl());
-
-  const navigateToView = (view: 'portal' | 'customer' | 'admin' | 'welcome', menuLanguage?: Language) => {
-    setViewMode(view);
-    if (typeof window === 'undefined') return;
-
-    if (view === 'customer') {
-      const lang = menuLanguage || language;
-      const menuHash = lang === 'en' ? '/menu-en' : lang === 'ku' ? '/menu-kr' : '/menu-ar';
-      window.location.hash = menuHash;
-    } else if (view === 'admin') {
-      window.location.hash = '/admin';
-    } else if (view === 'welcome') {
-      window.location.hash = '/welcome';
-    } else {
-      window.location.hash = '/portal';
-    }
-  };
+  const initialRoute = getRoute();
+  const [viewMode, setViewMode] = useState<ViewMode>(initialRoute.view);
 
   const getPortalLanguage = (): Language => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_PORTAL_LANG);
       return saved === 'en' || saved === 'ar' ? saved : 'ar';
-    } catch {
-      return 'ar';
-    }
+    } catch { return 'ar'; }
   };
 
-  const initialMenuLanguage = getMenuLanguageFromUrl();
   const [portalLanguage, setPortalLanguage] = useState<Language>(() => getPortalLanguage());
   const [language, setLanguage] = useState<Language>(() => {
+    if (initialRoute.language) return initialRoute.language;
     try {
-      if (viewMode === 'portal' || viewMode === 'admin') return getPortalLanguage();
-      if (initialMenuLanguage) return initialMenuLanguage;
+      if (initialRoute.view === 'portal' || initialRoute.view === 'admin') return getPortalLanguage();
       const saved = localStorage.getItem(STORAGE_KEY_LANG);
       return saved === 'en' || saved === 'ar' || saved === 'ku' ? saved : 'ar';
-    } catch {
-      return initialMenuLanguage || 'ar';
-    }
+    } catch { return 'ar'; }
   });
 
-  const handleMenuLanguageChange = (selectedLanguage: Language) => {
+  const goToMenu = (selectedLanguage: Language) => {
+    const menuHash = selectedLanguage === 'en' ? '#/menu-en' : selectedLanguage === 'ku' ? '#/menu-kr' : '#/menu-ar';
     setLanguage(selectedLanguage);
-    try {
-      localStorage.setItem(STORAGE_KEY_LANG, selectedLanguage);
-    } catch {
-      // Ignore storage errors.
-    }
+    setViewMode('customer');
+    try { localStorage.setItem(STORAGE_KEY_LANG, selectedLanguage); } catch { /* ignore */ }
+    if (typeof window !== 'undefined') window.location.hash = menuHash;
+  };
 
-    if (typeof window !== 'undefined') {
-      const menuHash = selectedLanguage === 'en' ? '/menu-en' : selectedLanguage === 'ku' ? '/menu-kr' : '/menu-ar';
-      // Language switching should not add unnecessary browser-history entries.
-      window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#${menuHash}`);
-    }
+  const navigateToView = (view: ViewMode) => {
+    if (view === 'customer') return goToMenu(language);
+    const hash = view === 'portal' ? '#/portal' : view === 'admin' ? '#/admin' : '#/welcome';
+    setViewMode(view);
+    if (typeof window !== 'undefined') window.location.hash = hash;
+  };
+
+  const handleMenuLanguageChange = (selectedLanguage: Language) => {
+    goToMenu(selectedLanguage);
   };
 
   const handlePortalLanguageChange = (selectedLanguage: Language) => {
@@ -159,354 +92,84 @@ export default function App() {
     try {
       localStorage.setItem(STORAGE_KEY_PORTAL_LANG, nextLanguage);
       localStorage.setItem(STORAGE_KEY_LANG, nextLanguage);
-    } catch {
-      // Ignore storage errors.
-    }
+    } catch { /* ignore */ }
   };
 
   useEffect(() => {
     const handleHashChange = () => {
-      const mode = getViewFromUrl();
-      const urlLanguage = getMenuLanguageFromUrl();
-      setViewMode(mode);
-      if (mode === 'customer' && urlLanguage) {
-        setLanguage(urlLanguage);
-      }
+      const route = getRoute();
+      setViewMode(route.view);
+      if (route.language) setLanguage(route.language);
+      if (route.view === 'portal' || route.view === 'admin') setLanguage(getPortalLanguage());
     };
-
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
-  const [items, setItems] = useState<MenuItem[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY_ITEMS);
-      if (saved) {
-        const parsed: MenuItem[] = JSON.parse(saved);
-        if (parsed.some((it) => it.price < 500)) return INITIAL_MENU_ITEMS;
-        return parsed;
-      }
-      return INITIAL_MENU_ITEMS;
-    } catch {
-      return INITIAL_MENU_ITEMS;
-    }
-  });
-  const [categories, setCategories] = useState<Category[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY_CATEGORIES);
-      return saved ? JSON.parse(saved) : INITIAL_CATEGORIES;
-    } catch {
-      return INITIAL_CATEGORIES;
-    }
-  });
-  const [restaurant, setRestaurant] = useState<RestaurantInfo>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY_RESTAURANT);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (!parsed.currency || parsed.currency === 'ر.س' || parsed.currency === 'SAR' || parsed.currencyEn === 'SAR') {
-          return { ...INITIAL_RESTAURANT_INFO, ...parsed, currency: 'د.ع', currencyEn: 'IQD' };
-        }
-        return parsed;
-      }
-      return INITIAL_RESTAURANT_INFO;
-    } catch {
-      return INITIAL_RESTAURANT_INFO;
-    }
-  });
-  const [heroConfig, setHeroConfig] = useState<HeroConfig>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY_HERO);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.featuredDishPrice && parsed.featuredDishPrice < 500) parsed.featuredDishPrice = INITIAL_HERO_CONFIG.featuredDishPrice;
-        return { ...INITIAL_HERO_CONFIG, ...parsed };
-      }
-      return INITIAL_HERO_CONFIG;
-    } catch {
-      return INITIAL_HERO_CONFIG;
-    }
-  });
+  const [items, setItems] = useState<MenuItem[]>(() => { try { const saved = localStorage.getItem(STORAGE_KEY_ITEMS); if (saved) { const parsed: MenuItem[] = JSON.parse(saved); if (parsed.some(it => it.price < 500)) return INITIAL_MENU_ITEMS; return parsed; } return INITIAL_MENU_ITEMS; } catch { return INITIAL_MENU_ITEMS; } });
+  const [categories, setCategories] = useState<Category[]>(() => { try { const saved = localStorage.getItem(STORAGE_KEY_CATEGORIES); return saved ? JSON.parse(saved) : INITIAL_CATEGORIES; } catch { return INITIAL_CATEGORIES; } });
+  const [restaurant, setRestaurant] = useState<RestaurantInfo>(() => { try { const saved = localStorage.getItem(STORAGE_KEY_RESTAURANT); if (saved) { const parsed = JSON.parse(saved); if (!parsed.currency || parsed.currency === 'ر.س' || parsed.currency === 'SAR' || parsed.currencyEn === 'SAR') return { ...INITIAL_RESTAURANT_INFO, ...parsed, currency: 'د.ع', currencyEn: 'IQD' }; return parsed; } return INITIAL_RESTAURANT_INFO; } catch { return INITIAL_RESTAURANT_INFO; } });
+  const [heroConfig, setHeroConfig] = useState<HeroConfig>(() => { try { const saved = localStorage.getItem(STORAGE_KEY_HERO); return saved ? { ...INITIAL_HERO_CONFIG, ...JSON.parse(saved) } : INITIAL_HERO_CONFIG; } catch { return INITIAL_HERO_CONFIG; } });
   const [welcomeConfig, setWelcomeConfig] = useState<any>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'default' | 'price-asc' | 'price-desc' | 'popular'>('default');
-  const [layoutMode, setLayoutMode] = useState<MenuLayoutMode>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY_LAYOUT) as MenuLayoutMode;
-      return saved === 'grid' || saved === 'horizontal' || saved === 'carousel' ? saved : 'grid';
-    } catch {
-      return 'grid';
-    }
-  });
-  const [brandTheme, setBrandTheme] = useState<BrandThemeMode>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY_THEME) as BrandThemeMode;
-      return saved === 'blue' || saved === 'yellow' ? saved : 'blue';
-    } catch {
-      return 'blue';
-    }
-  });
-  const carouselRef = useRef<HTMLDivElement>(null);
-
-  const handleScrollCarousel = (direction: 'prev' | 'next') => {
-    if (!carouselRef.current) return;
-    const isRTL = language === 'ar' || language === 'ku';
-    const scrollAmount = 340;
-    const delta = direction === 'next' ? (isRTL ? -scrollAmount : scrollAmount) : (isRTL ? scrollAmount : -scrollAmount);
-    carouselRef.current.scrollBy({ left: delta, behavior: 'smooth' });
-  };
-
+  const [layoutMode, setLayoutMode] = useState<MenuLayoutMode>(() => { try { const saved = localStorage.getItem(STORAGE_KEY_LAYOUT) as MenuLayoutMode; return saved === 'grid' || saved === 'horizontal' || saved === 'carousel' ? saved : 'grid'; } catch { return 'grid'; } });
+  const [brandTheme, setBrandTheme] = useState<BrandThemeMode>(() => { try { const saved = localStorage.getItem(STORAGE_KEY_THEME) as BrandThemeMode; return saved === 'blue' || saved === 'yellow' ? saved : 'blue'; } catch { return 'blue'; } });
   const [user, setUser] = useState<User | null>(null);
   const menuSectionRef = useRef<HTMLDivElement>(null);
   const t = translations[language];
 
   useEffect(() => {
-    const loadFirestoreData = async () => {
+    (async () => {
       try {
-        const [firestoreItems, firestoreCategories, firestoreRestaurant, firestoreHero, firestoreWelcome] = await Promise.all([
-          getMenuItems(), getCategories(), getRestaurantInfo(), getHeroConfig(), getWelcomeConfig(),
-        ]);
-        if (firestoreItems.length > 0) setItems(firestoreItems);
-        if (firestoreCategories.length > 0) setCategories(firestoreCategories);
+        const [firestoreItems, firestoreCategories, firestoreRestaurant, firestoreHero, firestoreWelcome] = await Promise.all([getMenuItems(), getCategories(), getRestaurantInfo(), getHeroConfig(), getWelcomeConfig()]);
+        if (firestoreItems.length) setItems(firestoreItems);
+        if (firestoreCategories.length) setCategories(firestoreCategories);
         if (firestoreRestaurant) setRestaurant(firestoreRestaurant);
         if (firestoreHero) setHeroConfig(firestoreHero);
         if (firestoreWelcome) setWelcomeConfig(firestoreWelcome);
-      } catch (error) {
-        console.error('❌ Firestore loading failed:', error);
-      }
-    };
-    loadFirestoreData();
+      } catch (error) { console.error('❌ Firestore loading failed:', error); }
+    })();
   }, []);
-
-  useEffect(() => {
-    const unsubscribe = subscribeToMenuItems((firestoreItems) => setItems(firestoreItems));
-    return () => unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    const unsubscribe = subscribeToCategories((firestoreCategories) => setCategories(firestoreCategories));
-    return () => unsubscribe();
-  }, []);
-
+  useEffect(() => subscribeToMenuItems(setItems), []);
+  useEffect(() => subscribeToCategories(setCategories), []);
   useEffect(() => { localStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(items)); }, [items]);
-  useEffect(() => { localStorage.setItem(STORAGE_KEY_LAYOUT, layoutMode); }, [layoutMode]);
-  useEffect(() => { localStorage.setItem(STORAGE_KEY_THEME, brandTheme); }, [brandTheme]);
   useEffect(() => { localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(categories)); }, [categories]);
   useEffect(() => { localStorage.setItem(STORAGE_KEY_RESTAURANT, JSON.stringify(restaurant)); }, [restaurant]);
   useEffect(() => { localStorage.setItem(STORAGE_KEY_HERO, JSON.stringify(heroConfig)); }, [heroConfig]);
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY_LANG, language);
-    document.documentElement.lang = language;
-    document.documentElement.dir = language === 'ar' || language === 'ku' ? 'rtl' : 'ltr';
-  }, [language]);
-
-  useEffect(() => {
-    const unsubscribe = initAuth((currentUser) => setUser(currentUser));
-    return () => unsubscribe();
-  }, []);
+  useEffect(() => { localStorage.setItem(STORAGE_KEY_LAYOUT, layoutMode); }, [layoutMode]);
+  useEffect(() => { localStorage.setItem(STORAGE_KEY_THEME, brandTheme); }, [brandTheme]);
+  useEffect(() => { localStorage.setItem(STORAGE_KEY_LANG, language); document.documentElement.lang = language; document.documentElement.dir = language === 'ar' || language === 'ku' ? 'rtl' : 'ltr'; }, [language]);
+  useEffect(() => { const unsub = initAuth(setUser); return () => unsub(); }, []);
 
   const scrollToMenu = () => menuSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
-
-  const filteredItems = useMemo(() => {
-    return items
-      .filter((item) => {
-        const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
-        const q = searchQuery.toLowerCase();
-        const matchesSearch = !searchQuery.trim() || item.name.toLowerCase().includes(q) ||
-          (item.nameEn && item.nameEn.toLowerCase().includes(q)) ||
-          (item.nameKu && item.nameKu.toLowerCase().includes(q)) ||
-          item.description.toLowerCase().includes(q) ||
-          (item.descriptionEn && item.descriptionEn.toLowerCase().includes(q)) ||
-          (item.descriptionKu && item.descriptionKu.toLowerCase().includes(q));
-        return matchesCategory && matchesSearch;
-      })
-      .sort((a, b) => {
-        if (sortBy === 'price-asc') return a.price - b.price;
-        if (sortBy === 'price-desc') return b.price - a.price;
-        if (sortBy === 'popular') return (b.isPopular ? 1 : 0) - (a.isPopular ? 1 : 0);
-        const aScore = (a.isChefSpecial ? 2 : 0) + (a.isPopular ? 1 : 0);
-        const bScore = (b.isChefSpecial ? 2 : 0) + (b.isPopular ? 1 : 0);
-        return bScore - aScore;
-      });
-  }, [items, selectedCategory, searchQuery, sortBy]);
-
-  const renderCategoryIcon = (iconName?: string) => {
-    switch (iconName) {
-      case 'Flame': return <Flame className="w-4 h-4" />;
-      case 'Beef': return <Beef className="w-4 h-4" />;
-      case 'Salad': return <Salad className="w-4 h-4" />;
-      case 'Cake': return <Cake className="w-4 h-4" />;
-      case 'Coffee': return <Coffee className="w-4 h-4" />;
-      case 'Smile': return <Smile className="w-4 h-4" />;
-      default: return <Utensils className="w-4 h-4" />;
-    }
-  };
-
-  const getCategoryColor = (index: number) => {
-    const colors = ['#F2292E', '#F7941D', '#FFD11A', '#78C943', '#71359B', '#2855D9'];
-    return colors[index % colors.length];
-  };
-
-  const currentCategoryObj = useMemo(() => {
-    if (selectedCategory === 'all') return null;
-    return categories.find((c) => c.id === selectedCategory) || null;
-  }, [categories, selectedCategory]);
-
-  const activeCategoryColor = useMemo(() => {
-    if (selectedCategory === 'all') return '#FFD11A';
-    const idx = categories.findIndex((c) => c.id === selectedCategory);
-    return getCategoryColor(idx >= 0 ? idx : 0);
-  }, [categories, selectedCategory]);
+  const filteredItems = useMemo(() => items.filter(item => { const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory; const q = searchQuery.toLowerCase(); const matchesSearch = !searchQuery.trim() || item.name.toLowerCase().includes(q) || (item.nameEn && item.nameEn.toLowerCase().includes(q)) || (item.nameKu && item.nameKu.toLowerCase().includes(q)) || item.description.toLowerCase().includes(q) || (item.descriptionEn && item.descriptionEn.toLowerCase().includes(q)) || (item.descriptionKu && item.descriptionKu.toLowerCase().includes(q)); return matchesCategory && matchesSearch; }).sort((a,b) => sortBy === 'price-asc' ? a.price-b.price : sortBy === 'price-desc' ? b.price-a.price : sortBy === 'popular' ? (b.isPopular?1:0)-(a.isPopular?1:0) : ((b.isChefSpecial?2:0)+(b.isPopular?1:0))-((a.isChefSpecial?2:0)+(a.isPopular?1:0))), [items, selectedCategory, searchQuery, sortBy]);
+  const renderCategoryIcon = (name?: string) => ({ Flame: <Flame className="w-4 h-4" />, Beef: <Beef className="w-4 h-4" />, Salad: <Salad className="w-4 h-4" />, Cake: <Cake className="w-4 h-4" />, Coffee: <Coffee className="w-4 h-4" />, Smile: <Smile className="w-4 h-4" /> } as any)[name || ''] || <Utensils className="w-4 h-4" />;
+  const getCategoryColor = (i: number) => ['#F2292E','#F7941D','#FFD11A','#78C943','#71359B','#2855D9'][i % 6];
 
   if (viewMode === 'welcome') {
-    if (!welcomeConfig) {
-      return <div className="fixed inset-0 flex items-center justify-center bg-black text-white">Loading...</div>;
-    }
-    return (
-      <WelcomeScreen
-        config={welcomeConfig}
-        onLanguageSelect={(selectedLanguage) => {
-          setLanguage(selectedLanguage);
-          try { localStorage.setItem(STORAGE_KEY_LANG, selectedLanguage); } catch { /* ignore */ }
-          navigateToView('customer', selectedLanguage);
-        }}
-      />
-    );
+    if (!welcomeConfig) return <div className="fixed inset-0 flex items-center justify-center bg-black text-white">Loading...</div>;
+    return <WelcomeScreen config={welcomeConfig} onLanguageSelect={goToMenu} />;
   }
 
-  if (viewMode === 'portal') {
-    return (
-      <AnimatePresence mode="wait">
-        <motion.div key="portal-view" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} transition={{ duration: 0.3 }}>
-          <PortalGate
-            language={portalLanguage}
-            onLanguageChange={handlePortalLanguageChange}
-            restaurant={restaurant}
-            hero={heroConfig}
-            adminonly={true}
-            onSelectCustomerView={() => navigateToView('customer')}
-            onAdminLoginSuccess={() => {
-              setIsAdminAuthenticated(true);
-              navigateToView('admin');
-              setIsAdminModalOpen(true);
-            }}
-          />
-        </motion.div>
-      </AnimatePresence>
-    );
-  }
+  if (viewMode === 'portal') return <AnimatePresence mode="wait"><motion.div key="portal" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}><PortalGate language={portalLanguage} onLanguageChange={handlePortalLanguageChange} restaurant={restaurant} hero={heroConfig} adminonly={true} onSelectCustomerView={() => goToMenu(portalLanguage)} onAdminLoginSuccess={() => { setIsAdminAuthenticated(true); navigateToView('admin'); setIsAdminModalOpen(true); }} /></motion.div></AnimatePresence>;
 
   if (viewMode === 'admin') {
-    if (!isAdminAuthenticated) {
-      return (
-        <AnimatePresence mode="wait">
-          <motion.div key="admin-login-required" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} transition={{ duration: 0.3 }}>
-            <PortalGate
-              language={portalLanguage}
-              onLanguageChange={handlePortalLanguageChange}
-              restaurant={restaurant}
-              hero={heroConfig}
-              adminonly={true}
-              onSelectCustomerView={() => navigateToView('customer')}
-              onAdminLoginSuccess={() => {
-                setIsAdminAuthenticated(true);
-                navigateToView('admin');
-              }}
-            />
-          </motion.div>
-        </AnimatePresence>
-      );
-    }
-
-    return (
-      <div className="min-h-screen bg-[#0a163e] text-white flex flex-col font-['Noto_Kufi_Arabic']">
-        <AdminModal
-          isOpen={true}
-          onClose={() => navigateToView('portal')}
-          items={items}
-          categories={categories}
-          hero={heroConfig}
-          restaurant={restaurant}
-          language={portalLanguage}
-          onUpdateItems={setItems}
-          onUpdateCategories={setCategories}
-          onUpdateHero={setHeroConfig}
-          welcomeConfig={welcomeConfig}
-          onUpdateWelcome={setWelcomeConfig}
-          onUpdateRestaurant={setRestaurant}
-          user={user}
-          onUserChange={setUser}
-          onAdminLogout={() => { setIsAdminAuthenticated(false); navigateToView('portal'); }}
-        />
-      </div>
-    );
+    if (!isAdminAuthenticated) return <PortalGate language={portalLanguage} onLanguageChange={handlePortalLanguageChange} restaurant={restaurant} hero={heroConfig} adminonly={true} onSelectCustomerView={() => goToMenu(portalLanguage)} onAdminLoginSuccess={() => { setIsAdminAuthenticated(true); navigateToView('admin'); }} />;
+    return <div className="min-h-screen bg-[#0a163e] text-white flex flex-col font-['Noto_Kufi_Arabic']"><AdminModal isOpen={true} onClose={() => navigateToView('portal')} items={items} categories={categories} hero={heroConfig} restaurant={restaurant} language={portalLanguage} onUpdateItems={setItems} onUpdateCategories={setCategories} onUpdateHero={setHeroConfig} welcomeConfig={welcomeConfig} onUpdateWelcome={setWelcomeConfig} onUpdateRestaurant={setRestaurant} user={user} onUserChange={setUser} onAdminLogout={() => { setIsAdminAuthenticated(false); navigateToView('portal'); }} /></div>;
   }
 
-  const themeBackgroundClasses: Record<BrandThemeMode, string> = {
-    blue: 'bg-[#0a163e] selection:bg-[#FFD11A] selection:text-[#0a163e]',
-    yellow: 'bg-[#3d2c00] selection:bg-[#F2292E] selection:text-white',
-  };
-  const themeStickyPillClasses: Record<BrandThemeMode, string> = {
-    blue: 'bg-[#0a163e]/90 border-[#1e3b96]/60 shadow-[#0a163e]/60',
-    yellow: 'bg-[#3d2c00]/90 border-[#b45309]/60 shadow-[#3d2c00]/60',
-  };
-
-  return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }} className={`min-h-screen text-white flex flex-col font-['Noto_Kufi_Arabic'] transition-colors duration-500 ${themeBackgroundClasses[brandTheme]}`}>
-      <Navbar
-        restaurant={restaurant}
-        language={language}
-        onLanguageChange={handleMenuLanguageChange}
-        theme={brandTheme}
-        onThemeChange={setBrandTheme}
-        onSearchChange={setSearchQuery}
-        searchQuery={searchQuery}
-        layoutMode={layoutMode}
-        onLayoutModeChange={setLayoutMode}
-      />
-
-      <main ref={menuSectionRef} className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-6">
-        <div className={`sticky top-20 z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 backdrop-blur-md border-y shadow-lg transition-all duration-300 ${themeStickyPillClasses[brandTheme]}`}>
-          <div className="flex items-center gap-2.5 overflow-x-auto pb-1 pt-1 scrollbar-none px-1">
-            <motion.button onClick={() => setSelectedCategory('all')} whileHover={{ scale: 1.07, y: -3 }} whileTap={{ scale: 0.93 }} transition={{ type: 'spring', stiffness: 450, damping: 20 }} className="relative px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black flex items-center gap-2 whitespace-nowrap cursor-pointer select-none border-2 transition-colors duration-200" style={{ borderColor: selectedCategory === 'all' ? '#FFD11A' : '#2855D9', backgroundColor: selectedCategory === 'all' ? '#FFD11A' : '#12245e', color: selectedCategory === 'all' ? '#0a163e' : '#ffffff' }}>
-              {selectedCategory === 'all' && <motion.div layoutId="activeCategoryGlow" className="absolute inset-0 rounded-2xl bg-[#FFD11A] shadow-lg shadow-[#FFD11A]/40 -z-10" transition={{ type: 'spring', stiffness: 400, damping: 26 }} />}
-              <motion.span animate={selectedCategory === 'all' ? { rotate: [0, -15, 15, -10, 0] } : {}} transition={{ duration: 0.5 }}><Utensils className="w-4 h-4" /></motion.span>
-              <span>{t.allCategories}</span>
-            </motion.button>
-            {categories.map((category, index) => {
-              const isActive = selectedCategory === category.id;
-              const color = getCategoryColor(index);
-              const categoryName = language === 'ku' ? (category.nameKu || category.nameEn || category.name) : language === 'en' ? (category.nameEn || category.name) : category.name;
-              return (
-                <motion.button key={category.id} onClick={() => setSelectedCategory(category.id)} whileHover={{ scale: 1.07, y: -3 }} whileTap={{ scale: 0.93 }} transition={{ type: 'spring', stiffness: 450, damping: 20 }} className="relative px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black flex items-center gap-2 whitespace-nowrap cursor-pointer select-none border-2 transition-colors duration-200" style={{ borderColor: isActive ? color : '#2855D9', backgroundColor: isActive ? color : '#12245e', color: isActive ? '#0a163e' : '#ffffff' }}>
-                  <motion.span animate={isActive ? { rotate: [0, -10, 10, 0] } : {}} transition={{ duration: 0.45 }}>{renderCategoryIcon(category.icon)}</motion.span>
-                  <span>{categoryName}</span>
-                </motion.button>
-              );
-            })}
-          </div>
-        </div>
-
-        <section className="pt-2"><Hero config={heroConfig} language={language} restaurant={restaurant} onExploreMenu={scrollToMenu} /></section>
-
-        <section className="space-y-6">
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-            <div><h1 className="text-2xl sm:text-3xl font-black">{t.menuTitle}</h1><p className="text-white/60 text-sm mt-1">{t.menuSubtitle}</p></div>
-            <div className="flex items-center gap-2"><span className="text-xs text-white/50">{t.sortBy}</span><select value={sortBy} onChange={(e) => setSortBy(e.target.value as typeof sortBy)} className="bg-[#12245e] border border-white/20 rounded-xl px-3 py-2 text-xs text-white"><option value="default">{t.sortSpecialFirst}</option><option value="popular">{t.sortPopular}</option><option value="price-asc">{t.sortPriceAsc}</option><option value="price-desc">{t.sortPriceDesc}</option></select></div>
-          </div>
-          {searchQuery && <div className="text-sm text-white/70">{t.searchResultFor} <span className="text-[#FFD11A] font-bold">{searchQuery}</span></div>}
-          {filteredItems.length === 0 ? <div className="text-center py-20 text-white/60">{t.noItemsFound}</div> : (
-            <motion.div variants={gridContainerVariants} initial="hidden" animate="visible" className={layoutMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5' : layoutMode === 'horizontal' ? 'flex flex-col gap-4' : 'flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4'}>
-              {filteredItems.map((item) => <MenuCard key={item.id} item={item} language={language} currency={language === 'en' ? restaurant.currencyEn : restaurant.currency} onEdit={() => setIsAdminModalOpen(true)} onDelete={() => {}} />)}
-            </motion.div>
-          )}
-        </section>
-      </main>
-
-      <Footer restaurant={restaurant} language={language} />
-    </motion.div>
-  );
+  const themeBackgroundClasses = { blue: 'bg-[#0a163e] selection:bg-[#FFD11A] selection:text-[#0a163e]', yellow: 'bg-[#3d2c00] selection:bg-[#F2292E] selection:text-white' } as const;
+  const themeStickyPillClasses = { blue: 'bg-[#0a163e]/90 border-[#1e3b96]/60 shadow-[#0a163e]/60', yellow: 'bg-[#3d2c00]/90 border-[#b45309]/60 shadow-[#3d2c00]/60' } as const;
+  return <motion.div initial={{opacity:0}} animate={{opacity:1}} className={`min-h-screen text-white flex flex-col font-['Noto_Kufi_Arabic'] transition-colors duration-500 ${themeBackgroundClasses[brandTheme]}`}>
+    <Navbar restaurant={restaurant} language={language} onLanguageChange={handleMenuLanguageChange} theme={brandTheme} onThemeChange={setBrandTheme} onSearchChange={setSearchQuery} searchQuery={searchQuery} layoutMode={layoutMode} onLayoutModeChange={setLayoutMode} />
+    <main ref={menuSectionRef} className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-6">
+      <div className={`sticky top-20 z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 backdrop-blur-md border-y shadow-lg ${themeStickyPillClasses[brandTheme]}`}><div className="flex items-center gap-2.5 overflow-x-auto pb-1 pt-1 scrollbar-none px-1"><motion.button onClick={()=>setSelectedCategory('all')} className="relative px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black flex items-center gap-2 whitespace-nowrap border-2" style={{borderColor:selectedCategory==='all'?'#FFD11A':'#2855D9',backgroundColor:selectedCategory==='all'?'#FFD11A':'#12245e',color:selectedCategory==='all'?'#0a163e':'#fff'}}><Utensils className="w-4 h-4"/><span>{t.allCategories}</span></motion.button>{categories.map((category,index)=>{const active=selectedCategory===category.id;const color=getCategoryColor(index);const categoryName=language==='ku'?(category.nameKu||category.nameEn||category.name):language==='en'?(category.nameEn||category.name):category.name;return <motion.button key={category.id} onClick={()=>setSelectedCategory(category.id)} className="px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black flex items-center gap-2 whitespace-nowrap border-2" style={{borderColor:active?color:'#2855D9',backgroundColor:active?color:'#12245e',color:active?'#0a163e':'#fff'}}>{renderCategoryIcon(category.icon)}<span>{categoryName}</span></motion.button>})}</div></div>
+      <section className="pt-2"><Hero config={heroConfig} language={language} restaurant={restaurant} onExploreMenu={scrollToMenu} /></section>
+      <section className="space-y-6"><div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4"><div><h1 className="text-2xl sm:text-3xl font-black">{t.menuTitle}</h1><p className="text-white/60 text-sm mt-1">{t.menuSubtitle}</p></div><div className="flex items-center gap-2"><span className="text-xs text-white/50">{t.sortBy}</span><select value={sortBy} onChange={e=>setSortBy(e.target.value as typeof sortBy)} className="bg-[#12245e] border border-white/20 rounded-xl px-3 py-2 text-xs text-white"><option value="default">{t.sortSpecialFirst}</option><option value="popular">{t.sortPopular}</option><option value="price-asc">{t.sortPriceAsc}</option><option value="price-desc">{t.sortPriceDesc}</option></select></div></div>{searchQuery&&<div className="text-sm text-white/70">{t.searchResultFor} <span className="text-[#FFD11A] font-bold">{searchQuery}</span></div>}{filteredItems.length===0?<div className="text-center py-20 text-white/60">{t.noItemsFound}</div>:<motion.div variants={gridContainerVariants} initial="hidden" animate="visible" className={layoutMode==='grid'?'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5':layoutMode==='horizontal'?'flex flex-col gap-4':'flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4'}>{filteredItems.map(item=><MenuCard key={item.id} item={item} language={language} currency={language==='en'?restaurant.currencyEn:restaurant.currency} onEdit={()=>setIsAdminModalOpen(true)} onDelete={()=>{}} />)}</motion.div>}</section>
+    </main><Footer restaurant={restaurant} language={language} />
+  </motion.div>;
 }
