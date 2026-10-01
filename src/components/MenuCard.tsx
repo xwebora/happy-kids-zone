@@ -66,9 +66,11 @@ export const MenuCard: React.FC<MenuCardProps> = ({
 
   const displayName = isAr ? item.name : isKu ? (item.nameKu || item.nameEn || item.name) : (item.nameEn || item.name);
   const secondaryName = '';
-  const displayDesc = isAr 
-    ? item.description 
-    : (item.descriptionEn || item.description);
+  const displayDesc = isAr
+    ? item.description
+    : isKu
+      ? (item.descriptionKu || item.descriptionEn || item.description)
+      : (item.descriptionEn || item.description);
   const displayPrep = isAr
     ? item.preparationTime
     : (item.preparationTimeEn || item.preparationTime);
