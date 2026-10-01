@@ -16,16 +16,13 @@ import {
   MenuLayoutMode,
   BrandThemeMode
 } from './types';
-
 import {
   INITIAL_MENU_ITEMS,
   INITIAL_CATEGORIES,
   INITIAL_RESTAURANT_INFO,
   INITIAL_HERO_CONFIG
 } from './data/mockData';
-
 import { initAuth } from './services/auth';
-
 import {
   getWelcomeConfig,
   getMenuItems,
@@ -35,10 +32,8 @@ import {
   subscribeToMenuItems,
   subscribeToCategories,
 } from './services/menuService';
-
 import { translations } from './utils/i18n';
 import { User } from 'firebase/auth';
-
 import {
   Utensils,
   Flame,
@@ -46,7 +41,6 @@ import {
   Salad,
   Cake,
   Coffee,
-  Sparkles,
   Smile,
   ChevronLeft,
   ChevronRight
@@ -61,77 +55,57 @@ const STORAGE_KEY_PORTAL_LANG = 'happy_kids_portal_lang_v1';
 const STORAGE_KEY_LAYOUT = 'happy_kids_layout_v4';
 const STORAGE_KEY_THEME = 'happy_kids_theme_v1';
 
-// Grid stagger container variants for playful category transition
 const gridContainerVariants: Variants = {
-  hidden: {
-    opacity: 0,
-    y: 20
-  },
+  hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: {
-      duration: 0.25,
-      staggerChildren: 0.055,
-      delayChildren: 0.03,
-    },
+    transition: { duration: 0.25, staggerChildren: 0.055, delayChildren: 0.03 },
   },
   exit: {
     opacity: 0,
     y: -15,
     scale: 0.98,
-    transition: {
-      duration: 0.18,
-      ease: 'easeIn' as const,
-    },
+    transition: { duration: 0.18, ease: 'easeIn' as const },
   },
 };
 
 export default function App() {
-
-  // Helper to determine view mode from current URL
   const getViewFromUrl = (): 'portal' | 'customer' | 'admin' | 'welcome' => {
-  if (typeof window === 'undefined') return 'portal';
+    if (typeof window === 'undefined') return 'welcome';
 
-  const hash = window.location.hash.toLowerCase();
-  const search = new URLSearchParams(window.location.search);
+    const hash = window.location.hash.toLowerCase();
+    const search = new URLSearchParams(window.location.search);
+    const viewParam = search.get('view')?.toLowerCase() || search.get('page')?.toLowerCase();
 
-  const viewParam =
-    search.get('view')?.toLowerCase() ||
-    search.get('page')?.toLowerCase();
+    if (hash.includes('welcome') || viewParam === 'welcome') return 'welcome';
+    if (hash.includes('menu') || viewParam === 'menu') return 'customer';
+    if (hash.includes('admin') || viewParam === 'admin') return 'admin';
+    if (hash.includes('portal') || viewParam === 'portal') return 'portal';
 
-  if (hash.includes('welcome') || viewParam === 'welcome') {
+    // Public root always starts at the Welcome screen.
     return 'welcome';
-  }
+  };
 
-  if (hash.includes('menu') || viewParam === 'menu') {
-    return 'customer';
-  }
+  const getMenuLanguageFromUrl = (): Language | null => {
+    if (typeof window === 'undefined') return null;
+    const hash = window.location.hash.toLowerCase();
+    if (hash.includes('menu-kr')) return 'ku';
+    if (hash.includes('menu-en')) return 'en';
+    if (hash.includes('menu-ar')) return 'ar';
+    return null;
+  };
 
-  if (hash.includes('admin') || viewParam === 'admin') {
-    return 'admin';
-  }
+  const [viewMode, setViewMode] = useState<'portal' | 'customer' | 'admin' | 'welcome'>(() => getViewFromUrl());
 
-  if (hash.includes('portal') || viewParam === 'portal') {
-    return 'portal';
-  }
+  const navigateToView = (view: 'portal' | 'customer' | 'admin' | 'welcome', menuLanguage?: Language) => {
+    setViewMode(view);
+    if (typeof window === 'undefined') return;
 
-  return 'portal';
-};
-
-  // Current view mode
-  const [viewMode, setViewMode] = useState<
-  'portal' | 'customer' | 'admin' | 'welcome'
->(() => getViewFromUrl());
-
-  const navigateToView = (
-  view: 'portal' | 'customer' | 'admin' | 'welcome'
-) => {
-  setViewMode(view);
-
-  if (typeof window !== 'undefined') {
     if (view === 'customer') {
-      window.location.hash = '/menu';
+      const lang = menuLanguage || language;
+      const menuHash = lang === 'en' ? '/menu-en' : lang === 'ku' ? '/menu-kr' : '/menu-ar';
+      window.location.hash = menuHash;
     } else if (view === 'admin') {
       window.location.hash = '/admin';
     } else if (view === 'welcome') {
@@ -139,28 +113,8 @@ export default function App() {
     } else {
       window.location.hash = '/portal';
     }
-  }
-};
+  };
 
-  // Synchronize viewMode whenever user navigates
-  useEffect(() => {
-    const handleHashChange = () => {
-      const mode = getViewFromUrl();
-      setViewMode(mode);
-    };
-
-    window.addEventListener('hashchange', handleHashChange);
-
-    return () =>
-      window.removeEventListener(
-        'hashchange',
-        handleHashChange
-      );
-  }, []);
-
-  // Language state
-  // Portal/Admin/root URLs intentionally use only Arabic or English.
-  // The menu can independently use Kurdish.
   const getPortalLanguage = (): Language => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_PORTAL_LANG);
@@ -170,22 +124,33 @@ export default function App() {
     }
   };
 
+  const initialMenuLanguage = getMenuLanguageFromUrl();
   const [portalLanguage, setPortalLanguage] = useState<Language>(() => getPortalLanguage());
-
   const [language, setLanguage] = useState<Language>(() => {
     try {
-      if (viewMode === 'portal' || viewMode === 'admin') {
-        return getPortalLanguage();
-      }
-
+      if (viewMode === 'portal' || viewMode === 'admin') return getPortalLanguage();
+      if (initialMenuLanguage) return initialMenuLanguage;
       const saved = localStorage.getItem(STORAGE_KEY_LANG);
-      return saved === 'en' || saved === 'ar' || saved === 'ku'
-        ? saved
-        : 'ar';
+      return saved === 'en' || saved === 'ar' || saved === 'ku' ? saved : 'ar';
     } catch {
-      return 'ar';
+      return initialMenuLanguage || 'ar';
     }
   });
+
+  const handleMenuLanguageChange = (selectedLanguage: Language) => {
+    setLanguage(selectedLanguage);
+    try {
+      localStorage.setItem(STORAGE_KEY_LANG, selectedLanguage);
+    } catch {
+      // Ignore storage errors.
+    }
+
+    if (typeof window !== 'undefined') {
+      const menuHash = selectedLanguage === 'en' ? '/menu-en' : selectedLanguage === 'ku' ? '/menu-kr' : '/menu-ar';
+      // Language switching should not add unnecessary browser-history entries.
+      window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#${menuHash}`);
+    }
+  };
 
   const handlePortalLanguageChange = (selectedLanguage: Language) => {
     const nextLanguage: Language = selectedLanguage === 'en' ? 'en' : 'ar';
@@ -199,751 +164,234 @@ export default function App() {
     }
   };
 
-  // Admin authentication state
-  const [isAdminAuthenticated, setIsAdminAuthenticated] =
-    useState(false);
+  useEffect(() => {
+    const handleHashChange = () => {
+      const mode = getViewFromUrl();
+      const urlLanguage = getMenuLanguageFromUrl();
+      setViewMode(mode);
+      if (mode === 'customer' && urlLanguage) {
+        setLanguage(urlLanguage);
+      }
+    };
 
-  const [isAdminModalOpen, setIsAdminModalOpen] =
-    useState(false);
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
-  // ============================================================
-  // ITEMS STATE
-  // ============================================================
-
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [items, setItems] = useState<MenuItem[]>(() => {
     try {
-      const saved = localStorage.getItem(
-        STORAGE_KEY_ITEMS
-      );
-
+      const saved = localStorage.getItem(STORAGE_KEY_ITEMS);
       if (saved) {
         const parsed: MenuItem[] = JSON.parse(saved);
-
-        const needsIqdPriceMigration =
-          parsed.some(
-            (it) => it.price < 500
-          );
-
-        if (needsIqdPriceMigration) {
-          return INITIAL_MENU_ITEMS;
-        }
-
+        if (parsed.some((it) => it.price < 500)) return INITIAL_MENU_ITEMS;
         return parsed;
       }
-
       return INITIAL_MENU_ITEMS;
     } catch {
       return INITIAL_MENU_ITEMS;
     }
   });
-
-  // ============================================================
-  // CATEGORIES STATE
-  // ============================================================
-
-  const [categories, setCategories] =
-    useState<Category[]>(() => {
-      try {
-        const saved = localStorage.getItem(
-          STORAGE_KEY_CATEGORIES
-        );
-
-        return saved
-          ? JSON.parse(saved)
-          : INITIAL_CATEGORIES;
-      } catch {
-        return INITIAL_CATEGORIES;
-      }
-    });
-
-  // ============================================================
-  // RESTAURANT STATE
-  // ============================================================
-
-  const [restaurant, setRestaurant] =
-    useState<RestaurantInfo>(() => {
-      try {
-        const saved = localStorage.getItem(
-          STORAGE_KEY_RESTAURANT
-        );
-
-        if (saved) {
-          const parsed = JSON.parse(saved);
-
-          if (
-            !parsed.currency ||
-            parsed.currency === 'ر.س' ||
-            parsed.currency === 'SAR' ||
-            parsed.currencyEn === 'SAR'
-          ) {
-            return {
-              ...INITIAL_RESTAURANT_INFO,
-              ...parsed,
-              currency: 'د.ع',
-              currencyEn: 'IQD',
-            };
-          }
-
-          return parsed;
+  const [categories, setCategories] = useState<Category[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_CATEGORIES);
+      return saved ? JSON.parse(saved) : INITIAL_CATEGORIES;
+    } catch {
+      return INITIAL_CATEGORIES;
+    }
+  });
+  const [restaurant, setRestaurant] = useState<RestaurantInfo>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_RESTAURANT);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (!parsed.currency || parsed.currency === 'ر.س' || parsed.currency === 'SAR' || parsed.currencyEn === 'SAR') {
+          return { ...INITIAL_RESTAURANT_INFO, ...parsed, currency: 'د.ع', currencyEn: 'IQD' };
         }
-
-        return INITIAL_RESTAURANT_INFO;
-      } catch {
-        return INITIAL_RESTAURANT_INFO;
+        return parsed;
       }
-    });
-
-  // ============================================================
-  // HERO STATE
-  // ============================================================
-
-  const [heroConfig, setHeroConfig] =
-    useState<HeroConfig>(() => {
-      try {
-        const saved = localStorage.getItem(
-          STORAGE_KEY_HERO
-        );
-
-        if (saved) {
-          const parsed = JSON.parse(saved);
-
-          if (
-            parsed.featuredDishPrice &&
-            parsed.featuredDishPrice < 500
-          ) {
-            parsed.featuredDishPrice =
-              INITIAL_HERO_CONFIG.featuredDishPrice;
-          }
-
-          return {
-            ...INITIAL_HERO_CONFIG,
-            ...parsed,
-          };
-        }
-
-        return INITIAL_HERO_CONFIG;
-      } catch {
-        return INITIAL_HERO_CONFIG;
+      return INITIAL_RESTAURANT_INFO;
+    } catch {
+      return INITIAL_RESTAURANT_INFO;
+    }
+  });
+  const [heroConfig, setHeroConfig] = useState<HeroConfig>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_HERO);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.featuredDishPrice && parsed.featuredDishPrice < 500) parsed.featuredDishPrice = INITIAL_HERO_CONFIG.featuredDishPrice;
+        return { ...INITIAL_HERO_CONFIG, ...parsed };
       }
-    });
-
-  // ============================================================
-  // WELCOME / PORTAL STATE
-  // ============================================================
-
+      return INITIAL_HERO_CONFIG;
+    } catch {
+      return INITIAL_HERO_CONFIG;
+    }
+  });
   const [welcomeConfig, setWelcomeConfig] = useState<any>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<'default' | 'price-asc' | 'price-desc' | 'popular'>('default');
+  const [layoutMode, setLayoutMode] = useState<MenuLayoutMode>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_LAYOUT) as MenuLayoutMode;
+      return saved === 'grid' || saved === 'horizontal' || saved === 'carousel' ? saved : 'grid';
+    } catch {
+      return 'grid';
+    }
+  });
+  const [brandTheme, setBrandTheme] = useState<BrandThemeMode>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_THEME) as BrandThemeMode;
+      return saved === 'blue' || saved === 'yellow' ? saved : 'blue';
+    } catch {
+      return 'blue';
+    }
+  });
+  const carouselRef = useRef<HTMLDivElement>(null);
 
-  // ============================================================
-  // FILTERS
-  // ============================================================
-
-  const [selectedCategory, setSelectedCategory] =
-    useState<string>('all');
-
-  const [searchQuery, setSearchQuery] =
-    useState('');
-
-  const [sortBy, setSortBy] =
-    useState<
-      'default' |
-      'price-asc' |
-      'price-desc' |
-      'popular'
-    >('default');
-
-  // ============================================================
-  // LAYOUT
-  // ============================================================
-
-  const [layoutMode, setLayoutMode] =
-    useState<MenuLayoutMode>(() => {
-      try {
-        const saved =
-          localStorage.getItem(
-            STORAGE_KEY_LAYOUT
-          ) as MenuLayoutMode;
-
-        return (
-          saved === 'grid' ||
-          saved === 'horizontal' ||
-          saved === 'carousel'
-        )
-          ? saved
-          : 'grid';
-      } catch {
-        return 'grid';
-      }
-    });
-
-  // ============================================================
-  // THEME
-  // ============================================================
-
-  const [brandTheme, setBrandTheme] =
-    useState<BrandThemeMode>(() => {
-      try {
-        const saved =
-          localStorage.getItem(
-            STORAGE_KEY_THEME
-          ) as BrandThemeMode;
-
-        return (
-          saved === 'blue' ||
-          saved === 'yellow'
-        )
-          ? saved
-          : 'blue';
-      } catch {
-        return 'blue';
-      }
-    });
-
-  const carouselRef =
-    useRef<HTMLDivElement>(null);
-
-  const handleScrollCarousel = (
-    direction: 'prev' | 'next'
-  ) => {
+  const handleScrollCarousel = (direction: 'prev' | 'next') => {
     if (!carouselRef.current) return;
-
     const isRTL = language === 'ar' || language === 'ku';
     const scrollAmount = 340;
-
-    const delta =
-      direction === 'next'
-        ? (
-            isRTL
-              ? -scrollAmount
-              : scrollAmount
-          )
-        : (
-            isRTL
-              ? scrollAmount
-              : -scrollAmount
-          );
-
-    carouselRef.current.scrollBy({
-      left: delta,
-      behavior: 'smooth',
-    });
+    const delta = direction === 'next' ? (isRTL ? -scrollAmount : scrollAmount) : (isRTL ? scrollAmount : -scrollAmount);
+    carouselRef.current.scrollBy({ left: delta, behavior: 'smooth' });
   };
 
-  // ============================================================
-  // GOOGLE USER
-  // ============================================================
-
-  const [user, setUser] =
-    useState<User | null>(null);
-
-  const menuSectionRef =
-    useRef<HTMLDivElement>(null);
-
+  const [user, setUser] = useState<User | null>(null);
+  const menuSectionRef = useRef<HTMLDivElement>(null);
   const t = translations[language];
 
-  // ============================================================
-  // LOAD DATA FROM FIRESTORE
-  // Firestore is the main source of data
-  // ============================================================
-
   useEffect(() => {
-  const loadFirestoreData = async () => {
-    try {
-      console.log(
-        '🔥 Loading data from Firestore...'
-      );
-
-      const [
-        firestoreItems,
-        firestoreCategories,
-        firestoreRestaurant,
-        firestoreHero,
-        firestoreWelcome,
-      ] = await Promise.all([
-        getMenuItems(),
-        getCategories(),
-        getRestaurantInfo(),
-        getHeroConfig(),
-        getWelcomeConfig(),
-      ]);
-
-      // Menu Items
-      if (firestoreItems.length > 0) {
-        setItems(firestoreItems);
-
-        console.log(
-          `✅ Loaded ${firestoreItems.length} menu items`
-        );
+    const loadFirestoreData = async () => {
+      try {
+        const [firestoreItems, firestoreCategories, firestoreRestaurant, firestoreHero, firestoreWelcome] = await Promise.all([
+          getMenuItems(), getCategories(), getRestaurantInfo(), getHeroConfig(), getWelcomeConfig(),
+        ]);
+        if (firestoreItems.length > 0) setItems(firestoreItems);
+        if (firestoreCategories.length > 0) setCategories(firestoreCategories);
+        if (firestoreRestaurant) setRestaurant(firestoreRestaurant);
+        if (firestoreHero) setHeroConfig(firestoreHero);
+        if (firestoreWelcome) setWelcomeConfig(firestoreWelcome);
+      } catch (error) {
+        console.error('❌ Firestore loading failed:', error);
       }
-
-      // Categories
-      if (firestoreCategories.length > 0) {
-        setCategories(firestoreCategories);
-
-        console.log(
-          `✅ Loaded ${firestoreCategories.length} categories`
-        );
-      }
-
-      // Restaurant
-      if (firestoreRestaurant) {
-        setRestaurant(firestoreRestaurant);
-
-        console.log(
-          '✅ Loaded restaurant information'
-        );
-      }
-
-      // Hero
-      if (firestoreHero) {
-        setHeroConfig(firestoreHero);
-
-        console.log(
-          '✅ Loaded Hero configuration'
-        );
-      }
-
-      // Welcome
-      if (firestoreWelcome) {
-        setWelcomeConfig(firestoreWelcome);
-
-        console.log(
-          '✅ Loaded Welcome configuration'
-        );
-      }
-
-      console.log(
-        '🎉 Firestore loading completed'
-      );
-
-    } catch (error) {
-      console.error(
-        '❌ Firestore loading failed:',
-        error
-      );
-    }
-  };
-
-  loadFirestoreData();
-}, []);
-  // ============================================================
-  // REALTIME MENU ITEMS
-  // Firestore updates the menu automatically
-  // ============================================================
-
-  useEffect(() => {
-    console.log(
-      '🔥 Starting realtime menu listener...'
-    );
-
-    const unsubscribe =
-      subscribeToMenuItems(
-        (firestoreItems) => {
-          setItems(firestoreItems);
-
-          console.log(
-            `🔄 Menu updated from Firestore: ${firestoreItems.length} items`
-          );
-        }
-      );
-
-    return () => {
-      console.log(
-        '🛑 Stopping realtime menu listener...'
-      );
-
-      unsubscribe();
     };
+    loadFirestoreData();
   }, []);
-  useEffect(() => {
-  console.log('🔥 Starting realtime categories listener...');
-
-  const unsubscribe = subscribeToCategories((firestoreCategories) => {
-    setCategories(firestoreCategories);
-
-    console.log(
-      `🔄 Categories updated from Firestore: ${firestoreCategories.length} categories`
-    );
-  });
-
-  return () => {
-    console.log('🛑 Stopping realtime categories listener...');
-    unsubscribe();
-  };
-}, []);
-
-  // ============================================================
-  // SYNC TO LOCALSTORAGE
-  // ============================================================
 
   useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEY_ITEMS,
-      JSON.stringify(items)
-    );
-  }, [items]);
+    const unsubscribe = subscribeToMenuItems((firestoreItems) => setItems(firestoreItems));
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEY_LAYOUT,
-      layoutMode
-    );
-  }, [layoutMode]);
+    const unsubscribe = subscribeToCategories((firestoreCategories) => setCategories(firestoreCategories));
+    return () => unsubscribe();
+  }, []);
 
+  useEffect(() => { localStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(items)); }, [items]);
+  useEffect(() => { localStorage.setItem(STORAGE_KEY_LAYOUT, layoutMode); }, [layoutMode]);
+  useEffect(() => { localStorage.setItem(STORAGE_KEY_THEME, brandTheme); }, [brandTheme]);
+  useEffect(() => { localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(categories)); }, [categories]);
+  useEffect(() => { localStorage.setItem(STORAGE_KEY_RESTAURANT, JSON.stringify(restaurant)); }, [restaurant]);
+  useEffect(() => { localStorage.setItem(STORAGE_KEY_HERO, JSON.stringify(heroConfig)); }, [heroConfig]);
   useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEY_THEME,
-      brandTheme
-    );
-  }, [brandTheme]);
-
-  useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEY_CATEGORIES,
-      JSON.stringify(categories)
-    );
-  }, [categories]);
-
-  useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEY_RESTAURANT,
-      JSON.stringify(restaurant)
-    );
-  }, [restaurant]);
-
-  useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEY_HERO,
-      JSON.stringify(heroConfig)
-    );
-  }, [heroConfig]);
-
-  useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEY_LANG,
-      language
-    );
-
-    document.documentElement.lang =
-      language;
-
-    document.documentElement.dir =
-      language === 'ar' || language === 'ku'
-        ? 'rtl'
-        : 'ltr';
+    localStorage.setItem(STORAGE_KEY_LANG, language);
+    document.documentElement.lang = language;
+    document.documentElement.dir = language === 'ar' || language === 'ku' ? 'rtl' : 'ltr';
   }, [language]);
 
-  // ============================================================
-  // INIT GOOGLE AUTH
-  // ============================================================
-
   useEffect(() => {
-    const unsubscribe = initAuth(
-      (currentUser) =>
-        setUser(currentUser),
-
-      () => setUser(null)
-    );
-
-    return () => {
-      if (
-        typeof unsubscribe === 'function'
-      ) {
-        unsubscribe();
-      }
-    };
+    const unsubscribe = initAuth((currentUser) => setUser(currentUser));
+    return () => unsubscribe();
   }, []);
 
-  // ============================================================
-  // SCROLL TO MENU
-  // ============================================================
-
-  const scrollToMenu = () => {
-    menuSectionRef.current?.scrollIntoView({
-      behavior: 'smooth',
-    });
-  };
-
-  // ============================================================
-  // FILTERED & SORTED ITEMS
-  // ============================================================
+  const scrollToMenu = () => menuSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
 
   const filteredItems = useMemo(() => {
     return items
       .filter((item) => {
-        const matchesCategory =
-          selectedCategory === 'all' ||
-          item.category === selectedCategory;
-
-        const matchesSearch =
-          !searchQuery.trim() ||
-          item.name
-            .toLowerCase()
-            .includes(
-              searchQuery.toLowerCase()
-            ) ||
-          (
-            item.nameEn &&
-            item.nameEn
-              .toLowerCase()
-              .includes(searchQuery.toLowerCase())
-          ) ||
-          (
-            item.nameKu &&
-            item.nameKu
-              .toLowerCase()
-              .includes(searchQuery.toLowerCase())
-          ) ||
-          item.description
-            .toLowerCase()
-            .includes(
-              searchQuery.toLowerCase()
-            ) ||
-          (
-            item.descriptionEn &&
-            item.descriptionEn
-              .toLowerCase()
-              .includes(
-                searchQuery.toLowerCase()
-              )
-          ) ||
-          (
-            item.descriptionKu &&
-            item.descriptionKu
-              .toLowerCase()
-              .includes(searchQuery.toLowerCase())
-          );
-
-        return (
-          matchesCategory &&
-          matchesSearch
-        );
+        const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+        const q = searchQuery.toLowerCase();
+        const matchesSearch = !searchQuery.trim() || item.name.toLowerCase().includes(q) ||
+          (item.nameEn && item.nameEn.toLowerCase().includes(q)) ||
+          (item.nameKu && item.nameKu.toLowerCase().includes(q)) ||
+          item.description.toLowerCase().includes(q) ||
+          (item.descriptionEn && item.descriptionEn.toLowerCase().includes(q)) ||
+          (item.descriptionKu && item.descriptionKu.toLowerCase().includes(q));
+        return matchesCategory && matchesSearch;
       })
       .sort((a, b) => {
-        if (
-          sortBy === 'price-asc'
-        ) {
-          return a.price - b.price;
-        }
-
-        if (
-          sortBy === 'price-desc'
-        ) {
-          return b.price - a.price;
-        }
-
-        if (
-          sortBy === 'popular'
-        ) {
-          return (
-            (b.isPopular ? 1 : 0) -
-            (a.isPopular ? 1 : 0)
-          );
-        }
-
-        // Default:
-        // Chef Specials first,
-        // then popular,
-        // then normal
-
-        const aScore =
-          (a.isChefSpecial ? 2 : 0) +
-          (a.isPopular ? 1 : 0);
-
-        const bScore =
-          (b.isChefSpecial ? 2 : 0) +
-          (b.isPopular ? 1 : 0);
-
+        if (sortBy === 'price-asc') return a.price - b.price;
+        if (sortBy === 'price-desc') return b.price - a.price;
+        if (sortBy === 'popular') return (b.isPopular ? 1 : 0) - (a.isPopular ? 1 : 0);
+        const aScore = (a.isChefSpecial ? 2 : 0) + (a.isPopular ? 1 : 0);
+        const bScore = (b.isChefSpecial ? 2 : 0) + (b.isPopular ? 1 : 0);
         return bScore - aScore;
       });
-  }, [
-    items,
-    selectedCategory,
-    searchQuery,
-    sortBy
-  ]);
+  }, [items, selectedCategory, searchQuery, sortBy]);
 
-  // ============================================================
-  // CATEGORY ICON
-  // ============================================================
-
-  const renderCategoryIcon = (
-    iconName?: string
-  ) => {
+  const renderCategoryIcon = (iconName?: string) => {
     switch (iconName) {
-      case 'Flame':
-        return (
-          <Flame className="w-4 h-4" />
-        );
-
-      case 'Beef':
-        return (
-          <Beef className="w-4 h-4" />
-        );
-
-      case 'Salad':
-        return (
-          <Salad className="w-4 h-4" />
-        );
-
-      case 'Cake':
-        return (
-          <Cake className="w-4 h-4" />
-        );
-
-      case 'Coffee':
-        return (
-          <Coffee className="w-4 h-4" />
-        );
-
-      case 'Smile':
-        return (
-          <Smile className="w-4 h-4" />
-        );
-
-      default:
-        return (
-          <Utensils className="w-4 h-4" />
-        );
+      case 'Flame': return <Flame className="w-4 h-4" />;
+      case 'Beef': return <Beef className="w-4 h-4" />;
+      case 'Salad': return <Salad className="w-4 h-4" />;
+      case 'Cake': return <Cake className="w-4 h-4" />;
+      case 'Coffee': return <Coffee className="w-4 h-4" />;
+      case 'Smile': return <Smile className="w-4 h-4" />;
+      default: return <Utensils className="w-4 h-4" />;
     }
   };
 
-  // ============================================================
-  // CATEGORY COLORS
-  // ============================================================
-
-  const getCategoryColor = (
-    index: number
-  ) => {
-    const colors = [
-      '#F2292E',
-      '#F7941D',
-      '#FFD11A',
-      '#78C943',
-      '#71359B',
-      '#2855D9',
-    ];
-
-    return colors[
-      index % colors.length
-    ];
+  const getCategoryColor = (index: number) => {
+    const colors = ['#F2292E', '#F7941D', '#FFD11A', '#78C943', '#71359B', '#2855D9'];
+    return colors[index % colors.length];
   };
 
-  // ============================================================
-  // ACTIVE CATEGORY
-  // ============================================================
+  const currentCategoryObj = useMemo(() => {
+    if (selectedCategory === 'all') return null;
+    return categories.find((c) => c.id === selectedCategory) || null;
+  }, [categories, selectedCategory]);
 
-  const currentCategoryObj =
-    useMemo(() => {
-      if (
-        selectedCategory === 'all'
-      ) {
-        return null;
-      }
-
-      return (
-        categories.find(
-          (c) =>
-            c.id === selectedCategory
-        ) || null
-      );
-    }, [
-      categories,
-      selectedCategory
-    ]);
-
-  const activeCategoryColor =
-    useMemo(() => {
-      if (
-        selectedCategory === 'all'
-      ) {
-        return '#FFD11A';
-      }
-
-      const idx =
-        categories.findIndex(
-          (c) =>
-            c.id ===
-            selectedCategory
-        );
-
-      return getCategoryColor(
-        idx >= 0 ? idx : 0
-      );
-    }, [
-      categories,
-      selectedCategory
-    ]);
-
-  // ============================================================
-  // PORTAL
-  // ============================================================
+  const activeCategoryColor = useMemo(() => {
+    if (selectedCategory === 'all') return '#FFD11A';
+    const idx = categories.findIndex((c) => c.id === selectedCategory);
+    return getCategoryColor(idx >= 0 ? idx : 0);
+  }, [categories, selectedCategory]);
 
   if (viewMode === 'welcome') {
-  if (!welcomeConfig) {
+    if (!welcomeConfig) {
+      return <div className="fixed inset-0 flex items-center justify-center bg-black text-white">Loading...</div>;
+    }
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-black text-white">
-        Loading...
-      </div>
+      <WelcomeScreen
+        config={welcomeConfig}
+        onLanguageSelect={(selectedLanguage) => {
+          setLanguage(selectedLanguage);
+          try { localStorage.setItem(STORAGE_KEY_LANG, selectedLanguage); } catch { /* ignore */ }
+          navigateToView('customer', selectedLanguage);
+        }}
+      />
     );
   }
-
-  return (
-    <WelcomeScreen
-      config={welcomeConfig}
-      onLanguageSelect={(selectedLanguage) => {
-        setLanguage(selectedLanguage);
-        navigateToView('customer');
-      }}
-    />
-  );
-}
 
   if (viewMode === 'portal') {
     return (
       <AnimatePresence mode="wait">
-        <motion.div
-          key="portal-view"
-          initial={{
-            opacity: 0,
-            scale: 0.98
-          }}
-          animate={{
-            opacity: 1,
-            scale: 1
-          }}
-          exit={{
-            opacity: 0,
-            scale: 0.98
-          }}
-          transition={{
-            duration: 0.3
-          }}
-        >
+        <motion.div key="portal-view" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} transition={{ duration: 0.3 }}>
           <PortalGate
             language={portalLanguage}
-            onLanguageChange={
-              handlePortalLanguageChange
-            }
+            onLanguageChange={handlePortalLanguageChange}
             restaurant={restaurant}
             hero={heroConfig}
             adminonly={true}
-            onSelectCustomerView={() =>
-              navigateToView(
-                'customer'
-              )
-            }
+            onSelectCustomerView={() => navigateToView('customer')}
             onAdminLoginSuccess={() => {
-              setIsAdminAuthenticated(
-                true
-              );
-
-              navigateToView(
-                'admin'
-              );
-
-              setIsAdminModalOpen(
-                true
-              );
+              setIsAdminAuthenticated(true);
+              navigateToView('admin');
+              setIsAdminModalOpen(true);
             }}
           />
         </motion.div>
@@ -951,55 +399,21 @@ export default function App() {
     );
   }
 
-  // ============================================================
-  // ADMIN
-  // ============================================================
-
   if (viewMode === 'admin') {
-
     if (!isAdminAuthenticated) {
       return (
         <AnimatePresence mode="wait">
-          <motion.div
-            key="admin-login-required"
-            initial={{
-              opacity: 0,
-              scale: 0.98
-            }}
-            animate={{
-              opacity: 1,
-              scale: 1
-            }}
-            exit={{
-              opacity: 0,
-              scale: 0.98
-            }}
-            transition={{
-              duration: 0.3
-            }}
-          >
+          <motion.div key="admin-login-required" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} transition={{ duration: 0.3 }}>
             <PortalGate
-              language={language}
-              onLanguageChange={
-                setLanguage
-              }
-              restaurant={
-                restaurant
-              }
+              language={portalLanguage}
+              onLanguageChange={handlePortalLanguageChange}
+              restaurant={restaurant}
               hero={heroConfig}
-              onSelectCustomerView={() =>
-                navigateToView(
-                  'customer'
-                )
-              }
+              adminonly={true}
+              onSelectCustomerView={() => navigateToView('customer')}
               onAdminLoginSuccess={() => {
-                setIsAdminAuthenticated(
-                  true
-                );
-
-                navigateToView(
-                  'admin'
-                );
+                setIsAdminAuthenticated(true);
+                navigateToView('admin');
               }}
             />
           </motion.div>
@@ -1009,19 +423,14 @@ export default function App() {
 
     return (
       <div className="min-h-screen bg-[#0a163e] text-white flex flex-col font-['Noto_Kufi_Arabic']">
-
         <AdminModal
           isOpen={true}
-          onClose={() =>
-            navigateToView(
-              'portal'
-            )
-          }
+          onClose={() => navigateToView('portal')}
           items={items}
           categories={categories}
           hero={heroConfig}
           restaurant={restaurant}
-          language={language}
+          language={portalLanguage}
           onUpdateItems={setItems}
           onUpdateCategories={setCategories}
           onUpdateHero={setHeroConfig}
@@ -1029,700 +438,75 @@ export default function App() {
           onUpdateWelcome={setWelcomeConfig}
           onUpdateRestaurant={setRestaurant}
           user={user}
-onUserChange={setUser}
-onAdminLogout={() => {
-  setIsAdminAuthenticated(false);
-  navigateToView('portal');
-}}
+          onUserChange={setUser}
+          onAdminLogout={() => { setIsAdminAuthenticated(false); navigateToView('portal'); }}
         />
-
       </div>
     );
   }
 
-  // ============================================================
-  // THEME
-  // ============================================================
-
-  const themeBackgroundClasses: Record<
-    BrandThemeMode,
-    string
-  > = {
-    blue:
-      'bg-[#0a163e] selection:bg-[#FFD11A] selection:text-[#0a163e]',
-
-    yellow:
-      'bg-[#3d2c00] selection:bg-[#F2292E] selection:text-white',
+  const themeBackgroundClasses: Record<BrandThemeMode, string> = {
+    blue: 'bg-[#0a163e] selection:bg-[#FFD11A] selection:text-[#0a163e]',
+    yellow: 'bg-[#3d2c00] selection:bg-[#F2292E] selection:text-white',
   };
-
-  const themeStickyPillClasses: Record<
-    BrandThemeMode,
-    string
-  > = {
-    blue:
-      'bg-[#0a163e]/90 border-[#1e3b96]/60 shadow-[#0a163e]/60',
-
-    yellow:
-      'bg-[#3d2c00]/90 border-[#b45309]/60 shadow-[#3d2c00]/60',
+  const themeStickyPillClasses: Record<BrandThemeMode, string> = {
+    blue: 'bg-[#0a163e]/90 border-[#1e3b96]/60 shadow-[#0a163e]/60',
+    yellow: 'bg-[#3d2c00]/90 border-[#b45309]/60 shadow-[#3d2c00]/60',
   };
-
-  // ============================================================
-  // CUSTOMER VIEW
-  // ============================================================
 
   return (
-    <motion.div
-      initial={{
-        opacity: 0
-      }}
-      animate={{
-        opacity: 1
-      }}
-      transition={{
-        duration: 0.4
-      }}
-      className={`min-h-screen text-white flex flex-col font-['Noto_Kufi_Arabic'] transition-colors duration-500 ${themeBackgroundClasses[brandTheme]}`}
-    >
-
-      {/* Top Navbar */}
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }} className={`min-h-screen text-white flex flex-col font-['Noto_Kufi_Arabic'] transition-colors duration-500 ${themeBackgroundClasses[brandTheme]}`}>
       <Navbar
         restaurant={restaurant}
         language={language}
-        onLanguageChange={
-          setLanguage
-        }
-        onBackToPortal={() =>
-          navigateToView(
-            'portal'
-          )
-        }
+        onLanguageChange={handleMenuLanguageChange}
         theme={brandTheme}
-        onThemeChange={
-          setBrandTheme
-        }
-        onSearchChange={
-          setSearchQuery
-        }
-        searchQuery={
-          searchQuery
-        }
-        layoutMode={
-          layoutMode
-        }
-        onLayoutModeChange={
-          setLayoutMode
-        }
+        onThemeChange={setBrandTheme}
+        onSearchChange={setSearchQuery}
+        searchQuery={searchQuery}
+        layoutMode={layoutMode}
+        onLayoutModeChange={setLayoutMode}
       />
 
-      {/* Main Menu Explorer */}
-      <main
-        ref={menuSectionRef}
-        className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-6"
-      >
-
-        {/* Categories */}
-        <div
-          className={`sticky top-20 z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 backdrop-blur-md border-y shadow-lg transition-all duration-300 ${themeStickyPillClasses[brandTheme]}`}
-        >
-
+      <main ref={menuSectionRef} className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-6">
+        <div className={`sticky top-20 z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 backdrop-blur-md border-y shadow-lg transition-all duration-300 ${themeStickyPillClasses[brandTheme]}`}>
           <div className="flex items-center gap-2.5 overflow-x-auto pb-1 pt-1 scrollbar-none px-1">
-
-            {/* All */}
-            <motion.button
-              onClick={() =>
-                setSelectedCategory(
-                  'all'
-                )
-              }
-              whileHover={{
-                scale: 1.07,
-                y: -3
-              }}
-              whileTap={{
-                scale: 0.93
-              }}
-              transition={{
-                type: 'spring',
-                stiffness: 450,
-                damping: 20
-              }}
-              className="relative px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black flex items-center gap-2 whitespace-nowrap cursor-pointer select-none border-2 transition-colors duration-200"
-              style={{
-                borderColor:
-                  selectedCategory ===
-                  'all'
-                    ? '#FFD11A'
-                    : '#2855D9',
-
-                backgroundColor:
-                  selectedCategory ===
-                  'all'
-                    ? '#FFD11A'
-                    : '#12245e',
-
-                color:
-                  selectedCategory ===
-                  'all'
-                    ? '#0a163e'
-                    : '#ffffff',
-              }}
-            >
-
-              {selectedCategory ===
-                'all' && (
-                <motion.div
-                  layoutId="activeCategoryGlow"
-                  className="absolute inset-0 rounded-2xl bg-[#FFD11A] shadow-lg shadow-[#FFD11A]/40 -z-10"
-                  transition={{
-                    type: 'spring',
-                    stiffness: 400,
-                    damping: 26
-                  }}
-                />
-              )}
-
-              <motion.span
-                animate={
-                  selectedCategory ===
-                  'all'
-                    ? {
-                        rotate: [
-                          0,
-                          -15,
-                          15,
-                          -10,
-                          0
-                        ]
-                      }
-                    : {}
-                }
-                transition={{
-                  duration: 0.5
-                }}
-              >
-                <Utensils className="w-4 h-4" />
-              </motion.span>
-
-              <span>
-                {t.allCategories}
-              </span>
-
-              <span
-                className={`text-[10px] px-2 py-0.5 rounded-full font-bold transition-colors ${
-                  selectedCategory ===
-                  'all'
-                    ? 'bg-[#0a163e] text-[#FFD11A]'
-                    : 'bg-[#1e3b96] text-white'
-                }`}
-              >
-                {items.length}
-              </span>
-
+            <motion.button onClick={() => setSelectedCategory('all')} whileHover={{ scale: 1.07, y: -3 }} whileTap={{ scale: 0.93 }} transition={{ type: 'spring', stiffness: 450, damping: 20 }} className="relative px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black flex items-center gap-2 whitespace-nowrap cursor-pointer select-none border-2 transition-colors duration-200" style={{ borderColor: selectedCategory === 'all' ? '#FFD11A' : '#2855D9', backgroundColor: selectedCategory === 'all' ? '#FFD11A' : '#12245e', color: selectedCategory === 'all' ? '#0a163e' : '#ffffff' }}>
+              {selectedCategory === 'all' && <motion.div layoutId="activeCategoryGlow" className="absolute inset-0 rounded-2xl bg-[#FFD11A] shadow-lg shadow-[#FFD11A]/40 -z-10" transition={{ type: 'spring', stiffness: 400, damping: 26 }} />}
+              <motion.span animate={selectedCategory === 'all' ? { rotate: [0, -15, 15, -10, 0] } : {}} transition={{ duration: 0.5 }}><Utensils className="w-4 h-4" /></motion.span>
+              <span>{t.allCategories}</span>
             </motion.button>
-
-            {/* Categories */}
-            {categories.map(
-              (cat, idx) => {
-                const isSelected =
-                  selectedCategory ===
-                  cat.id;
-
-                const count =
-                  items.filter(
-                    (i) =>
-                      i.category ===
-                      cat.id
-                  ).length;
-
-                const catName =
-                  language === 'ar'
-                    ? cat.name
-                    : (
-                        cat.nameEn ||
-                        cat.name
-                      );
-
-                const color =
-                  getCategoryColor(
-                    idx
-                  );
-
-                return (
-                  <motion.button
-                    key={cat.id}
-                    onClick={() =>
-                      setSelectedCategory(
-                        cat.id
-                      )
-                    }
-                    whileHover={{
-                      scale: 1.07,
-                      y: -3
-                    }}
-                    whileTap={{
-                      scale: 0.93
-                    }}
-                    transition={{
-                      type: 'spring',
-                      stiffness: 450,
-                      damping: 20
-                    }}
-                    className="relative px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black flex items-center gap-2 whitespace-nowrap cursor-pointer select-none border-2 transition-colors duration-200"
-                    style={{
-                      backgroundColor:
-                        isSelected
-                          ? color
-                          : '#12245e',
-
-                      borderColor:
-                        isSelected
-                          ? color
-                          : '#2855D9',
-
-                      color:
-                        '#ffffff',
-                    }}
-                  >
-
-                    {isSelected && (
-                      <motion.div
-                        layoutId="activeCategoryGlow"
-                        className="absolute inset-0 rounded-2xl shadow-xl -z-10"
-                        style={{
-                          backgroundColor:
-                            color,
-
-                          boxShadow:
-                            `0 8px 24px ${color}55`
-                        }}
-                        transition={{
-                          type: 'spring',
-                          stiffness: 400,
-                          damping: 26
-                        }}
-                      />
-                    )}
-
-                    <motion.span
-                      animate={
-                        isSelected
-                          ? {
-                              rotate: [
-                                0,
-                                -12,
-                                12,
-                                -8,
-                                0
-                              ],
-
-                              scale: [
-                                1,
-                                1.2,
-                                1
-                              ]
-                            }
-                          : {}
-                      }
-                      transition={{
-                        duration: 0.45
-                      }}
-                    >
-                      {renderCategoryIcon(
-                        cat.icon
-                      )}
-                    </motion.span>
-
-                    <span>
-                      {catName}
-                    </span>
-
-                    <span
-                      className={`text-[10px] px-2 py-0.5 rounded-full font-bold transition-colors ${
-                        isSelected
-                          ? 'bg-black/25 text-white'
-                          : 'bg-[#1e3b96] text-[#FFD11A]'
-                      }`}
-                    >
-                      {count}
-                    </span>
-
-                  </motion.button>
-                );
-              }
-            )}
-
+            {categories.map((category, index) => {
+              const isActive = selectedCategory === category.id;
+              const color = getCategoryColor(index);
+              const categoryName = language === 'ku' ? (category.nameKu || category.nameEn || category.name) : language === 'en' ? (category.nameEn || category.name) : category.name;
+              return (
+                <motion.button key={category.id} onClick={() => setSelectedCategory(category.id)} whileHover={{ scale: 1.07, y: -3 }} whileTap={{ scale: 0.93 }} transition={{ type: 'spring', stiffness: 450, damping: 20 }} className="relative px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black flex items-center gap-2 whitespace-nowrap cursor-pointer select-none border-2 transition-colors duration-200" style={{ borderColor: isActive ? color : '#2855D9', backgroundColor: isActive ? color : '#12245e', color: isActive ? '#0a163e' : '#ffffff' }}>
+                  <motion.span animate={isActive ? { rotate: [0, -10, 10, 0] } : {}} transition={{ duration: 0.45 }}>{renderCategoryIcon(category.icon)}</motion.span>
+                  <span>{categoryName}</span>
+                </motion.button>
+              );
+            })}
           </div>
         </div>
 
-        {/* Search */}
-        {searchQuery && (
-          <motion.div
-            initial={{
-              opacity: 0,
-              y: -10
-            }}
-            animate={{
-              opacity: 1,
-              y: 0
-            }}
-            className="flex items-center justify-between p-3.5 rounded-2xl bg-[#12245e] border-2 border-[#2855D9] text-xs text-[#a4bcf7]"
-          >
+        <section className="pt-2"><Hero config={heroConfig} language={language} restaurant={restaurant} onExploreMenu={scrollToMenu} /></section>
 
-            <span>
-              {t.searchResultFor}{' '}
-              <strong className="text-[#FFD11A]">
-                "{searchQuery}"
-              </strong>{' '}
-              ({filteredItems.length})
-            </span>
-
-            <button
-              onClick={() =>
-                setSearchQuery('')
-              }
-              className="text-[#FFD11A] font-bold hover:underline cursor-pointer"
-            >
-              {t.clearSearch}
-            </button>
-
-          </motion.div>
-        )}
-
-        {/* Menu Cards */}
-        <AnimatePresence mode="wait">
-
-          {filteredItems.length > 0 ? (
-
-            layoutMode ===
-            'carousel' ? (
-
-              <motion.div
-                key={`carousel-wrap-${selectedCategory}-${sortBy}-${searchQuery}`}
-                initial={{
-                  opacity: 0,
-                  y: 15
-                }}
-                animate={{
-                  opacity: 1,
-                  y: 0
-                }}
-                exit={{
-                  opacity: 0,
-                  y: -15
-                }}
-                transition={{
-                  duration: 0.25
-                }}
-                className="space-y-4"
-              >
-
-                {/* Carousel Controls */}
-                <div className="flex items-center justify-between px-2 py-1 bg-[#0d1e52] rounded-2xl border border-[#2855D9]/50">
-
-                  <div className="flex items-center gap-2.5 text-xs font-bold text-[#9ebbf9]">
-
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#78C943] animate-pulse" />
-
-                    <span>
-                      {language === 'ar'
-                        ? 'تصفح وجبات الأطفال بالسحب يميناً ويساراً أو عبر الأسهم المرحة'
-                        : 'Swipe or use the cheerful arrows to explore meals'}
-                    </span>
-
-                    <span className="text-[10px] bg-[#12245e] border border-[#2855D9] px-2 py-0.5 rounded-full text-[#FFD11A]">
-                      {filteredItems.length}
-                    </span>
-
-                  </div>
-
-                  <div className="flex items-center gap-2">
-
-                    <motion.button
-                      onClick={() =>
-                        handleScrollCarousel(
-                          'prev'
-                        )
-                      }
-                      whileHover={{
-                        scale: 1.12
-                      }}
-                      whileTap={{
-                        scale: 0.88
-                      }}
-                      className="w-9 h-9 rounded-xl bg-[#12245e] hover:bg-[#FFD11A] text-white hover:text-[#0a163e] border-2 border-[#2855D9] hover:border-[#FFD11A] flex items-center justify-center transition-colors shadow-md cursor-pointer"
-                      title={
-                        t.prevDish
-                      }
-                    >
-                      {language ===
-                      'ar' ? (
-                        <ChevronRight className="w-5 h-5" />
-                      ) : (
-                        <ChevronLeft className="w-5 h-5" />
-                      )}
-                    </motion.button>
-
-                    <motion.button
-                      onClick={() =>
-                        handleScrollCarousel(
-                          'next'
-                        )
-                      }
-                      whileHover={{
-                        scale: 1.12
-                      }}
-                      whileTap={{
-                        scale: 0.88
-                      }}
-                      className="w-9 h-9 rounded-xl bg-[#12245e] hover:bg-[#FFD11A] text-white hover:text-[#0a163e] border-2 border-[#2855D9] hover:border-[#FFD11A] flex items-center justify-center transition-colors shadow-md cursor-pointer"
-                      title={
-                        t.nextDish
-                      }
-                    >
-                      {language ===
-                      'ar' ? (
-                        <ChevronLeft className="w-5 h-5" />
-                      ) : (
-                        <ChevronRight className="w-5 h-5" />
-                      )}
-                    </motion.button>
-
-                  </div>
-
-                </div>
-
-                {/* Horizontal Sliding Track */}
-                <motion.div
-                  ref={
-                    carouselRef
-                  }
-                  variants={
-                    gridContainerVariants
-                  }
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  className="flex gap-5 overflow-x-auto pb-6 pt-2 scroll-smooth scrollbar-thin scrollbar-thumb-[#2855D9] scrollbar-track-[#0a163e] snap-x snap-mandatory px-1"
-                >
-
-                  {filteredItems.map(
-                    (
-                      item,
-                      idx
-                    ) => (
-                      <MenuCard
-                        key={item.id}
-                        item={item}
-                        currency={
-                          language ===
-                          'ar'
-                            ? restaurant.currency
-                            : restaurant.currencyEn
-                        }
-                        language={
-                          language
-                        }
-                        index={
-                          idx
-                        }
-                        isAdmin={
-                          false
-                        }
-                        layoutVariant="carousel"
-                      />
-                    )
-                  )}
-
-                </motion.div>
-
-              </motion.div>
-
-            ) : layoutMode ===
-              'horizontal' ? (
-
-              <motion.div
-                key={`horizontal-${selectedCategory}-${sortBy}-${searchQuery}`}
-                variants={
-                  gridContainerVariants
-                }
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                className="grid grid-cols-1 xl:grid-cols-2 gap-5"
-              >
-
-                {filteredItems.map(
-                  (
-                    item,
-                    idx
-                  ) => (
-                    <MenuCard
-                      key={item.id}
-                      item={item}
-                      currency={
-                        language ===
-                        'ar'
-                          ? restaurant.currency
-                          : restaurant.currencyEn
-                      }
-                      language={
-                        language
-                      }
-                      index={
-                        idx
-                      }
-                      isAdmin={
-                        false
-                      }
-                      layoutVariant="horizontal"
-                    />
-                  )
-                )}
-
-              </motion.div>
-
-            ) : (
-
-              <motion.div
-                key={`grid-${selectedCategory}-${sortBy}-${searchQuery}`}
-                variants={
-                  gridContainerVariants
-                }
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-              >
-
-                {filteredItems.map(
-                  (
-                    item,
-                    idx
-                  ) => (
-                    <MenuCard
-                      key={item.id}
-                      item={item}
-                      currency={
-                        language ===
-                        'ar'
-                          ? restaurant.currency
-                          : restaurant.currencyEn
-                      }
-                      language={
-                        language
-                      }
-                      index={
-                        idx
-                      }
-                      isAdmin={
-                        false
-                      }
-                      layoutVariant="vertical"
-                    />
-                  )
-                )}
-
-              </motion.div>
-
-            )
-
-          ) : (
-
-            // ====================================================
-            // EMPTY STATE
-            // ====================================================
-
-            <motion.div
-              key="empty-state"
-              initial={{
-                opacity: 0,
-                scale: 0.88,
-                y: 20
-              }}
-              animate={{
-                opacity: 1,
-                scale: 1,
-                y: 0
-              }}
-              exit={{
-                opacity: 0,
-                scale: 0.9
-              }}
-              transition={{
-                type: 'spring',
-                stiffness: 350,
-                damping: 22
-              }}
-              className="py-20 text-center space-y-4 bg-[#0f2156] rounded-3xl border-2 border-[#2855D9] shadow-xl max-w-xl mx-auto"
-            >
-
-              <motion.div
-                animate={{
-                  rotate: [
-                    -8,
-                    8,
-                    -8
-                  ],
-                  scale: [
-                    1,
-                    1.1,
-                    1
-                  ]
-                }}
-                transition={{
-                  repeat: Infinity,
-                  duration: 2.5,
-                  ease: 'easeInOut'
-                }}
-                className="w-16 h-16 rounded-full bg-[#FFD11A]/20 border-2 border-[#FFD11A] flex items-center justify-center mx-auto text-[#FFD11A]"
-              >
-                <Smile className="w-10 h-10" />
-              </motion.div>
-
-              <h3 className="text-xl font-black text-white font-['Noto_Kufi_Arabic']">
-                {t.noItemsFound}
-              </h3>
-
-              <p className="text-xs text-[#a4bcf7] max-w-sm mx-auto">
-                {language === 'ar'
-                  ? 'لم نعثر على أطباق تطابق بحثك حالياً، جرب اختيار تصنيف آخر أو استعراض كل الوجبات'
-                  : 'No dishes match your query. Try choosing another category or browsing all meals.'}
-              </p>
-
-              <button
-                onClick={() => {
-                  setSelectedCategory(
-                    'all'
-                  );
-
-                  setSearchQuery(
-                    ''
-                  );
-                }}
-                className="px-6 py-2.5 rounded-2xl bg-[#FFD11A] text-xs text-[#0a163e] font-black border-2 border-[#FFD11A] shadow-lg shadow-[#FFD11A]/30 hover:bg-[#e6bc17] transition-all cursor-pointer inline-flex items-center gap-2"
-              >
-
-                <Sparkles className="w-4 h-4" />
-
-                <span>
-                  {t.viewAllDishes}
-                </span>
-
-              </button>
-
+        <section className="space-y-6">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+            <div><h1 className="text-2xl sm:text-3xl font-black">{t.menuTitle}</h1><p className="text-white/60 text-sm mt-1">{t.menuSubtitle}</p></div>
+            <div className="flex items-center gap-2"><span className="text-xs text-white/50">{t.sortBy}</span><select value={sortBy} onChange={(e) => setSortBy(e.target.value as typeof sortBy)} className="bg-[#12245e] border border-white/20 rounded-xl px-3 py-2 text-xs text-white"><option value="default">{t.sortSpecialFirst}</option><option value="popular">{t.sortPopular}</option><option value="price-asc">{t.sortPriceAsc}</option><option value="price-desc">{t.sortPriceDesc}</option></select></div>
+          </div>
+          {searchQuery && <div className="text-sm text-white/70">{t.searchResultFor} <span className="text-[#FFD11A] font-bold">{searchQuery}</span></div>}
+          {filteredItems.length === 0 ? <div className="text-center py-20 text-white/60">{t.noItemsFound}</div> : (
+            <motion.div variants={gridContainerVariants} initial="hidden" animate="visible" className={layoutMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5' : layoutMode === 'horizontal' ? 'flex flex-col gap-4' : 'flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4'}>
+              {filteredItems.map((item) => <MenuCard key={item.id} item={item} language={language} currency={language === 'en' ? restaurant.currencyEn : restaurant.currency} onEdit={() => setIsAdminModalOpen(true)} onDelete={() => {}} />)}
             </motion.div>
           )}
-
-        </AnimatePresence>
-
+        </section>
       </main>
 
-      {/* Footer */}
-      <Footer
-        restaurant={restaurant}
-        language={language}
-      />
-
+      <Footer restaurant={restaurant} language={language} />
     </motion.div>
   );
 }
