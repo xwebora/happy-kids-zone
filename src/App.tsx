@@ -81,11 +81,25 @@ export default function App() {
   });
 
   const goToMenu = (selectedLanguage: Language) => {
-    const menuHash = selectedLanguage === 'en' ? '#/menu-en' : selectedLanguage === 'ku' ? '#/menu-kr' : '#/menu-ar';
+    const menuRoute = selectedLanguage === 'en' ? 'menu-en' : selectedLanguage === 'ku' ? 'menu-kr' : 'menu-ar';
+
+    try {
+      localStorage.setItem(STORAGE_KEY_LANG, selectedLanguage);
+    } catch {
+      // Ignore storage errors.
+    }
+
+    // Use a full navigation so the public language links always load the
+    // language-specific menu route, even when the current page was loaded
+    // from a cached GitHub Pages bundle.
+    if (typeof window !== 'undefined') {
+      const menuUrl = `${window.location.origin}${window.location.pathname}#/${menuRoute}`;
+      window.location.assign(menuUrl);
+      return;
+    }
+
     setLanguage(selectedLanguage);
     setViewMode('customer');
-    try { localStorage.setItem(STORAGE_KEY_LANG, selectedLanguage); } catch { /* ignore */ }
-    if (typeof window !== 'undefined') window.location.hash = menuHash;
   };
 
   const navigateToView = (view: ViewMode) => {
