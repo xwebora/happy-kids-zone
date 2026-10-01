@@ -59,7 +59,7 @@ export const HappyKidsLogo: React.FC<HappyKidsLogoProps> = ({
         x="38"
         y="58"
         fill="#FFFFFF"
-        fontFamily="'Fredoka', 'Cairo', sans-serif"
+        fontFamily="'Noto Kufi Arabic', sans-serif"
         fontWeight="800"
         fontSize="52"
         textAnchor="middle"
@@ -92,7 +92,7 @@ export const HappyKidsLogo: React.FC<HappyKidsLogoProps> = ({
         x="122"
         y="58"
         fill="#FFFFFF"
-        fontFamily="'Fredoka', 'Cairo', sans-serif"
+        fontFamily="'Noto Kufi Arabic', sans-serif"
         fontWeight="800"
         fontSize="52"
         textAnchor="middle"
@@ -132,7 +132,7 @@ export const HappyKidsLogo: React.FC<HappyKidsLogoProps> = ({
         x="38"
         y="132"
         fill="#FFFFFF"
-        fontFamily="'Fredoka', 'Cairo', sans-serif"
+        fontFamily="'Noto Kufi Arabic', sans-serif"
         fontWeight="800"
         fontSize="52"
         textAnchor="middle"
@@ -165,7 +165,7 @@ export const HappyKidsLogo: React.FC<HappyKidsLogoProps> = ({
         x="122"
         y="132"
         fill="#FFFFFF"
-        fontFamily="'Fredoka', 'Cairo', sans-serif"
+        fontFamily="'Noto Kufi Arabic', sans-serif"
         fontWeight="800"
         fontSize="52"
         textAnchor="middle"
@@ -194,7 +194,7 @@ export const HappyKidsLogo: React.FC<HappyKidsLogoProps> = ({
         x="38"
         y="192"
         fill="#FFFFFF"
-        fontFamily="'Fredoka', 'Cairo', sans-serif"
+        fontFamily="'Noto Kufi Arabic', sans-serif"
         fontWeight="800"
         fontSize="48"
         textAnchor="middle"
@@ -222,7 +222,7 @@ export const HappyKidsLogo: React.FC<HappyKidsLogoProps> = ({
         </span>
         <span 
           dir="rtl"
-          className={`${dimensions.sub} font-bold text-[#FFD11A] mt-1 font-['Cairo',sans-serif] tracking-normal`}
+          className={`${dimensions.sub} font-bold text-[#FFD11A] mt-1 fontFamily="'Noto Kufi Arabic', sans-serif" tracking-normal`}
         >
           كيدز زون
         </span>
