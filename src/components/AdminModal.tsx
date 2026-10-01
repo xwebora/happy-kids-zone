@@ -1084,7 +1084,7 @@ const handleSaveSettings = async (e: React.FormEvent) => {
     }`}
   >
     <span className="text-base">✨</span>
-    <span>{isAr ? 'الـترحيب' : 'Welcome'}</span>
+    <span>{isAr ? 'التـرحيب' : 'Welcome'}</span>
   </button>
 
   <button
