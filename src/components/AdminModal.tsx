@@ -87,6 +87,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
 }) => {
   const t = translations[language];
   const isAr = language === 'ar';
+  const isKu = language === 'ku';
 
     // Admin Dashboard Tabs
   const [activeTab, setActiveTab] = useState<
@@ -97,8 +98,10 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [formNameAr, setFormNameAr] = useState('');
   const [formNameEn, setFormNameEn] = useState('');
+  const [formNameKu, setFormNameKu] = useState('');
   const [formDescAr, setFormDescAr] = useState('');
   const [formDescEn, setFormDescEn] = useState('');
+  const [formDescKu, setFormDescKu] = useState('');
   const [formPrice, setFormPrice] = useState<number | ''>('');
   const [formOrigPrice, setFormOrigPrice] = useState<number | ''>('');
   const [formCategory, setFormCategory] = useState(categories[0]?.id || 'main');
@@ -106,6 +109,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [formCalories, setFormCalories] = useState<number | ''>('');
   const [formPrepTimeAr, setFormPrepTimeAr] = useState('15 دقيقة');
   const [formPrepTimeEn, setFormPrepTimeEn] = useState('15 min');
+  const [formPrepTimeKu, setFormPrepTimeKu] = useState('15 خولەک');
   const [formIsSpecial, setFormIsSpecial] = useState(false);
   const [formIsPopular, setFormIsPopular] = useState(false);
   const [formAvailable, setFormAvailable] = useState(true);
@@ -126,6 +130,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [editingCat, setEditingCat] = useState<Category | null>(null);
   const [catNameAr, setCatNameAr] = useState('');
   const [catNameEn, setCatNameEn] = useState('');
+  const [catNameKu, setCatNameKu] = useState('');
   const [catIcon, setCatIcon] = useState('Utensils');
 
   // Hero Edit Form State
@@ -234,8 +239,10 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     setEditingItem(item);
     setFormNameAr(item.name);
     setFormNameEn(item.nameEn || '');
+    setFormNameKu(item.nameKu || '');
     setFormDescAr(item.description);
     setFormDescEn(item.descriptionEn || '');
+    setFormDescKu(item.descriptionKu || '');
     setFormPrice(item.price);
     setFormOrigPrice(item.originalPrice || '');
     setFormCategory(item.category);
@@ -243,6 +250,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     setFormCalories(item.calories || '');
     setFormPrepTimeAr(item.preparationTime || '15 دقيقة');
     setFormPrepTimeEn(item.preparationTimeEn || '15 min');
+    setFormPrepTimeKu(item.preparationTimeKu || '15 خولەک');
     setFormIsSpecial(!!item.isChefSpecial);
     setFormIsPopular(!!item.isPopular);
     setFormAvailable(item.available);
@@ -255,8 +263,10 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     setEditingItem(null);
     setFormNameAr('');
     setFormNameEn('');
+    setFormNameKu('');
     setFormDescAr('');
     setFormDescEn('');
+    setFormDescKu('');
     setFormPrice('');
     setFormOrigPrice('');
     setFormCategory(categories[0]?.id || 'main');
@@ -264,6 +274,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     setFormCalories('');
     setFormPrepTimeAr('15 دقيقة');
     setFormPrepTimeEn('15 min');
+    setFormPrepTimeKu('15 خولەک');
     setFormIsSpecial(false);
     setFormIsPopular(false);
     setFormAvailable(true);
@@ -327,8 +338,10 @@ const handleSaveItem = async (e: React.FormEvent) => {
       const updatedItem: Partial<Omit<MenuItem, 'id'>> = {
         name: formNameAr,
         nameEn: formNameEn || formNameAr,
+        nameKu: formNameKu || formNameEn || formNameAr,
         description: formDescAr,
         descriptionEn: formDescEn || formDescAr,
+        descriptionKu: formDescKu || formDescEn || formDescAr,
         price: Number(formPrice),
         category: formCategory,
         image: finalImageUrl,
@@ -337,6 +350,8 @@ const handleSaveItem = async (e: React.FormEvent) => {
         isPopular: formIsPopular,
         preparationTime: formPrepTimeAr,
         preparationTimeEn: formPrepTimeEn,
+        preparationTimeKu: formPrepTimeKu || formPrepTimeEn || formPrepTimeAr,
+        preparationTimeKu: formPrepTimeKu || formPrepTimeEn || formPrepTimeAr,
       };
 
       if (formOrigPrice !== '') {
@@ -383,8 +398,10 @@ const handleSaveItem = async (e: React.FormEvent) => {
       const newItemData: Omit<MenuItem, 'id'> = {
         name: formNameAr,
         nameEn: formNameEn || formNameAr,
+        nameKu: formNameKu || formNameEn || formNameAr,
         description: formDescAr,
         descriptionEn: formDescEn || formDescAr,
+        descriptionKu: formDescKu || formDescEn || formDescAr,
         price: Number(formPrice),
         category: formCategory,
         image: finalImageUrl,
@@ -710,6 +727,7 @@ const handleSaveCategory = async (e: React.FormEvent) => {
         {
           name: updatedCategory.name,
           nameEn: updatedCategory.nameEn,
+          nameKu: updatedCategory.nameKu,
           icon: updatedCategory.icon,
         }
       );
@@ -777,6 +795,7 @@ const handleSaveCategory = async (e: React.FormEvent) => {
 
   setCatNameAr('');
   setCatNameEn('');
+  setCatNameKu('');
   setCatIcon('Utensils');
 };
   // Start Category Edit
@@ -784,6 +803,7 @@ const handleSaveCategory = async (e: React.FormEvent) => {
     setEditingCat(cat);
     setCatNameAr(cat.name);
     setCatNameEn(cat.nameEn || cat.name);
+    setCatNameKu(cat.nameKu || cat.nameEn || cat.name);
     setCatIcon(cat.icon || 'Utensils');
   };
 
@@ -1169,7 +1189,7 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                                 )}
                               </div>
                               <div className="text-[11px] text-[#7f786c]">
-                                {isAr ? (item.nameEn || '') : item.name}
+                                {isAr ? (item.nameEn || '') : isKu ? (item.nameKu || item.nameEn || '') : item.name}
                               </div>
                             </div>
                           </div>
@@ -1179,7 +1199,7 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                           <span className="px-2.5 py-1 rounded-lg bg-[#1f212d] text-[#cfc7b9] font-medium text-[11px] border border-[#2f2b20]">
                             {(() => {
                               const found = categories.find((c) => c.id === item.category);
-                              return found ? (isAr ? found.name : found.nameEn) : item.category;
+                              return found ? (isAr ? found.name : isKu ? (found.nameKu || found.nameEn || found.name) : found.nameEn) : item.category;
                             })()}
                           </span>
                         </td>
@@ -1307,6 +1327,13 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                   </div>
                 </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="md:col-span-1">
+                    <label className="block text-xs font-semibold text-[#a8a192] mb-1.5">{t.nameKu || 'ناوی خواردن بە کوردی'}</label>
+                    <input type="text" value={formNameKu} onChange={(e) => setFormNameKu(e.target.value)} className="w-full bg-[#101218] border border-[#312c21] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#d4af37]" dir="rtl" />
+                  </div>
+                </div>
+
                 {/* Descriptions (AR & EN) */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -1334,6 +1361,13 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                       className="w-full bg-[#101218] border border-[#312c21] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#d4af37]"
                       dir="ltr"
                     />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="md:col-span-1">
+                    <label className="block text-xs font-semibold text-[#a8a192] mb-1.5">{t.descKu || 'وەسف بە کوردی'}</label>
+                    <textarea rows={3} value={formDescKu} onChange={(e) => setFormDescKu(e.target.value)} className="w-full bg-[#101218] border border-[#312c21] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#d4af37]" dir="rtl" />
                   </div>
                 </div>
 
@@ -1379,7 +1413,7 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                     >
                       {categories.map((c) => (
                         <option key={c.id} value={c.id}>
-                          {isAr ? c.name : c.nameEn}
+                          {isAr ? c.name : isKu ? (c.nameKu || c.nameEn || c.name) : c.nameEn}
                         </option>
                       ))}
                     </select>
@@ -1425,6 +1459,11 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                       dir="ltr"
                     />
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#a8a192] mb-1.5">{t.prepTimeKu || 'کاتی ئامادەکردن بە کوردی'}</label>
+                  <input type="text" placeholder="20 خولەک" value={formPrepTimeKu} onChange={(e) => setFormPrepTimeKu(e.target.value)} className="w-full bg-[#101218] border border-[#312c21] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#d4af37]" dir="rtl" />
                 </div>
 
                 {/* Image Upload / Google Drive Integration */}
