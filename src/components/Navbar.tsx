@@ -31,7 +31,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showThemeMenu, setShowThemeMenu] = useState(false);
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
-  const t = translations[language];
+  const t = translations[language] ?? translations.ar;
 
   const themeOptions: { id: BrandThemeMode; labelAr: string; labelEn: string; colorHex: string; dotClass: string }[] = [
     { id: 'blue', labelAr: 'أزرق كيدز', labelEn: 'Kids Blue', colorHex: '#1d4ed8', dotClass: 'bg-[#2855D9]' },
