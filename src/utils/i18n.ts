@@ -80,7 +80,7 @@ export const translations = {
     tabItems: 'الوجبات والأسعار',
     tabCategories: 'إدارة الأصناف (Categories)',
     tabHero: 'تعديل كتابات HERO',
-    tabDrive: 'Google Drive',
+    tabDrive: 'مزامنة قاعدة البيانات',
     tabSettings: 'إعدادات المطعم والأمان',
 
     // Items Tab
@@ -254,7 +254,7 @@ export const translations = {
     tabItems: 'Meals & Prices',
     tabCategories: 'Categories',
     tabHero: 'Hero Text Customizer',
-    tabDrive: 'Google Drive',
+    tabDrive: 'Database Synchronization',
     tabSettings: 'Restaurant & Security',
 
     // Items Tab
