@@ -34,7 +34,7 @@ export const Footer: React.FC<FooterProps> = ({ restaurant, language }) => {
 
           {/* Col 2: Info & Hours */}
           <div className="space-y-2.5 text-xs">
-            <h4 className="font-black text-white text-sm font-['Fredoka','Cairo',sans-serif] text-[#FFD11A]">
+            <h4 className="font-black text-white text-sm font-['Noto_Kufi_Arabic'] text-[#FFD11A]">
               {isAr ? 'أوقات العمل والموقع' : 'Working Hours & Location'}
             </h4>
             <div className="flex items-center gap-2">
@@ -49,7 +49,7 @@ export const Footer: React.FC<FooterProps> = ({ restaurant, language }) => {
 
           {/* Col 3: Direct contact */}
           <div className="space-y-3 text-xs">
-            <h4 className="font-black text-white text-sm font-['Fredoka','Cairo',sans-serif] text-[#78C943]">
+            <h4 className="font-black text-white text-sm font-['Noto_Kufi_Arabic'] text-[#78C943]">
               {isAr ? 'خدمة الضيوف وحجوزات أعياد الميلاد' : 'Guest Inquiries & Birthday Bookings'}
             </h4>
             <div className="flex items-center gap-2">
