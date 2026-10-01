@@ -162,7 +162,7 @@ export default function App() {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_LANG);
 
-      return saved === 'en' || saved === 'ar'
+      return saved === 'en' || saved === 'ar' || saved === 'ku'
         ? saved
         : 'ar';
     } catch {
@@ -377,7 +377,7 @@ export default function App() {
   ) => {
     if (!carouselRef.current) return;
 
-    const isRTL = language === 'ar';
+    const isRTL = language === 'ar' || language === 'ku';
     const scrollAmount = 340;
 
     const delta =
@@ -598,7 +598,7 @@ export default function App() {
       language;
 
     document.documentElement.dir =
-      language === 'ar'
+      language === 'ar' || language === 'ku'
         ? 'rtl'
         : 'ltr';
   }, [language]);
@@ -660,6 +660,11 @@ export default function App() {
                 searchQuery.toLowerCase()
               )
           ) ||
+          item.nameKu &&
+            item.nameKu
+              .toLowerCase()
+              .includes(searchQuery.toLowerCase())
+          ) ||
           item.description
             .toLowerCase()
             .includes(
@@ -672,6 +677,12 @@ export default function App() {
               .includes(
                 searchQuery.toLowerCase()
               )
+          ) ||
+          (
+            item.descriptionKu &&
+            item.descriptionKu
+              .toLowerCase()
+              .includes(searchQuery.toLowerCase())
           );
 
         return (
