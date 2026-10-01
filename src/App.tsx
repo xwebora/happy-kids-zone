@@ -148,7 +148,7 @@ export default function App() {
   const [brandTheme, setBrandTheme] = useState<BrandThemeMode>(() => { try { const saved = localStorage.getItem(STORAGE_KEY_THEME) as BrandThemeMode; return saved === 'blue' || saved === 'yellow' ? saved : 'blue'; } catch { return 'blue'; } });
   const [user, setUser] = useState<User | null>(null);
   const menuSectionRef = useRef<HTMLDivElement>(null);
-  const t = translations[language];
+  const t = translations[language] ?? translations.ar;
 
   useEffect(() => {
     (async () => {
@@ -174,7 +174,7 @@ export default function App() {
   useEffect(() => { const unsub = initAuth(setUser); return () => unsub(); }, []);
 
   const scrollToMenu = () => menuSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
-  const filteredItems = useMemo(() => items.filter(item => { const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory; const q = searchQuery.toLowerCase(); const matchesSearch = !searchQuery.trim() || item.name.toLowerCase().includes(q) || (item.nameEn && item.nameEn.toLowerCase().includes(q)) || (item.nameKu && item.nameKu.toLowerCase().includes(q)) || item.description.toLowerCase().includes(q) || (item.descriptionEn && item.descriptionEn.toLowerCase().includes(q)) || (item.descriptionKu && item.descriptionKu.toLowerCase().includes(q)); return matchesCategory && matchesSearch; }).sort((a,b) => sortBy === 'price-asc' ? a.price-b.price : sortBy === 'price-desc' ? b.price-a.price : sortBy === 'popular' ? (b.isPopular?1:0)-(a.isPopular?1:0) : ((b.isChefSpecial?2:0)+(b.isPopular?1:0))-((a.isChefSpecial?2:0)+(a.isPopular?1:0))), [items, selectedCategory, searchQuery, sortBy]);
+  const filteredItems = useMemo(() => items.filter(item => { const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory; const q = searchQuery.toLowerCase(); const matchesSearch = !searchQuery.trim() || String(item.name ?? '').toLowerCase().includes(q) || String(item.nameEn ?? '').toLowerCase().includes(q) || String(item.nameKu ?? '').toLowerCase().includes(q) || String(item.description ?? '').toLowerCase().includes(q) || String(item.descriptionEn ?? '').toLowerCase().includes(q) || String(item.descriptionKu ?? '').toLowerCase().includes(q); return matchesCategory && matchesSearch; }).sort((a,b) => sortBy === 'price-asc' ? a.price-b.price : sortBy === 'price-desc' ? b.price-a.price : sortBy === 'popular' ? (b.isPopular?1:0)-(a.isPopular?1:0) : ((b.isChefSpecial?2:0)+(b.isPopular?1:0))-((a.isChefSpecial?2:0)+(a.isPopular?1:0))), [items, selectedCategory, searchQuery, sortBy]);
   const renderCategoryIcon = (name?: string) => ({ Flame: <Flame className="w-4 h-4" />, Beef: <Beef className="w-4 h-4" />, Salad: <Salad className="w-4 h-4" />, Cake: <Cake className="w-4 h-4" />, Coffee: <Coffee className="w-4 h-4" />, Smile: <Smile className="w-4 h-4" /> } as any)[name || ''] || <Utensils className="w-4 h-4" />;
   const getCategoryColor = (i: number) => ['#F2292E','#F7941D','#FFD11A','#78C943','#71359B','#2855D9'][i % 6];
 
