@@ -91,7 +91,7 @@ export const PortalGate: React.FC<PortalGateProps> = ({
             <span>{t.portalSubtitle}</span>
           </div>
 
-          <h2 className="text-3xl sm:text-5xl font-black text-white font-['Fredoka','Cairo',sans-serif] leading-tight">
+          <h2 className="text-3xl sm:text-5xl font-black text-white font-['Noto_Kufi_Arabic'] leading-tight">
             {t.portalTitle}
           </h2>
 
@@ -140,7 +140,7 @@ export const PortalGate: React.FC<PortalGateProps> = ({
                     : 'For Kids & Families'}
                 </span>
 
-                <h3 className="text-2xl sm:text-3xl font-bold text-white font-['Fredoka','Cairo',sans-serif] group-hover:text-[#FFD11A] transition-colors">
+                <h3 className="text-2xl sm:text-3xl font-bold text-white font-['Noto_Kufi_Arabic'] group-hover:text-[#FFD11A] transition-colors">
                   {t.customerView}
                 </h3>
 
@@ -202,7 +202,7 @@ export const PortalGate: React.FC<PortalGateProps> = ({
                     : 'Admin & Staff Portal'}
                 </span>
 
-                <h3 className="text-2xl sm:text-3xl font-bold text-white font-['Fredoka','Cairo',sans-serif] group-hover:text-[#a975db] transition-colors">
+                <h3 className="text-2xl sm:text-3xl font-bold text-white font-['Noto_Kufi_Arabic'] group-hover:text-[#a975db] transition-colors">
                   {t.adminView}
                 </h3>
 
@@ -255,7 +255,7 @@ export const PortalGate: React.FC<PortalGateProps> = ({
                 <Lock className="w-6 h-6 stroke-[2.5]" />
               </div>
               <div>
-                <h3 className="text-xl font-bold font-['Fredoka','Cairo',sans-serif] text-white">
+                <h3 className="text-xl font-bold font-['Noto_Kufi_Arabic'] text-white">
                   {t.loginTitle}
                 </h3>
                 <p className="text-xs text-[#9cb5f5]">
