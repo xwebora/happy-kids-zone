@@ -57,6 +57,7 @@ const STORAGE_KEY_RESTAURANT = 'happy_kids_restaurant_v4';
 const STORAGE_KEY_CATEGORIES = 'happy_kids_categories_v4';
 const STORAGE_KEY_HERO = 'happy_kids_hero_v5';
 const STORAGE_KEY_LANG = 'happy_kids_lang_v4';
+const STORAGE_KEY_PORTAL_LANG = 'happy_kids_portal_lang_v1';
 const STORAGE_KEY_LAYOUT = 'happy_kids_layout_v4';
 const STORAGE_KEY_THEME = 'happy_kids_theme_v1';
 
@@ -158,10 +159,26 @@ export default function App() {
   }, []);
 
   // Language state
+  // Portal/Admin/root URLs intentionally use only Arabic or English.
+  // The menu can independently use Kurdish.
+  const getPortalLanguage = (): Language => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_PORTAL_LANG);
+      return saved === 'en' || saved === 'ar' ? saved : 'ar';
+    } catch {
+      return 'ar';
+    }
+  };
+
+  const [portalLanguage, setPortalLanguage] = useState<Language>(() => getPortalLanguage());
+
   const [language, setLanguage] = useState<Language>(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY_LANG);
+      if (viewMode === 'portal' || viewMode === 'admin') {
+        return getPortalLanguage();
+      }
 
+      const saved = localStorage.getItem(STORAGE_KEY_LANG);
       return saved === 'en' || saved === 'ar' || saved === 'ku'
         ? saved
         : 'ar';
@@ -169,6 +186,18 @@ export default function App() {
       return 'ar';
     }
   });
+
+  const handlePortalLanguageChange = (selectedLanguage: Language) => {
+    const nextLanguage: Language = selectedLanguage === 'en' ? 'en' : 'ar';
+    setPortalLanguage(nextLanguage);
+    setLanguage(nextLanguage);
+    try {
+      localStorage.setItem(STORAGE_KEY_PORTAL_LANG, nextLanguage);
+      localStorage.setItem(STORAGE_KEY_LANG, nextLanguage);
+    } catch {
+      // Ignore storage errors.
+    }
+  };
 
   // Admin authentication state
   const [isAdminAuthenticated, setIsAdminAuthenticated] =
@@ -891,9 +920,9 @@ export default function App() {
           }}
         >
           <PortalGate
-            language={language}
+            language={portalLanguage}
             onLanguageChange={
-              setLanguage
+              handlePortalLanguageChange
             }
             restaurant={restaurant}
             hero={heroConfig}
