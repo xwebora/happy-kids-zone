@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { deleteField } from 'firebase/firestore';
 import { 
   X, 
   Upload, 
@@ -107,9 +108,9 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [formCategory, setFormCategory] = useState(categories[0]?.id || 'main');
   const [formImageUrl, setFormImageUrl] = useState('');
   const [formCalories, setFormCalories] = useState<number | ''>('');
-  const [formPrepTimeAr, setFormPrepTimeAr] = useState('15 دقيقة');
-  const [formPrepTimeEn, setFormPrepTimeEn] = useState('15 min');
-  const [formPrepTimeKu, setFormPrepTimeKu] = useState('15 خولەک');
+  const [formPrepTimeAr, setFormPrepTimeAr] = useState('');
+  const [formPrepTimeEn, setFormPrepTimeEn] = useState('');
+  const [formPrepTimeKu, setFormPrepTimeKu] = useState('');
   const [formIsSpecial, setFormIsSpecial] = useState(false);
   const [formIsPopular, setFormIsPopular] = useState(false);
   const [formAvailable, setFormAvailable] = useState(true);
@@ -249,9 +250,9 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     setFormCategory(item.category);
     setFormImageUrl(item.image);
     setFormCalories(item.calories || '');
-    setFormPrepTimeAr(item.preparationTime || '15 دقيقة');
-    setFormPrepTimeEn(item.preparationTimeEn || '15 min');
-    setFormPrepTimeKu(item.preparationTimeKu || '15 خولەک');
+    setFormPrepTimeAr(item.preparationTime || '');
+    setFormPrepTimeEn(item.preparationTimeEn || '');
+    setFormPrepTimeKu(item.preparationTimeKu || '');
     setFormIsSpecial(!!item.isChefSpecial);
     setFormIsPopular(!!item.isPopular);
     setFormAvailable(item.available);
@@ -273,9 +274,9 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     setFormCategory(categories[0]?.id || 'main');
     setFormImageUrl('');
     setFormCalories('');
-    setFormPrepTimeAr('15 دقيقة');
-    setFormPrepTimeEn('15 min');
-    setFormPrepTimeKu('15 خولەک');
+    setFormPrepTimeAr('');
+    setFormPrepTimeEn('');
+    setFormPrepTimeKu('');
     setFormIsSpecial(false);
     setFormIsPopular(false);
     setFormAvailable(true);
@@ -336,41 +337,48 @@ const handleSaveItem = async (e: React.FormEvent) => {
     // تعديل وجبة موجودة
     // ============================================
     if (editingItem) {
-      const updatedItem: Partial<Omit<MenuItem, 'id'>> = {
+      // نبني التعديل فقط من القيم التي أدخلها المستخدم.
+      // الحقول الاختيارية الفارغة لا تكتب قيمة فارغة ولا تستبدل قيمة موجودة.
+      const updatedItem: Record<string, unknown> = {
         name: formNameAr,
         nameEn: formNameEn || formNameAr,
         nameKu: formNameKu || formNameEn || formNameAr,
         description: formDescAr,
         descriptionEn: formDescEn || formDescAr,
         descriptionKu: formDescKu || formDescEn || formDescAr,
-        price: Number(formPrice),
         category: formCategory,
         image: finalImageUrl,
         available: formAvailable,
         isChefSpecial: formIsSpecial,
         isPopular: formIsPopular,
-        preparationTime: formPrepTimeAr,
-        preparationTimeEn: formPrepTimeEn,
-        preparationTimeKu: formPrepTimeKu || formPrepTimeEn || formPrepTimeAr,
-        preparationTimeKu: formPrepTimeKu || formPrepTimeEn || formPrepTimeAr,
       };
 
-      if (formOrigPrice !== '') {
-        updatedItem.originalPrice = Number(formOrigPrice);
+      // السعر: إذا تركه المستخدم فارغاً أثناء التعديل، يبقى السعر القديم كما هو.
+      if (formPrice !== '') {
+        updatedItem.price = Number(formPrice);
       }
 
-      if (formCalories !== '') {
-        updatedItem.calories = Number(formCalories);
-      }
+      // السعر قبل الخصم: فارغ = حذف القيمة القديمة من Firestore.
+      updatedItem.originalPrice = formOrigPrice === '' ? deleteField() : Number(formOrigPrice);
+
+      // السعرات: فارغ = حذف القيمة القديمة من Firestore.
+      updatedItem.calories = formCalories === '' ? deleteField() : Number(formCalories);
+
+      // وقت التحضير لكل لغة مستقل. الفارغ يحذف القيمة القديمة بدلاً من نسخ لغة أخرى.
+      updatedItem.preparationTime = formPrepTimeAr.trim() ? formPrepTimeAr.trim() : deleteField();
+      updatedItem.preparationTimeEn = formPrepTimeEn.trim() ? formPrepTimeEn.trim() : deleteField();
+      updatedItem.preparationTimeKu = formPrepTimeKu.trim() ? formPrepTimeKu.trim() : deleteField();
 
       if (driveFileId) {
         updatedItem.driveFileId = driveFileId;
+      } else if (editingItem.driveFileId) {
+        updatedItem.driveFileId = deleteField();
       }
 
       // حفظ في Firestore
       await updateMenuItem(
         editingItem.id,
-        updatedItem
+        updatedItem as Partial<Omit<MenuItem, 'id'>>
       );
 
       // تحديث واجهة الموقع
@@ -409,21 +417,15 @@ const handleSaveItem = async (e: React.FormEvent) => {
         available: formAvailable,
         isChefSpecial: formIsSpecial,
         isPopular: formIsPopular,
-        preparationTime: formPrepTimeAr,
-        preparationTimeEn: formPrepTimeEn,
       };
 
-      if (formOrigPrice !== '') {
-        newItemData.originalPrice = Number(formOrigPrice);
-      }
-
-      if (formCalories !== '') {
-        newItemData.calories = Number(formCalories);
-      }
-
-      if (driveFileId) {
-        newItemData.driveFileId = driveFileId;
-      }
+      // الحقول الاختيارية لا تُرسل إلى Firestore عندما تكون فارغة.
+      if (formOrigPrice !== '') newItemData.originalPrice = Number(formOrigPrice);
+      if (formCalories !== '') newItemData.calories = Number(formCalories);
+      if (formPrepTimeAr.trim()) newItemData.preparationTime = formPrepTimeAr.trim();
+      if (formPrepTimeEn.trim()) newItemData.preparationTimeEn = formPrepTimeEn.trim();
+      if (formPrepTimeKu.trim()) newItemData.preparationTimeKu = formPrepTimeKu.trim();
+      if (driveFileId) newItemData.driveFileId = driveFileId;
 
       // حفظ في Firestore
       const firestoreId = await addMenuItem(
