@@ -1356,17 +1356,7 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                       <span>{t.itemImage}</span>
                     </span>
                     <span className="text-[11px] text-emerald-400 font-semibold">Firebase Storage</span>
-                    {false && (
-                      <label className="flex items-center gap-1.5 text-xs text-sky-300 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={}
-                          onChange={(e) =>(e.target.checked)}
-                          className="rounded text-[#d4af37]"
-                        />
-                        <span>{t.saveToDriveAuto}</span>
-                      </label>
-                    )}
+
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
