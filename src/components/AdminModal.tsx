@@ -1612,7 +1612,7 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                   {editingCat && (
                     <button
                       type="button"
-                      onClick={() => { setEditingCat(null); setCatNameAr(''); setCatNameEn(''); }}
+                      onClick={() => { setEditingCat(null); setCatNameAr(''); setCatNameEn(''); setCatNameKu(''); }}
                       className="text-xs text-[#d4af37] hover:underline"
                     >
                       {t.cancel}
@@ -1646,6 +1646,20 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                       onChange={(e) => setCatNameEn(e.target.value)}
                       className="w-full bg-[#101218] border border-[#312c21] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#d4af37]"
                       dir="ltr"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#a8a192] mb-1.5">
+                      {t.categoryNameKu || 'ناوی پۆل بە کوردی'}
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="بۆ نموونە: خواردنە سەرەکییەکان"
+                      value={catNameKu}
+                      onChange={(e) => setCatNameKu(e.target.value)}
+                      className="w-full bg-[#101218] border border-[#312c21] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#d4af37]"
+                      dir="rtl"
                     />
                   </div>
 
