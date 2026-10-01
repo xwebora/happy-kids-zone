@@ -208,7 +208,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
       isOpen: true,
       title: isAr ? 'حفظ وتحديث نسخة Google Drive' : 'Sync Menu to Google Drive',
       message: isAr 
-        ? `هل تريد حفظ قائمة المطعم الحالية (${items.length} طبق) إلى مجلد Google Drive؟` 
+        ? `هل تريد حفظ قائمة المطعم الحالية (${items.length} وجبة) إلى مجلد Google Drive؟` 
         : `Do you want to backup current menu (${items.length} items) to your Google Drive?`,
       onConfirm: async () => {
         setConfirmDialog(null);
@@ -481,7 +481,7 @@ const handleSaveItem = async (e: React.FormEvent) => {
       : 'Delete Dish Permanently',
 
     message: isAr
-      ? `هل أنت متأكد من حذف طبق "${item.name}" من قائمة المطعم؟`
+      ? `هل أنت متأكد من حذف وجبة "${item.name}" من قائمة المطعم؟`
       : `Are you sure you want to delete "${item.nameEn || item.name}" from the menu?`,
 
     onConfirm: async () => {
@@ -2626,7 +2626,7 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                     </h3>
                     <p className="text-xs text-[#9d9689]">
                       {isAr 
-                        ? 'تخزين صور الأطباق ونسخ قائمة الطعام والأسعار سحابياً بأمان تام على حساب Google Drive الخاص بك.'
+                        ? 'تخزين صور الوجبات ونسخ قائمة الطعام والأسعار سحابياً بأمان تام على حساب Google Drive الخاص بك.'
                         : 'Store food photos and backup entire menu pricing data securely to your Google Drive.'}
                     </p>
                   </div>
@@ -2677,7 +2677,7 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                     <span>{isAr ? 'تصدير وحفظ نسخة المنيو والأسعار' : 'Export & Sync Menu Backup'}</span>
                   </div>
                   <p className="text-xs text-[#8c8577]">
-                    {isAr ? `عدد الأطباق الجاهزة للحفظ: ${items.length} طبق` : `Total meals to backup: ${items.length}`}
+                    {isAr ? `عدد الوجبات الجاهزة للحفظ: ${items.length} وجبة` : `Total meals to backup: ${items.length}`}
                   </p>
                   <button
                     onClick={handleSyncToDrive}
