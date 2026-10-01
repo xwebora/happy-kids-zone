@@ -917,7 +917,7 @@ const handleSaveSettings = async (e: React.FormEvent) => {
               <DollarSign className="w-6 h-6 stroke-[2.5]" />
             </div>
             <div>
-              <h2 className="text-xl font-black font-['Fredoka','Cairo',sans-serif] text-white">
+              <h2 className="text-xl font-black font-['Noto_Kufi_Arabic'] text-white">
                 {t.adminDashboardTitle}
               </h2>
               <p className="text-xs text-[#9eb9fc]">
@@ -1121,7 +1121,7 @@ const handleSaveSettings = async (e: React.FormEvent) => {
             <div className="space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#12245e] p-4 rounded-2xl border-2 border-[#2855D9]">
                 <div>
-                  <h3 className="font-black text-sm text-white font-['Fredoka','Cairo',sans-serif]">
+                  <h3 className="font-black text-sm text-white font-['Noto_Kufi_Arabic']">
                     {t.itemsList}
                   </h3>
                   <p className="text-xs text-[#a2bbf5]">
