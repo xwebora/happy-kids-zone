@@ -18,7 +18,7 @@ export const Hero: React.FC<HeroProps> = ({
   onExploreMenu,
   theme = 'dark',
 }) => {
-  const t = translations[language];
+  const t = translations[language] ?? translations.ar;
   const isAr = language === 'ar';
   const isLight = theme === 'light';
 
@@ -116,7 +116,7 @@ export const Hero: React.FC<HeroProps> = ({
                     isLight ? 'bg-white/95 text-slate-900' : 'bg-[#0a163e]/95 text-white'
                   }`}>
                     <span className="text-xl sm:text-2xl font-black text-[#FFD11A] font-['Fredoka',sans-serif] leading-none">
-                      {hero.featuredDishPrice.toLocaleString()}
+                      {Number(hero.featuredDishPrice || 0).toLocaleString()}
                     </span>
                     <span className={`text-xs font-bold ${isLight ? 'text-slate-600' : 'text-[#d1dbff]'}`}>
                       {isAr ? restaurant.currency : restaurant.currencyEn}
