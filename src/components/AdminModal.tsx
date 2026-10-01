@@ -1083,7 +1083,7 @@ const handleSaveSettings = async (e: React.FormEvent) => {
         : 'bg-[#12245e] text-[#9ebbf9] border-[#2855D9] hover:bg-[#1a3382] hover:text-white'
     }`}
   >
-    <span className="text-base">👋</span>
+    <span className="text-base">✨</span>
     <span>{isAr ? 'الـترحيب' : 'Welcome'}</span>
   </button>
 
