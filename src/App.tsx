@@ -969,7 +969,7 @@ export default function App() {
     }
 
     return (
-      <div className="min-h-screen bg-[#0a163e] text-white flex flex-col font-['Cairo',sans-serif]">
+      <div className="min-h-screen bg-[#0a163e] text-white flex flex-col font-['Noto_Kufi_Arabic']">
 
         <AdminModal
           isOpen={true}
@@ -1042,7 +1042,7 @@ onAdminLogout={() => {
       transition={{
         duration: 0.4
       }}
-      className={`min-h-screen text-white flex flex-col font-['Cairo',sans-serif] transition-colors duration-500 ${themeBackgroundClasses[brandTheme]}`}
+      className={`min-h-screen text-white flex flex-col font-['Noto_Kufi_Arabic'] transition-colors duration-500 ${themeBackgroundClasses[brandTheme]}`}
     >
 
       {/* Top Navbar */}
@@ -1640,7 +1640,7 @@ onAdminLogout={() => {
                 <Smile className="w-10 h-10" />
               </motion.div>
 
-              <h3 className="text-xl font-black text-white font-['Fredoka','Cairo',sans-serif]">
+              <h3 className="text-xl font-black text-white font-['Noto_Kufi_Arabic']">
                 {t.noItemsFound}
               </h3>
 
