@@ -2,20 +2,17 @@ import React, { useState, useRef } from 'react';
 import { deleteField } from 'firebase/firestore';
 import { 
   X, 
-  Upload, 
   Plus, 
   Save, 
   Trash2, 
   Edit2, 
   Check, 
-  HardDrive, 
   CloudUpload, 
   LogOut, 
   Sparkles, 
   DollarSign, 
   RefreshCw, 
   AlertTriangle,
-  FolderOpen,
   Image as ImageIcon,
   CheckCircle2,
   Lock,
@@ -34,7 +31,6 @@ import {
   Language,
   WelcomeConfig
 } from '../types';
-import { uploadMenuImage, deleteMenuImage } from '../services/storage';
 import { translations } from '../utils/i18n';
 import { User } from 'firebase/auth';
 import {
@@ -114,11 +110,6 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [formAvailable, setFormAvailable] = useState(true);
   const [syncBanner, setSyncBanner] = useState<string | null>(null);
 
-  // File Upload State
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [filePreview, setFilePreview] = useState<string | null>(null);
-  const [isUploadingImage, setIsUploadingImage] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Quick Price State
   const [quickPrices, setQuickPrices] = useState<Record<string, number>>({});
@@ -174,13 +165,21 @@ export const AdminModal: React.FC<AdminModalProps> = ({
 
   if (!isOpen) return null;
 
-  // Image Upload handler
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      setFilePreview(URL.createObjectURL(file));
+  // Convert common Google Drive share links into an image URL that can be rendered directly.
+  const normalizeGoogleDriveImageUrl = (url: string): string => {
+    const value = url.trim();
+    if (!value) return '';
+
+    const match =
+      value.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/) ||
+      value.match(/[?&]id=([a-zA-Z0-9_-]+)/) ||
+      value.match(/drive\.google\.com\/uc\/[^?]*\?[^#]*id=([a-zA-Z0-9_-]+)/);
+
+    if (match?.[1]) {
+      return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w1600`;
     }
+
+    return value;
   };
 
   // Populate Item form for editing
@@ -203,8 +202,6 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     setFormIsSpecial(!!item.isChefSpecial);
     setFormIsPopular(!!item.isPopular);
     setFormAvailable(item.available);
-    setSelectedFile(null);
-    setFilePreview(null);
     setActiveTab('add-item');
   };
 
@@ -245,28 +242,9 @@ const handleSaveItem = async (e: React.FormEvent) => {
     return;
   }
 
-  let finalImageUrl =
-    formImageUrl ||
+  const finalImageUrl =
+    normalizeGoogleDriveImageUrl(formImageUrl) ||
     'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80';
-
-  // Firebase Storage is now the image source for new uploads.
-  let storagePath = editingItem?.storagePath;
-
-  if (selectedFile) {
-    setIsUploadingImage(true);
-    try {
-      const uploadItemId = editingItem?.id || crypto.randomUUID();
-      const uploadRes = await uploadMenuImage(selectedFile, uploadItemId, selectedFile.name);
-      finalImageUrl = uploadRes.downloadUrl;
-      storagePath = uploadRes.storagePath;
-    } catch (err: any) {
-      console.error('Firebase Storage upload failed:', err);
-      alert(isAr ? `فشل رفع الصورة إلى Firebase Storage:\\n${err.message || err}` : `Failed to upload image to Firebase Storage:\\n${err.message || err}`);
-      return;
-    } finally {
-      setIsUploadingImage(false);
-    }
-  }
 
   try {
     // ============================================
@@ -305,25 +283,11 @@ const handleSaveItem = async (e: React.FormEvent) => {
       updatedItem.preparationTimeEn = formPrepTimeEn.trim() ? formPrepTimeEn.trim() : deleteField();
       updatedItem.preparationTimeKu = formPrepTimeKu.trim() ? formPrepTimeKu.trim() : deleteField();
 
-      if (storagePath) {
-        updatedItem.storagePath = storagePath;
-      } else if (editingItem.storagePath) {
-        updatedItem.storagePath = deleteField();
-      }
-
       // حفظ في Firestore
       await updateMenuItem(
         editingItem.id,
         updatedItem as Partial<Omit<MenuItem, 'id'>>
       );
-
-      if (selectedFile && editingItem.storagePath && editingItem.storagePath !== storagePath) {
-        try {
-          await deleteMenuImage(editingItem.storagePath);
-        } catch (storageDeleteError) {
-          console.warn('Old Firebase Storage image could not be deleted:', storageDeleteError);
-        }
-      }
 
       // تحديث واجهة الموقع
       const updatedList = items.map((it) =>
@@ -369,9 +333,7 @@ const handleSaveItem = async (e: React.FormEvent) => {
       if (formPrepTimeAr.trim()) newItemData.preparationTime = formPrepTimeAr.trim();
       if (formPrepTimeEn.trim()) newItemData.preparationTimeEn = formPrepTimeEn.trim();
       if (formPrepTimeKu.trim()) newItemData.preparationTimeKu = formPrepTimeKu.trim();
-      if (storagePath) newItemData.storagePath = storagePath;
-
-      // Generate the document ID before uploading so the Storage path and item stay linked.
+      // Generate the document ID for the Firestore menu item.
       const firestoreId = crypto.randomUUID();
 
       // حفظ في Firestore
@@ -438,15 +400,6 @@ const handleSaveItem = async (e: React.FormEvent) => {
       try {
         // حذف من Firestore
         await deleteMenuItem(item.id);
-
-        // حذف صورة Firebase Storage المرتبطة بالوجبة، إن وجدت.
-        if (item.storagePath) {
-          try {
-            await deleteMenuImage(item.storagePath);
-          } catch (storageError) {
-            console.warn('Firebase Storage deletion error:', storageError);
-          }
-        }
 
         // تحديث الواجهة
         onUpdateItems(
@@ -1347,63 +1300,52 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                   <input type="text" placeholder="20 خولەک" value={formPrepTimeKu} onChange={(e) => setFormPrepTimeKu(e.target.value)} className="w-full bg-[#101218] border border-[#312c21] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#d4af37]" dir="rtl" />
                 </div>
 
-                {/* Image Upload / Google Drive Integration */}
+                {/* Google Drive Image Link */}
                 <div className="border border-[#2f2b20] p-4 rounded-2xl bg-[#11131a] space-y-4">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-3">
                     <span className="text-xs font-bold text-white flex items-center gap-2">
                       <ImageIcon className="w-4 h-4 text-[#d4af37]" />
                       <span>{t.itemImage}</span>
                     </span>
-                    <span className="text-[11px] text-emerald-400 font-semibold">Firebase Storage</span>
-
+                    <span className="text-[11px] text-emerald-400 font-semibold">
+                      Google Drive
+                    </span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
-                    <div>
-                      <input
-                        type="file"
-                        ref={fileInputRef}
-                        accept="image/*"
-                        onChange={handleFileChange}
-                        className="hidden"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="w-full py-4 px-4 rounded-xl border border-dashed border-[#443d2c] hover:border-[#d4af37] bg-[#171924] flex flex-col items-center justify-center gap-2 text-[#a39c8e] hover:text-white transition-all cursor-pointer"
-                      >
-                        <Upload className="w-5 h-5 text-[#d4af37]" />
-                        <span className="text-xs font-semibold">
-                          {selectedFile ? selectedFile.name : t.chooseFromDevice}
-                        </span>
-                      </button>
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] text-[#8e877c] mb-1">
-                        {t.orDirectUrl}:
-                      </label>
-                      <input
-                        type="url"
-                        placeholder="https://images.unsplash.com/..."
-                        value={formImageUrl}
-                        onChange={(e) => setFormImageUrl(e.target.value)}
-                        className="w-full bg-[#171924] border border-[#312c21] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#d4af37]"
-                      />
-                    </div>
+                  <div>
+                    <label className="block text-[11px] text-[#8e877c] mb-1.5">
+                      {isAr ? 'رابط صورة Google Drive' : isKu ? 'بەستەری وێنەی Google Drive' : 'Google Drive image link'}
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://drive.google.com/file/d/..."
+                      value={formImageUrl}
+                      onChange={(e) => setFormImageUrl(e.target.value)}
+                      className="w-full bg-[#171924] border border-[#312c21] rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#d4af37]"
+                      dir="ltr"
+                    />
+                    <p className="text-[10px] text-[#817a6e] mt-2 leading-relaxed">
+                      {isAr
+                        ? 'الصق رابط المشاركة من Google Drive. سيتم تحويله تلقائياً إلى رابط مناسب لعرض الصورة داخل المنيو.'
+                        : isKu
+                          ? 'بەستەری هاوبەشکردنی Google Drive دابنێ. بەستەرەکە خۆکارانە بۆ پیشاندانی وێنە دەگۆڕدرێت.'
+                          : 'Paste the Google Drive sharing link. It will be converted automatically for image display.'}
+                    </p>
                   </div>
 
-                  {(filePreview || formImageUrl) && (
+                  {formImageUrl && (
                     <div className="flex items-center gap-3 p-2 bg-[#171a26] rounded-xl border border-[#2b271d]">
                       <img
-                        src={filePreview || formImageUrl}
+                        src={normalizeGoogleDriveImageUrl(formImageUrl)}
                         alt="Preview"
                         className="w-16 h-16 rounded-lg object-cover"
                       />
                       <div className="text-xs">
-                        <span className="font-semibold text-emerald-400 block">{isAr ? 'تم تحديد الصورة' : 'Image Selected'}</span>
+                        <span className="font-semibold text-emerald-400 block">
+                          {isAr ? 'معاينة الصورة' : isKu ? 'پێشبینینی وێنە' : 'Image Preview'}
+                        </span>
                         <span className="text-[11px] text-[#817a6e]">
-                          {selectedFile ? (isUploadingImage ? 'Uploading to Firebase Storage...' : 'Firebase Storage Ready') : 'Ready'}
+                          Google Drive
                         </span>
                       </div>
                     </div>
@@ -1452,20 +1394,12 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                   </button>
                   <button
                     type="submit"
-                    disabled={isUploadingImage}
                     className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#d4af37] to-[#ba8a24] hover:brightness-110 text-[#0c0d10] text-xs font-bold shadow flex items-center gap-2"
                   >
-                    {isUploadingImage ? (
-                      <>
-                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                        <span>Uploading...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Save className="w-3.5 h-3.5" />
-                        <span>{t.saveItemBtn}</span>
-                      </>
-                    )}
+                    <>
+                      <Save className="w-3.5 h-3.5" />
+                      <span>{t.saveItemBtn}</span>
+                    </>
                   </button>
                 </div>
               </div>
@@ -2479,7 +2413,7 @@ const handleSaveSettings = async (e: React.FormEvent) => {
             </form>
           )}
 
-          {/* TAB 6: GOOGLE DRIVE BACKUP */}
+          {/* TAB 6: FIRESTORE DATABASE SYNC */}
           {activeTab === 'drive' && (
             <div className="space-y-6">
               <div className="bg-[#12245e] p-6 rounded-2xl border-2 border-[#2855D9] space-y-5">
@@ -2523,7 +2457,7 @@ const handleSaveSettings = async (e: React.FormEvent) => {
         </div>
       </div>
 
-      {/* Explicit Confirmation Dialog (Mandatory for destructive actions & drive mutates) */}
+      {/* Explicit Confirmation Dialog */}
       {confirmDialog && confirmDialog.isOpen && (
         <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
           <div 
