@@ -16,8 +16,6 @@ export interface MenuItem {
   image: string;
   /** Existing Google Drive file ID. Kept temporarily for migration of old images. */
   driveFileId?: string;
-  /** Firebase Storage object path for the image. */
-  storagePath?: string;
   isPopular?: boolean;
   isChefSpecial?: boolean;
   calories?: number;
