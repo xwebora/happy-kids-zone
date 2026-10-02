@@ -668,6 +668,7 @@ const handleSaveCategory = async (e: React.FormEvent) => {
         {
           name: newCat.name,
           nameEn: newCat.nameEn,
+          nameKu: newCat.nameKu,
           icon: newCat.icon,
         }
       );
