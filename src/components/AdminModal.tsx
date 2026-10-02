@@ -1139,7 +1139,7 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                     <input
                       type="text"
                       required
-                      placeholder="مثال: مندي لحم نعيمي ملكي"
+                      placeholder="مثال: برغر لحم"
                       value={formNameAr}
                       onChange={(e) => setFormNameAr(e.target.value)}
                       className="w-full bg-[#101218] border border-[#312c21] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#d4af37]"
