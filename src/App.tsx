@@ -134,8 +134,10 @@ export default function App() {
 
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
-  const [items, setItems] = useState<MenuItem[]>(INITIAL_MENU_ITEMS);
-  const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
+  // Firestore is the single source of truth for menu items and categories.
+  // Start empty so deleted Firestore data never flashes from mock data on refresh.
+  const [items, setItems] = useState<MenuItem[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [restaurant, setRestaurant] = useState<RestaurantInfo>(INITIAL_RESTAURANT_INFO);
   const [heroConfig, setHeroConfig] = useState<HeroConfig>(INITIAL_HERO_CONFIG);
   const [welcomeConfig, setWelcomeConfig] = useState<any>(null);
@@ -151,8 +153,10 @@ export default function App() {
     (async () => {
       try {
         const [firestoreItems, firestoreCategories, firestoreRestaurant, firestoreHero, firestoreWelcome] = await Promise.all([getMenuItems(), getCategories(), getRestaurantInfo(), getHeroConfig(), getWelcomeConfig()]);
-        if (firestoreItems.length) setItems(firestoreItems);
-        if (firestoreCategories.length) setCategories(firestoreCategories);
+        // Always apply Firestore results, including empty arrays.
+        // This prevents deleted items/categories from reappearing briefly after refresh.
+        setItems(firestoreItems);
+        setCategories(firestoreCategories);
         if (firestoreRestaurant) setRestaurant(firestoreRestaurant);
         if (firestoreHero) setHeroConfig(firestoreHero);
         if (firestoreWelcome) setWelcomeConfig(firestoreWelcome);
