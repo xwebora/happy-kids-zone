@@ -1175,7 +1175,7 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                     </label>
                     <textarea
                       rows={3}
-                      placeholder="وصف مكونات الطبق وسر التتبيلة..."
+                      placeholder="وصف مكونات الوجبة ..."
                       value={formDescAr}
                       onChange={(e) => setFormDescAr(e.target.value)}
                       className="w-full bg-[#101218] border border-[#312c21] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#d4af37]"
@@ -1455,7 +1455,7 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                     <input
                       type="text"
                       required
-                      placeholder="مثال: أطباق بحرية"
+                      placeholder="مثال: وجبات سريعة"
                       value={catNameAr}
                       onChange={(e) => setCatNameAr(e.target.value)}
                       className="w-full bg-[#101218] border border-[#312c21] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#d4af37]"
@@ -1478,7 +1478,7 @@ const handleSaveSettings = async (e: React.FormEvent) => {
 
                   <div>
                     <label className="block text-xs font-semibold text-[#a8a192] mb-1.5">
-                      {t.categoryNameKu || 'ناوی پۆل بە کوردی'}
+                      {t.categoryNameKu || 'ناوی جۆر بە کوردی'}
                     </label>
                     <input
                       type="text"
