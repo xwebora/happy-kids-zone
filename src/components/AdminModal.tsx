@@ -1174,7 +1174,6 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                     </label>
                     <textarea
                       rows={3}
-                      required
                       placeholder="وصف مكونات الطبق وسر التتبيلة..."
                       value={formDescAr}
                       onChange={(e) => setFormDescAr(e.target.value)}
