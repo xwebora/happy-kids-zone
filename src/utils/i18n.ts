@@ -408,7 +408,7 @@ ku: {
   descKu: 'وەسف بە کوردی',
   prepTimeKu: 'کاتی ئامادەکردن بە کوردی',
 
-  categoryNameKu: 'ناوی پۆل بە کوردی',
+  categoryNameKu: 'ناوی جۆر بە کوردی',
   category: 'جۆر',
   selectCategory: 'پۆلێک هەڵبژێرە',
 
