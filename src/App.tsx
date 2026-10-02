@@ -15,14 +15,17 @@ import { translations } from './utils/i18n';
 import { User } from 'firebase/auth';
 import { Utensils, Flame, Beef, Salad, Cake, Coffee, Smile } from 'lucide-react';
 
-const STORAGE_KEY_ITEMS = 'happy_kids_items_v4';
-const STORAGE_KEY_RESTAURANT = 'happy_kids_restaurant_v4';
-const STORAGE_KEY_CATEGORIES = 'happy_kids_categories_v4';
-const STORAGE_KEY_HERO = 'happy_kids_hero_v5';
 const STORAGE_KEY_LANG = 'happy_kids_lang_v4';
 const STORAGE_KEY_PORTAL_LANG = 'happy_kids_portal_lang_v1';
 const STORAGE_KEY_LAYOUT = 'happy_kids_layout_v4';
-const STORAGE_KEY_THEME = 'happy_kids_theme_v1';
+
+const LEGACY_DATA_STORAGE_KEYS = [
+  'happy_kids_items_v4',
+  'happy_kids_restaurant_v4',
+  'happy_kids_categories_v4',
+  'happy_kids_hero_v5',
+  'happy_kids_theme_v1',
+];
 
 const gridContainerVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
@@ -39,12 +42,10 @@ export default function App() {
     const hash = decodeURIComponent(window.location.hash || '').toLowerCase();
     const route = hash.replace(/^#/, '').replace(/^\//, '').replace(/\/$/, '').split('?')[0];
 
-    // Primary public menu URLs.
     if (route === 'menu-ar') return { view: 'customer' as ViewMode, language: 'ar' as Language };
     if (route === 'menu-en') return { view: 'customer' as ViewMode, language: 'en' as Language };
     if (route === 'menu-kr' || route === 'menu-ku') return { view: 'customer' as ViewMode, language: 'ku' as Language };
 
-    // Query-string fallback, useful when a link is opened by a client that strips hash fragments.
     const params = new URLSearchParams(window.location.search);
     const queryView = params.get('view')?.toLowerCase();
     const queryLanguage = params.get('lang')?.toLowerCase();
@@ -89,9 +90,6 @@ export default function App() {
       // Ignore storage errors.
     }
 
-    // Use a full navigation so the public language links always load the
-    // language-specific menu route, even when the current page was loaded
-    // from a cached GitHub Pages bundle.
     if (typeof window !== 'undefined') {
       const menuUrl = `${window.location.origin}${window.location.pathname}#/${menuRoute}`;
       window.location.assign(menuUrl);
@@ -136,10 +134,10 @@ export default function App() {
 
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
-  const [items, setItems] = useState<MenuItem[]>(() => { try { const saved = localStorage.getItem(STORAGE_KEY_ITEMS); if (saved) { const parsed: MenuItem[] = JSON.parse(saved); if (parsed.some(it => it.price < 500)) return INITIAL_MENU_ITEMS; return parsed; } return INITIAL_MENU_ITEMS; } catch { return INITIAL_MENU_ITEMS; } });
-  const [categories, setCategories] = useState<Category[]>(() => { try { const saved = localStorage.getItem(STORAGE_KEY_CATEGORIES); return saved ? JSON.parse(saved) : INITIAL_CATEGORIES; } catch { return INITIAL_CATEGORIES; } });
-  const [restaurant, setRestaurant] = useState<RestaurantInfo>(() => { try { const saved = localStorage.getItem(STORAGE_KEY_RESTAURANT); if (saved) { const parsed = JSON.parse(saved); if (!parsed.currency || parsed.currency === 'ر.س' || parsed.currency === 'SAR' || parsed.currencyEn === 'SAR') return { ...INITIAL_RESTAURANT_INFO, ...parsed, currency: 'د.ع', currencyEn: 'IQD' }; return parsed; } return INITIAL_RESTAURANT_INFO; } catch { return INITIAL_RESTAURANT_INFO; } });
-  const [heroConfig, setHeroConfig] = useState<HeroConfig>(() => { try { const saved = localStorage.getItem(STORAGE_KEY_HERO); return saved ? { ...INITIAL_HERO_CONFIG, ...JSON.parse(saved) } : INITIAL_HERO_CONFIG; } catch { return INITIAL_HERO_CONFIG; } });
+  const [items, setItems] = useState<MenuItem[]>(INITIAL_MENU_ITEMS);
+  const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
+  const [restaurant, setRestaurant] = useState<RestaurantInfo>(INITIAL_RESTAURANT_INFO);
+  const [heroConfig, setHeroConfig] = useState<HeroConfig>(INITIAL_HERO_CONFIG);
   const [welcomeConfig, setWelcomeConfig] = useState<any>(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -163,10 +161,11 @@ export default function App() {
   }, []);
   useEffect(() => subscribeToMenuItems(setItems), []);
   useEffect(() => subscribeToCategories(setCategories), []);
-  useEffect(() => { localStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(items)); }, [items]);
-  useEffect(() => { localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(categories)); }, [categories]);
-  useEffect(() => { localStorage.setItem(STORAGE_KEY_RESTAURANT, JSON.stringify(restaurant)); }, [restaurant]);
-  useEffect(() => { localStorage.setItem(STORAGE_KEY_HERO, JSON.stringify(heroConfig)); }, [heroConfig]);
+  useEffect(() => {
+    LEGACY_DATA_STORAGE_KEYS.forEach((key) => {
+      try { localStorage.removeItem(key); } catch { /* ignore storage errors */ }
+    });
+  }, []);
   useEffect(() => { localStorage.setItem(STORAGE_KEY_LAYOUT, layoutMode); }, [layoutMode]);
   useEffect(() => { localStorage.setItem(STORAGE_KEY_LANG, language); document.documentElement.lang = language; document.documentElement.dir = language === 'ar' || language === 'ku' ? 'rtl' : 'ltr'; }, [language]);
   useEffect(() => { const unsub = initAuth(setUser); return () => unsub(); }, []);
