@@ -1314,14 +1314,37 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                     <label className="block text-[11px] text-[#8e877c] mb-1.5">
                       {isAr ? 'رابط صورة Google Drive' : isKu ? 'بەستەری وێنەی Google Drive' : 'Google Drive image link'}
                     </label>
-                    <input
-                      type="url"
-                      placeholder="https://drive.google.com/file/d/..."
-                      value={formImageUrl}
-                      onChange={(e) => setFormImageUrl(e.target.value)}
-                      className="w-full bg-[#171924] border border-[#312c21] rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#d4af37]"
-                      dir="ltr"
-                    />
+                    <div className="flex gap-2">
+                      <input
+                        type="url"
+                        placeholder="https://drive.google.com/file/d/..."
+                        value={formImageUrl}
+                        onChange={(e) => setFormImageUrl(e.target.value)}
+                        className="flex-1 min-w-0 bg-[#171924] border border-[#312c21] rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#d4af37]"
+                        dir="ltr"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const converted = normalizeGoogleDriveImageUrl(formImageUrl);
+                          if (!converted || converted === formImageUrl.trim()) {
+                            alert(
+                              isAr
+                                ? 'يرجى لصق رابط Google Drive صحيح يحتوي على FILE_ID.'
+                                : isKu
+                                  ? 'تکایە بەستەرێکی دروستی Google Drive دابنێ کە FILE_ID ـی تێدا بێت.'
+                                  : 'Please paste a valid Google Drive link containing the FILE_ID.'
+                            );
+                            return;
+                          }
+                          setFormImageUrl(converted);
+                        }}
+                        disabled={!formImageUrl.trim()}
+                        className="shrink-0 px-3 rounded-xl bg-[#2855D9] hover:bg-[#3567ee] disabled:opacity-40 disabled:cursor-not-allowed text-white text-[11px] font-bold transition-all"
+                      >
+                        {isAr ? 'تحويل الرابط' : isKu ? 'گۆڕینی بەستەر' : 'Convert Link'}
+                      </button>
+                    </div>
                     <p className="text-[10px] text-[#817a6e] mt-2 leading-relaxed">
                       {isAr
                         ? 'الصق رابط المشاركة من Google Drive. سيتم تحويله تلقائياً إلى رابط مناسب لعرض الصورة داخل المنيو.'
