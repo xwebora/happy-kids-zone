@@ -224,8 +224,6 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     setFormIsSpecial(false);
     setFormIsPopular(false);
     setFormAvailable(true);
-    setSelectedFile(null);
-    setFilePreview(null);
   };
 
   // Save Item (Create or Update)
