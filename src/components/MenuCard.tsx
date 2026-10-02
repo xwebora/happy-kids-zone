@@ -75,6 +75,13 @@ export const MenuCard: React.FC<MenuCardProps> = ({
     ? item.preparationTime
     : (item.preparationTimeEn || item.preparationTime);
 
+  // Optional discount price must never render as NaN.
+  const safePrice = Number.isFinite(Number(item.price)) ? Number(item.price) : 0;
+  const safeOriginalPrice = Number.isFinite(Number(item.originalPrice))
+    ? Number(item.originalPrice)
+    : null;
+  const hasDiscountPrice = safeOriginalPrice !== null && safeOriginalPrice > safePrice;
+
   // Playful tilt angle on hover alternating for cards
   const hoverRotate = index % 2 === 0 ? -1.2 : 1.2;
 
@@ -184,14 +191,14 @@ export const MenuCard: React.FC<MenuCardProps> = ({
                 <span>{t.notAvailable}</span>
               </span>
             )}
-            {item.available && item.originalPrice && item.originalPrice > item.price && (
+            {item.available && hasDiscountPrice && (
               <motion.span 
                 whileHover={{ scale: 1.1, rotate: [-2, 2, -2] }}
                 animate={{ scale: [1, 1.05, 1] }}
                 transition={{ repeat: Infinity, duration: 2.5 }}
                 className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-[#F2292E] text-white shadow-lg border border-white/20 block"
               >
-                {Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100)}% {t.discount}
+                {Math.round(((safeOriginalPrice! - safePrice) / safeOriginalPrice!) * 100)}% {t.discount}
               </motion.span>
             )}
           </div>
@@ -237,14 +244,14 @@ export const MenuCard: React.FC<MenuCardProps> = ({
                 whileHover={{ scale: 1.1 }}
                 className="text-2xl sm:text-3xl font-black text-[#FFD11A] font-['Fredoka',sans-serif] inline-block tracking-tight"
               >
-                {Number(item.price || 0).toLocaleString()}
+                {safePrice.toLocaleString()}
               </motion.span>
               <span className="text-xs sm:text-sm text-[#9ebbf9] font-bold">
                 {currency}
               </span>
-              {item.originalPrice && item.originalPrice > item.price && (
+              {hasDiscountPrice && (
                 <span className="text-xs sm:text-sm text-[#7897dc] line-through mx-1.5">
-                  {Number(item.originalPrice || 0).toLocaleString()} {currency}
+                  {safeOriginalPrice!.toLocaleString()} {currency}
                 </span>
               )}
             </div>
@@ -451,14 +458,14 @@ export const MenuCard: React.FC<MenuCardProps> = ({
               whileHover={{ scale: 1.1 }}
               className="text-2xl font-black text-[#FFD11A] font-['Fredoka',sans-serif] inline-block tracking-tight"
             >
-              {item.price.toLocaleString()}
+              {safePrice.toLocaleString()}
             </motion.span>
             <span className="text-xs text-[#9ebbf9] font-bold">
               {currency}
             </span>
             {item.originalPrice && item.originalPrice > item.price && (
               <span className="text-xs text-[#7897dc] line-through mx-1">
-                {item.originalPrice.toLocaleString()} {currency}
+                {safeOriginalPrice!.toLocaleString()} {currency}
               </span>
             )}
           </div>
