@@ -242,7 +242,7 @@ const handleSaveItem = async (e: React.FormEvent) => {
 
   const finalImageUrl =
     normalizeGoogleDriveImageUrl(formImageUrl) ||
-    'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80';
+    'https://drive.google.com/thumbnail?id=1D1HT9bZB2wj3S9K3tazS68J-_GPdZ5wO&sz=w1600';
 
   try {
     // ============================================
