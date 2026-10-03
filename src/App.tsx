@@ -13,7 +13,7 @@ import { initAuth } from './services/auth';
 import { getWelcomeConfig, getMenuItems, getCategories, getRestaurantInfo, getHeroConfig, subscribeToMenuItems, subscribeToCategories } from './services/menuService';
 import { translations } from './utils/i18n';
 import { User } from 'firebase/auth';
-import { Utensils, Flame, Beef, Salad, Cake, Coffee, Smile, Hamburger } from 'lucide-react';
+import { Utensils, Flame, Beef, Salad, Cake, Coffee, Smile, Hamburger, pizza } from 'lucide-react';
 
 const STORAGE_KEY_LANG = 'happy_kids_lang_v4';
 const STORAGE_KEY_PORTAL_LANG = 'happy_kids_portal_lang_v1';
@@ -184,6 +184,7 @@ export default function App() {
   Coffee: <Coffee className="w-4 h-4" />,
   Smile: <Smile className="w-4 h-4" />,
   hamburger: <Hamburger className="w-4 h-4" />,
+  pizza: <pizza className="w-4 h-4" />,
 } as any)[name || ''] || <Utensils className="w-4 h-4" />;
   const getCategoryColor = (i: number) => ['#F2292E','#F7941D','#FFD11A','#78C943','#71359B','#2855D9'][i % 6];
 
