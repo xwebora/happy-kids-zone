@@ -13,7 +13,7 @@ import { initAuth } from './services/auth';
 import { getWelcomeConfig, getMenuItems, getCategories, getRestaurantInfo, getHeroConfig, subscribeToMenuItems, subscribeToCategories } from './services/menuService';
 import { translations } from './utils/i18n';
 import { User } from 'firebase/auth';
-import { Utensils, Flame, Beef, Salad, Cake, Coffee, Smile } from 'lucide-react';
+import { Utensils, Flame, Beef, Salad, Cake, Coffee, Smile, hamburger } from 'lucide-react';
 
 const STORAGE_KEY_LANG = 'happy_kids_lang_v4';
 const STORAGE_KEY_PORTAL_LANG = 'happy_kids_portal_lang_v1';
