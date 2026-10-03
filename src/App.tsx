@@ -183,8 +183,8 @@ export default function App() {
   Cake: <Cake className="w-4 h-4" />,
   Coffee: <Coffee className="w-4 h-4" />,
   Smile: <Smile className="w-4 h-4" />,
-  Hamburger: <Hamburger className="w-4 h-4" />,
-  Pizza: <Pizza className="w-4 h-4" />,
+  hamburger: <Hamburger className="w-4 h-4" />,
+  pizza: <Pizza className="w-4 h-4" />,
 } as any)[name || ''] || <Utensils className="w-4 h-4" />;
   const getCategoryColor = (i: number) => ['#F2292E','#F7941D','#FFD11A','#78C943','#71359B','#2855D9'][i % 6];
 
