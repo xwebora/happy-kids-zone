@@ -1505,8 +1505,8 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                       <option value="Salad">Salad (مقبلات وخضار)</option>
                       <option value="Cake">Cake (حلويات)</option>
                       <option value="Coffee">Coffee (مشروبات وقهوة)</option>
-                      <option value="hamburger">hamburger (برغر)</option>
-                      <option value="pizza">pizza (بيتزا)</option>
+                      <option value="Hamburger">Hamburger (برغر)</option>
+                      <option value="Pizza">Pizza (بيتزا)</option>
                     </select>
                   </div>
                 </div>
