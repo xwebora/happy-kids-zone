@@ -192,9 +192,28 @@ export default function App() {
       if (sortBy === 'price-asc') return a.price - b.price;
       if (sortBy === 'price-desc') return b.price - a.price;
       if (sortBy === 'popular') return (b.isPopular ? 1 : 0) - (a.isPopular ? 1 : 0);
-      if (sortBy === 'default') return (a.sortOrder ?? 999999) - (b.sortOrder ?? 999999);
+      if (sortBy === 'default') {
+        // Match the exact ordering used by the Admin drag-and-drop list:
+        // categories first, then items inside each category.
+        const categoryIndex = (categoryId: string) => {
+          const category = categories.find((c) => c.id === categoryId);
+          return category?.sortOrder ?? categories.findIndex((c) => c.id === categoryId);
+        };
+
+        const categoryOrderA = categoryIndex(a.category);
+        const categoryOrderB = categoryIndex(b.category);
+
+        if (categoryOrderA !== categoryOrderB) {
+          return categoryOrderA - categoryOrderB;
+        }
+
+        const itemOrderA = a.sortOrder ?? items.filter((item) => item.category === a.category).findIndex((item) => item.id === a.id);
+        const itemOrderB = b.sortOrder ?? items.filter((item) => item.category === b.category).findIndex((item) => item.id === b.id);
+
+        return itemOrderA - itemOrderB;
+      }
       return ((b.isChefSpecial ? 2 : 0) + (b.isPopular ? 1 : 0)) - ((a.isChefSpecial ? 2 : 0) + (a.isPopular ? 1 : 0));
-    }), [items, selectedCategory, searchQuery, sortBy]);
+    }), [items, categories, selectedCategory, searchQuery, sortBy]);
   const renderCategoryIcon = (name?: string) => ({
   Flame: <Flame className="w-4 h-4" />,
   Beef: <Beef className="w-4 h-4" />,
