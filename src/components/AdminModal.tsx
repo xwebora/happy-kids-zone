@@ -21,7 +21,10 @@ import {
   Sliders,
   Settings,
   ExternalLink,
-  Copy
+  Copy,
+  FileSpreadsheet,
+  Upload,
+  Download
 } from 'lucide-react';
 import {
   MenuItem,
@@ -32,6 +35,7 @@ import {
   WelcomeConfig
 } from '../types';
 import { translations } from '../utils/i18n';
+import { exportCategoriesToExcel, exportMenuItemsToExcel, downloadExcelTemplate, parseCategoriesExcel, parseMenuItemsExcel } from '../utils/excelService';
 import { User } from 'firebase/auth';
 import {
   updateMenuItem,
@@ -86,7 +90,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
 
     // Admin Dashboard Tabs
   const [activeTab, setActiveTab] = useState<
-    'items' | 'add-item' | 'categories' | 'hero' | 'welcome' | 'settings' | 'drive'
+    'items' | 'add-item' | 'categories' | 'hero' | 'welcome' | 'settings' | 'drive' | 'data'
   >('items');
 
   // Item Form State
@@ -155,6 +159,12 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     }
   };
 
+  const [excelType, setExcelType] = useState<'categories' | 'items'>('items');
+  const [excelBusy, setExcelBusy] = useState(false);
+  const [excelPreview, setExcelPreview] = useState<{rows:any[];errors:string[]}>({rows:[],errors:[]});
+  const excelInputRef = useRef<HTMLInputElement>(null);
+  const handleExcelImport = async (file:File) => { setExcelBusy(true); try { const result=excelType==='categories'?await parseCategoriesExcel(file):await parseMenuItemsExcel(file,categories); setExcelPreview(result); } catch(error:any){setExcelPreview({rows:[],errors:[error?.message||'تعذر قراءة ملف Excel']});} finally{setExcelBusy(false);} };
+  const applyExcelImport = async () => { if(excelPreview.errors.length||!excelPreview.rows.length)return; setExcelBusy(true); try { if(excelType==='categories'){for(const category of excelPreview.rows as Category[]){const {id,...data}=category;await setCategory(id,data);}onUpdateCategories(excelPreview.rows as Category[]);} else {for(const item of excelPreview.rows as MenuItem[]){const {id,...data}=item;await setMenuItem(id,data);}onUpdateItems(excelPreview.rows as MenuItem[]);} setSyncBanner(isAr?'تم استيراد بيانات Excel بنجاح':'Excel data imported successfully');setExcelPreview({rows:[],errors:[]});}catch(error:any){setExcelPreview(p=>({...p,errors:[...p.errors,error?.message||'حدث خطأ أثناء الحفظ']}));}finally{setExcelBusy(false);} };
   // Confirmation Modal
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
@@ -940,6 +950,7 @@ const handleSaveSettings = async (e: React.FormEvent) => {
     </span>
   </button>
 
+  <button onClick={() => setActiveTab('data')} className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-2 whitespace-nowrap border ${activeTab === 'data' ? 'bg-[#FFD11A] text-[#0a163e] border-[#FFD11A]' : 'bg-[#12245e] text-[#9ebbf9] border-[#2855D9] hover:bg-[#1a3382] hover:text-white'}`}><FileSpreadsheet className="w-4 h-4" /><span>{isAr ? 'استيراد / تصدير' : 'Import / Export'}</span></button>
   <button
     onClick={() => setActiveTab('welcome')}
     className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center gap-2 whitespace-nowrap border ${
@@ -969,6 +980,18 @@ const handleSaveSettings = async (e: React.FormEvent) => {
         {/* Tab Contents Area */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           
+          {activeTab === 'data' && (
+            <div className="space-y-6">
+              <div className="bg-[#12245e] p-6 rounded-2xl border-2 border-[#2855D9] space-y-5">
+                <div><h3 className="font-black text-base text-white">{isAr ? 'استيراد وتصدير البيانات عبر Excel' : 'Excel Import & Export'}</h3><p className="text-xs text-[#9eb9fc] mt-1">{isAr ? 'عرّف التصنيفات أولاً، ثم استورد الوجبات المرتبطة بها بواسطة Category ID.' : 'Define categories first, then import menu items using Category ID.'}</p></div>
+                <div className="flex flex-wrap gap-2"><button onClick={()=>setExcelType('categories')} className={`px-4 py-2 rounded-xl text-xs font-bold ${excelType==='categories'?'bg-[#FFD11A] text-[#0a163e]':'bg-[#0f2156] text-white border border-[#2855D9]'}`}>📂 {isAr?'التصنيفات':'Categories'}</button><button onClick={()=>setExcelType('items')} className={`px-4 py-2 rounded-xl text-xs font-bold ${excelType==='items'?'bg-[#FFD11A] text-[#0a163e]':'bg-[#0f2156] text-white border border-[#2855D9]'}`}>🍔 {isAr?'الوجبات':'Menu Items'}</button></div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3"><button onClick={()=>excelType==='categories'?exportCategoriesToExcel(categories):exportMenuItemsToExcel(items)} className="px-4 py-3 rounded-xl bg-[#2855D9] text-white text-xs font-bold flex items-center justify-center gap-2"><Download className="w-4 h-4"/>{isAr?'تصدير Excel':'Export Excel'}</button><button onClick={()=>excelInputRef.current?.click()} className="px-4 py-3 rounded-xl bg-[#FFD11A] text-[#0a163e] text-xs font-black flex items-center justify-center gap-2"><Upload className="w-4 h-4"/>{isAr?'استيراد Excel':'Import Excel'}</button><button onClick={()=>downloadExcelTemplate(excelType)} className="px-4 py-3 rounded-xl bg-[#0f2156] border border-[#2855D9] text-white text-xs font-bold flex items-center justify-center gap-2"><FileSpreadsheet className="w-4 h-4"/>{isAr?'تحميل قالب Excel':'Download Template'}</button></div>
+                <input ref={excelInputRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={e=>{const f=e.target.files?.[0];if(f)handleExcelImport(f);e.currentTarget.value='';}} />
+                {excelBusy&&<div className="text-xs text-[#FFD11A]">{isAr?'جاري معالجة الملف...':'Processing file...'}</div>}
+                {(excelPreview.rows.length>0||excelPreview.errors.length>0)&&<div className="rounded-xl bg-[#0f2156] border border-[#2855D9] p-4 space-y-3"><div className="text-sm font-black">{isAr?'معاينة: '+excelPreview.rows.length+' سجل':'Preview: '+excelPreview.rows.length+' records'}</div>{excelPreview.errors.length>0&&<div className="p-3 rounded-lg bg-red-950/40 border border-red-700/50 text-red-300 text-xs space-y-1">{excelPreview.errors.slice(0,20).map((e,i)=><div key={i}>• {e}</div>)}</div>}{excelPreview.rows.length>0&&!excelPreview.errors.length&&<button onClick={applyExcelImport} disabled={excelBusy} className="px-5 py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-black">{isAr?'تأكيد الاستيراد والحفظ':'Confirm Import & Save'}</button>}</div>}
+              </div>
+            </div>
+          )}
           {/* TAB 1: MEALS & LIVE PRICE EDITING */}
           {activeTab === 'items' && (
             <div className="space-y-4">
