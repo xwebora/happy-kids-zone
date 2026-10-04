@@ -3,7 +3,9 @@ import {
   getDocs,
   addDoc,
   getDoc,
+  getDocFromServer,
   updateDoc,
+  waitForPendingWrites,
   deleteDoc,
   doc,
   setDoc,
@@ -99,10 +101,12 @@ export async function reorderMenuItems(items: MenuItem[]): Promise<void> {
     await batch.commit();
   }
 
-  // Read the saved documents back from Firestore and verify sortOrder.
+  // Wait for the client to receive server acknowledgement, then read from the server.
+  await waitForPendingWrites(db);
+
   const verification = await Promise.all(
     Array.from(expected.entries()).map(async ([id, expectedOrder]) => {
-      const snapshot = await getDoc(doc(db, MENU_ITEMS_COLLECTION, id));
+      const snapshot = await getDocFromServer(doc(db, MENU_ITEMS_COLLECTION, id));
       const actualOrder = snapshot.exists() ? snapshot.data().sortOrder : undefined;
       return { id, expectedOrder, actualOrder };
     })
