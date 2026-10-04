@@ -153,16 +153,6 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     const sourceId = draggedIdFromEvent || draggedItemIdRef.current || draggedItemId;
     setDragOverItemId(null);
 
-    console.log('🟣 DRAG DEBUG - DROP START', {
-      draggedIdFromEvent,
-      draggedItemIdRef: draggedItemIdRef.current,
-      draggedItemId,
-      sourceId,
-      targetId,
-      sourceName: items.find((item) => item.id === sourceId)?.name,
-      targetName: items.find((item) => item.id === targetId)?.name,
-    });
-
     if (!sourceId || sourceId === targetId) {
       setDraggedItemId(null);
       draggedItemIdRef.current = null;
@@ -180,17 +170,6 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     const categoryItems = orderedItems.filter((item) => item.category === source.category);
     const fromIndex = categoryItems.findIndex((item) => item.id === sourceId);
     const toIndex = categoryItems.findIndex((item) => item.id === targetId);
-
-    console.log('🟣 DRAG DEBUG - POSITION', {
-      categoryId: source.category,
-      categoryItems: categoryItems.map((item) => ({
-        id: item.id,
-        name: item.name,
-        sortOrder: item.sortOrder,
-      })),
-      fromIndex,
-      toIndex,
-    });
     if (fromIndex < 0 || toIndex < 0) {
       setDraggedItemId(null);
       draggedItemIdRef.current = null;
@@ -223,16 +202,6 @@ export const AdminModal: React.FC<AdminModalProps> = ({
       ...item,
       sortOrder: globalOrderedItems.findIndex((orderedItem) => orderedItem.id === item.id),
     }));
-
-    console.log('🟣 DRAG DEBUG - BEFORE SAVE', JSON.stringify({
-      before: items
-        .filter((item) => item.category === source.category)
-        .map((item) => ({ id: item.id, name: item.name, sortOrder: item.sortOrder })),
-      after: globalOrderedItems
-        .filter((item) => item.category === source.category)
-        .map((item) => ({ id: item.id, name: item.name, sortOrder: updatedItems.find((u) => u.id === item.id)?.sortOrder })),
-      fullOrder: updatedItems.map((item) => ({ id: item.id, name: item.name, sortOrder: item.sortOrder })),
-    }, null, 2));
 
     onUpdateItems(updatedItems);
 
