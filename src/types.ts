@@ -14,7 +14,6 @@ export interface MenuItem {
   originalPrice?: number;
   category: string;
   image: string;
-  /** Existing Google Drive file ID. Kept temporarily for migration of old images. */
   driveFileId?: string;
   isPopular?: boolean;
   isChefSpecial?: boolean;
@@ -23,6 +22,7 @@ export interface MenuItem {
   preparationTimeEn?: string;
   preparationTimeKu?: string;
   available: boolean;
+  sortOrder?: number;
 }
 
 export interface Category {
@@ -31,6 +31,7 @@ export interface Category {
   nameEn: string;
   nameKu?: string;
   icon?: string;
+  sortOrder?: number;
 }
 
 export interface HeroConfig {
