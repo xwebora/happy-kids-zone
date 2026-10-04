@@ -24,8 +24,7 @@ import {
   Copy,
   FileSpreadsheet,
   Upload,
-  Download,
-  GripVertical
+  Download
 } from 'lucide-react';
 import {
   MenuItem,
@@ -121,28 +120,6 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [quickPrices, setQuickPrices] = useState<Record<string, number>>({});
   const [savedSuccessId, setSavedSuccessId] = useState<string | null>(null);
   const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set());
-
-  // MENU_ORDERING_FEATURE
-
-  const orderedItems = [...items].sort((a, b) => {
-    // Always group all items of the same category together.
-    // If a category has no sortOrder yet, use its current array position
-    // instead of the same 999999 fallback for every category.
-    const categoryIndex = (categoryId: string) => {
-      const category = categories.find((c) => c.id === categoryId);
-      return category?.sortOrder ?? categories.findIndex((c) => c.id === categoryId);
-    };
-
-    const catA = categoryIndex(a.category);
-    const catB = categoryIndex(b.category);
-
-    if (catA !== catB) return catA - catB;
-
-    const orderA = a.sortOrder ?? items.filter((x) => x.category === a.category).findIndex((x) => x.id === a.id);
-    const orderB = b.sortOrder ?? items.filter((x) => x.category === b.category).findIndex((x) => x.id === b.id);
-    return orderA - orderB;
-  });
-
 
   // Category Form State
   const [editingCat, setEditingCat] = useState<Category | null>(null);
@@ -299,8 +276,6 @@ const handleSaveItem = async (e: React.FormEvent) => {
         isChefSpecial: formIsSpecial,
         isPopular: formIsPopular,
         // Never change a meal's saved position when editing it.
-        // Reordering is handled only by drag-and-drop, otherwise an edit would
-        // silently overwrite sortOrder and make the menu appear to jump after refresh.
         sortOrder: editingItem.sortOrder,
       };
 
@@ -1142,7 +1117,6 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                   <thead className="bg-[#12245e] text-[#a2bbf5] border-b-2 border-[#2855D9] font-bold">
                     <tr>
                       <th className="py-3 px-4 w-12 text-center"><input type="checkbox" checked={items.length > 0 && selectedItemIds.size === items.length} onChange={toggleSelectAllItems} className="w-4 h-4 accent-[#FFD11A] cursor-pointer" /></th>
-                      <th className="py-3 px-2 text-center" title={isAr ? 'اسحب لإعادة الترتيب' : 'Drag to reorder'}>↕</th>
                       <th className="py-3 px-4">{isAr ? 'الصورة والاسم' : 'Image & Name'}</th>
                       <th className="py-3 px-4">{t.category}</th>
                       <th className="py-3 px-4">{isAr ? 'السعر الحالي' : 'Live Price'} ({isAr ? restaurant.currency : restaurant.currencyEn})</th>
@@ -1168,11 +1142,8 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                             </tr>
                           )}
                           <tr
-                            key={item.id}}                            className={`${selectedItemIds.has(item.id) ? 'bg-red-950/20' : 'hover:bg-[#1a1d29]'} ${draggedItemId === item.id ? 'opacity-40' : ''} cursor-grab active:cursor-grabbing`}
+                            key={item.id} className={`${selectedItemIds.has(item.id) ? 'bg-red-950/20' : 'hover:bg-[#1a1d29]'}`}
                           >
-                            <td className="py-3 px-2 text-center">
-                              <GripVertical className="w-4 h-4 mx-auto text-[#FFD11A]/70" />
-                            </td>
                             <td className="py-3 px-4 text-center"><input type="checkbox" checked={selectedItemIds.has(item.id)} onChange={() => toggleItemSelection(item.id)} className="w-4 h-4 accent-[#FFD11A] cursor-pointer" /></td>
                             <td className="py-3 px-4">
                           <div className="flex items-center gap-3">
