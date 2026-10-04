@@ -159,6 +159,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
       return;
     }
 
+    // Reorder inside the dragged item's category.
     const categoryItems = orderedItems.filter((x) => x.category === dragged.category);
     const from = categoryItems.findIndex((x) => x.id === sourceId);
     const to = categoryItems.findIndex((x) => x.id === targetId);
@@ -167,21 +168,45 @@ export const AdminModal: React.FC<AdminModalProps> = ({
       return;
     }
 
-    const next = [...categoryItems];
-    const [moved] = next.splice(from, 1);
-    next.splice(to, 0, moved);
+    const reorderedCategory = [...categoryItems];
+    const [moved] = reorderedCategory.splice(from, 1);
+    reorderedCategory.splice(to, 0, moved);
 
-    // Give every item in this category an explicit, unique order.
-    const updates = new Map(next.map((x, index) => [x.id, index]));
-    const updatedItems = items.map((x) =>
-      updates.has(x.id) ? { ...x, sortOrder: updates.get(x.id) } : x
-    );
+    // Build one GLOBAL order for the entire menu.
+    // This is important: sortOrder must be unique across all categories so
+    // the customer menu can reproduce the exact Admin order.
+    const globalOrderedItems: MenuItem[] = [];
+    categories
+      .slice()
+      .sort((a, b) => (a.sortOrder ?? categories.indexOf(a)) - (b.sortOrder ?? categories.indexOf(b)))
+      .forEach((category) => {
+        const categoryItemsForOrder =
+          category.id === dragged.category
+            ? reorderedCategory
+            : orderedItems.filter((x) => x.category === category.id);
+
+        globalOrderedItems.push(...categoryItemsForOrder);
+      });
+
+    // Include any items whose category is not currently present in categories.
+    items.forEach((item) => {
+      if (!globalOrderedItems.some((x) => x.id === item.id)) {
+        globalOrderedItems.push(item);
+      }
+    });
+
+    const orderMap = new Map(globalOrderedItems.map((item, index) => [item.id, index]));
+    const updatedItems = items.map((item) => ({
+      ...item,
+      sortOrder: orderMap.get(item.id) ?? item.sortOrder ?? 0,
+    }));
 
     setDraggedItemId(null);
     onUpdateItems(updatedItems);
 
     try {
-      await reorderMenuItemsInCategory(updatedItems, dragged.category);
+      // Persist the GLOBAL order, not a separate 0,1,2 order per category.
+      await reorderMenuItems(updatedItems);
       setSyncBanner(isAr ? 'تم حفظ ترتيب الوجبات وظهر في المنيو' : 'Meal order saved to the menu');
       setTimeout(() => setSyncBanner(null), 2500);
     } catch (error) {
