@@ -28,15 +28,25 @@ const WELCOME_COLLECTION = 'welcome';
 
 const menuItemsCollection = collection(db, MENU_ITEMS_COLLECTION);
 
+const sortMenuItemsByOrder = (items: MenuItem[]): MenuItem[] =>
+  [...items].sort((a, b) => {
+    const aOrder = typeof a.sortOrder === 'number' ? a.sortOrder : Number.MAX_SAFE_INTEGER;
+    const bOrder = typeof b.sortOrder === 'number' ? b.sortOrder : Number.MAX_SAFE_INTEGER;
+    if (aOrder !== bOrder) return aOrder - bOrder;
+    return a.id.localeCompare(b.id);
+  });
+
 export async function getMenuItems(): Promise<MenuItem[]> {
   const snapshot = await getDocs(menuItemsCollection);
-  return snapshot.docs.map((item) => ({ id: item.id, ...item.data() })) as MenuItem[];
+  const items = snapshot.docs.map((item) => ({ id: item.id, ...item.data() })) as MenuItem[];
+  return sortMenuItemsByOrder(items);
 }
 
 export function subscribeToMenuItems(callback: (items: MenuItem[]) => void) {
   return onSnapshot(menuItemsCollection, (snapshot) => {
     const items = snapshot.docs.map((item) => ({ id: item.id, ...item.data() })) as MenuItem[];
-    callback(items);
+    // Firestore does not guarantee document order. Always restore the saved admin order.
+    callback(sortMenuItemsByOrder(items));
   });
 }
 
@@ -70,11 +80,22 @@ export async function deleteAllMenuItems(items: MenuItem[]): Promise<void> {
 
 /** حفظ ترتيب الوجبات بعد السحب والإفلات. */
 export async function reorderMenuItems(items: MenuItem[]): Promise<void> {
-  const batch = writeBatch(db);
-  items.forEach((item, index) => {
-    batch.update(doc(db, MENU_ITEMS_COLLECTION, item.id), { sortOrder: index });
-  });
-  await batch.commit();
+  // Persist the exact visual order as a single contiguous sequence.
+  // setDoc(..., { merge: true }) is intentionally used instead of updateDoc
+  // so ordering never depends on another field being present in the document.
+  const batchSize = 450;
+  for (let i = 0; i < items.length; i += batchSize) {
+    const batch = writeBatch(db);
+    items.slice(i, i + batchSize).forEach((item, index) => {
+      const absoluteIndex = i + index;
+      batch.set(
+        doc(db, MENU_ITEMS_COLLECTION, item.id),
+        { sortOrder: absoluteIndex },
+        { merge: true }
+      );
+    });
+    await batch.commit();
+  }
 }
 
 /** ترتيب الوجبات داخل تصنيف واحد فقط. */
