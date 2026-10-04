@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { deleteField } from 'firebase/firestore';
 import { 
   X, 
@@ -46,8 +46,7 @@ import {
   migrateAllDataToFirestore,
   setRestaurantInfo,
   setCategory,
-  deleteCategory,
-  reorderMenuItems
+  deleteCategory
 } from '../services/menuService';
 
 interface AdminModalProps {
@@ -124,9 +123,6 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set());
 
   // MENU_ORDERING_FEATURE
-  const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
-  const draggedItemIdRef = useRef<string | null>(null);
-  const [dragOverItemId, setDragOverItemId] = useState<string | null>(null);
 
   const orderedItems = [...items].sort((a, b) => {
     // Always group all items of the same category together.
@@ -147,76 +143,6 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     return orderA - orderB;
   });
 
-  const handleMenuItemDrop = async (targetId: string, draggedIdFromEvent?: string) => {
-    // Keep the dragged ID in a ref because dragend/drop event ordering can clear
-    // React state before the drop handler runs in some browsers.
-    const sourceId = draggedIdFromEvent || draggedItemIdRef.current || draggedItemId;
-    setDragOverItemId(null);
-
-    if (!sourceId || sourceId === targetId) {
-      setDraggedItemId(null);
-      draggedItemIdRef.current = null;
-      return;
-    }
-
-    const source = items.find((item) => item.id === sourceId);
-    const target = items.find((item) => item.id === targetId);
-    if (!source || !target || source.category !== target.category) {
-      setDraggedItemId(null);
-      draggedItemIdRef.current = null;
-      return;
-    }
-
-    const categoryItems = orderedItems.filter((item) => item.category === source.category);
-    const fromIndex = categoryItems.findIndex((item) => item.id === sourceId);
-    const toIndex = categoryItems.findIndex((item) => item.id === targetId);
-    if (fromIndex < 0 || toIndex < 0) {
-      setDraggedItemId(null);
-      draggedItemIdRef.current = null;
-      return;
-    }
-
-    const reorderedCategory = [...categoryItems];
-    const [movedItem] = reorderedCategory.splice(fromIndex, 1);
-    reorderedCategory.splice(toIndex, 0, movedItem);
-
-    const globalOrderedItems: MenuItem[] = [];
-    const orderedCategories = [...categories].sort(
-      (a, b) => (a.sortOrder ?? categories.indexOf(a)) - (b.sortOrder ?? categories.indexOf(b))
-    );
-
-    orderedCategories.forEach((category) => {
-      const categoryItemsForOrder = category.id === source.category
-        ? reorderedCategory
-        : orderedItems.filter((item) => item.category === category.id);
-      globalOrderedItems.push(...categoryItemsForOrder);
-    });
-
-    items.forEach((item) => {
-      if (!globalOrderedItems.some((orderedItem) => orderedItem.id === item.id)) {
-        globalOrderedItems.push(item);
-      }
-    });
-
-    const updatedItems = items.map((item) => ({
-      ...item,
-      sortOrder: globalOrderedItems.findIndex((orderedItem) => orderedItem.id === item.id),
-    }));
-
-    onUpdateItems(updatedItems);
-
-    try {
-      await reorderMenuItems(updatedItems);
-      setSyncBanner(isAr ? 'تم حفظ ترتيب الوجبات في قاعدة البيانات' : 'Meal order saved');
-      setTimeout(() => setSyncBanner(null), 2500);
-    } catch (error) {
-      console.error('Failed to persist meal order:', error);
-      setSyncBanner(isAr ? 'فشل حفظ الترتيب في قاعدة البيانات' : 'Failed to save meal order');
-    } finally {
-      setDraggedItemId(null);
-      draggedItemIdRef.current = null;
-    }
-  };
 
   // Category Form State
   const [editingCat, setEditingCat] = useState<Category | null>(null);
@@ -1242,51 +1168,7 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                             </tr>
                           )}
                           <tr
-                            key={item.id}
-                            draggable
-                            onDragStart={(e) => {
-                              e.stopPropagation();
-                              e.dataTransfer.effectAllowed = 'move';
-                              e.dataTransfer.setData('text/plain', item.id);
-                              setDraggedItemId(item.id);
-                              draggedItemIdRef.current = item.id;
-                            }}
-                            onDragEnter={(e) => {
-                              e.preventDefault();
-                              const sourceId = draggedItemId;
-                              if (!sourceId || sourceId === item.id) return;
-                              const source = items.find((x) => x.id === sourceId);
-                              if (source?.category === item.category) {
-                                setDragOverItemId(item.id);
-                              }
-                            }}
-                            onDragOver={(e) => {
-                              // Always allow the browser to fire the drop event.
-                              // Reading dataTransfer.getData() during dragover is unreliable
-                              // in browsers, so use React state as the source of truth.
-                              e.preventDefault();
-                              e.dataTransfer.dropEffect = 'move';
-                              const sourceId = draggedItemId;
-                              if (!sourceId || sourceId === item.id) return;
-                              const source = items.find((x) => x.id === sourceId);
-                              if (source?.category === item.category) {
-                                setDragOverItemId(item.id);
-                              }
-                            }}
-                            onDrop={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              // Use the ref first: it survives React drag/drop event timing.
-                              // dataTransfer is a fallback for browsers that provide it.
-                              const sourceId = draggedItemIdRef.current || draggedItemId || e.dataTransfer.getData('text/plain') || undefined;
-                              void handleMenuItemDrop(item.id, sourceId);
-                            }}
-                            onDragEnd={() => {
-                              // Do not clear the drag ref here. Some browsers fire
-                              // dragend before drop; the drop handler must still have the source ID.
-                              setDraggedItemId(null);
-                              setDragOverItemId(null);
-                            }}                            className={`${selectedItemIds.has(item.id) ? 'bg-red-950/20' : 'hover:bg-[#1a1d29]'} ${draggedItemId === item.id ? 'opacity-40' : ''} ${dragOverItemId === item.id ? 'ring-2 ring-[#FFD11A] ring-inset' : ''} cursor-grab active:cursor-grabbing`}
+                            key={item.id}}                            className={`${selectedItemIds.has(item.id) ? 'bg-red-950/20' : 'hover:bg-[#1a1d29]'} ${draggedItemId === item.id ? 'opacity-40' : ''} cursor-grab active:cursor-grabbing`}
                           >
                             <td className="py-3 px-2 text-center">
                               <GripVertical className="w-4 h-4 mx-auto text-[#FFD11A]/70" />
