@@ -125,6 +125,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
 
   // MENU_ORDERING_FEATURE
   const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
+  const [dragOverItemId, setDragOverItemId] = useState<string | null>(null);
 
   const orderedItems = [...items].sort((a, b) => {
     // Always group all items of the same category together.
@@ -146,72 +147,66 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   });
 
   const handleMenuItemDrop = async (targetId: string, draggedIdFromEvent?: string) => {
-    const sourceId = draggedItemId || draggedIdFromEvent || null;
+    const sourceId = draggedIdFromEvent || draggedItemId;
+    setDragOverItemId(null);
+
     if (!sourceId || sourceId === targetId) {
       setDraggedItemId(null);
       return;
     }
 
-    const dragged = items.find((x) => x.id === sourceId);
-    const target = items.find((x) => x.id === targetId);
-    if (!dragged || !target || dragged.category !== target.category) {
+    const source = items.find((item) => item.id === sourceId);
+    const target = items.find((item) => item.id === targetId);
+    if (!source || !target || source.category !== target.category) {
       setDraggedItemId(null);
       return;
     }
 
-    // Reorder inside the dragged item's category.
-    const categoryItems = orderedItems.filter((x) => x.category === dragged.category);
-    const from = categoryItems.findIndex((x) => x.id === sourceId);
-    const to = categoryItems.findIndex((x) => x.id === targetId);
-    if (from < 0 || to < 0) {
+    const categoryItems = orderedItems.filter((item) => item.category === source.category);
+    const fromIndex = categoryItems.findIndex((item) => item.id === sourceId);
+    const toIndex = categoryItems.findIndex((item) => item.id === targetId);
+    if (fromIndex < 0 || toIndex < 0) {
       setDraggedItemId(null);
       return;
     }
 
     const reorderedCategory = [...categoryItems];
-    const [moved] = reorderedCategory.splice(from, 1);
-    reorderedCategory.splice(to, 0, moved);
+    const [movedItem] = reorderedCategory.splice(fromIndex, 1);
+    reorderedCategory.splice(toIndex, 0, movedItem);
 
-    // Build one GLOBAL order for the entire menu.
-    // This is important: sortOrder must be unique across all categories so
-    // the customer menu can reproduce the exact Admin order.
     const globalOrderedItems: MenuItem[] = [];
-    categories
-      .slice()
-      .sort((a, b) => (a.sortOrder ?? categories.indexOf(a)) - (b.sortOrder ?? categories.indexOf(b)))
-      .forEach((category) => {
-        const categoryItemsForOrder =
-          category.id === dragged.category
-            ? reorderedCategory
-            : orderedItems.filter((x) => x.category === category.id);
+    const orderedCategories = [...categories].sort(
+      (a, b) => (a.sortOrder ?? categories.indexOf(a)) - (b.sortOrder ?? categories.indexOf(b))
+    );
 
-        globalOrderedItems.push(...categoryItemsForOrder);
-      });
+    orderedCategories.forEach((category) => {
+      const categoryItemsForOrder = category.id === source.category
+        ? reorderedCategory
+        : orderedItems.filter((item) => item.category === category.id);
+      globalOrderedItems.push(...categoryItemsForOrder);
+    });
 
-    // Include any items whose category is not currently present in categories.
     items.forEach((item) => {
-      if (!globalOrderedItems.some((x) => x.id === item.id)) {
+      if (!globalOrderedItems.some((orderedItem) => orderedItem.id === item.id)) {
         globalOrderedItems.push(item);
       }
     });
 
-    const orderMap = new Map(globalOrderedItems.map((item, index) => [item.id, index]));
     const updatedItems = items.map((item) => ({
       ...item,
-      sortOrder: orderMap.get(item.id) ?? item.sortOrder ?? 0,
+      sortOrder: globalOrderedItems.findIndex((orderedItem) => orderedItem.id === item.id),
     }));
 
-    setDraggedItemId(null);
     onUpdateItems(updatedItems);
+    setDraggedItemId(null);
 
     try {
-      // Persist the GLOBAL order, not a separate 0,1,2 order per category.
       await reorderMenuItems(updatedItems);
-      setSyncBanner(isAr ? 'تم حفظ ترتيب الوجبات وظهر في المنيو' : 'Meal order saved to the menu');
+      setSyncBanner(isAr ? 'تم حفظ ترتيب الوجبات في قاعدة البيانات' : 'Meal order saved');
       setTimeout(() => setSyncBanner(null), 2500);
     } catch (error) {
-      console.error('Failed to save meal order:', error);
-      setSyncBanner(isAr ? 'تعذر حفظ ترتيب الوجبات' : 'Could not save meal order');
+      console.error('Failed to persist meal order:', error);
+      setSyncBanner(isAr ? 'فشل حفظ الترتيب في قاعدة البيانات' : 'Failed to save meal order');
     }
   };
 
@@ -1234,25 +1229,37 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                             key={item.id}
                             draggable
                             onDragStart={(e) => {
+                              e.stopPropagation();
                               e.dataTransfer.effectAllowed = 'move';
                               e.dataTransfer.setData('text/plain', item.id);
                               setDraggedItemId(item.id);
                             }}
+                            onDragEnter={(e) => {
+                              e.preventDefault();
+                              const sourceId = e.dataTransfer.getData('text/plain') || draggedItemId;
+                              if (!sourceId || sourceId === item.id) return;
+                              const source = items.find((x) => x.id === sourceId);
+                              if (source?.category === item.category) setDragOverItemId(item.id);
+                            }}
                             onDragOver={(e) => {
-                              const sourceId = draggedItemId || e.dataTransfer.getData('text/plain');
-                              const dragged = sourceId ? items.find((x) => x.id === sourceId) : null;
-                              if (dragged && dragged.category === item.category) {
+                              const sourceId = e.dataTransfer.getData('text/plain') || draggedItemId;
+                              const source = sourceId ? items.find((x) => x.id === sourceId) : null;
+                              if (source?.category === item.category) {
                                 e.preventDefault();
                                 e.dataTransfer.dropEffect = 'move';
+                                setDragOverItemId(item.id);
                               }
                             }}
                             onDrop={(e) => {
                               e.preventDefault();
+                              e.stopPropagation();
                               const sourceId = e.dataTransfer.getData('text/plain') || draggedItemId || undefined;
                               void handleMenuItemDrop(item.id, sourceId);
                             }}
-                            onDragEnd={() => setDraggedItemId(null)}
-                            className={`${selectedItemIds.has(item.id) ? 'bg-red-950/20' : 'hover:bg-[#1a1d29]'} ${draggedItemId === item.id ? 'opacity-40' : ''} cursor-grab active:cursor-grabbing`}
+                            onDragEnd={() => {
+                              setDraggedItemId(null);
+                              setDragOverItemId(null);
+                            }}                            className={`${selectedItemIds.has(item.id) ? 'bg-red-950/20' : 'hover:bg-[#1a1d29]'} ${draggedItemId === item.id ? 'opacity-40' : ''} ${dragOverItemId === item.id ? 'ring-2 ring-[#FFD11A] ring-inset' : ''} cursor-grab active:cursor-grabbing`}
                           >
                             <td className="py-3 px-2 text-center">
                               <GripVertical className="w-4 h-4 mx-auto text-[#FFD11A]/70" />
