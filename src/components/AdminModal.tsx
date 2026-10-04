@@ -125,6 +125,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
 
   // MENU_ORDERING_FEATURE
   const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
+  const draggedItemIdRef = useRef<string | null>(null);
   const [dragOverItemId, setDragOverItemId] = useState<string | null>(null);
 
   const orderedItems = [...items].sort((a, b) => {
@@ -147,7 +148,9 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   });
 
   const handleMenuItemDrop = async (targetId: string, draggedIdFromEvent?: string) => {
-    const sourceId = draggedIdFromEvent || draggedItemId;
+    // Keep the dragged ID in a ref because dragend/drop event ordering can clear
+    // React state before the drop handler runs in some browsers.
+    const sourceId = draggedIdFromEvent || draggedItemIdRef.current || draggedItemId;
     setDragOverItemId(null);
 
     if (!sourceId || sourceId === targetId) {
@@ -1241,6 +1244,7 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                               e.dataTransfer.effectAllowed = 'move';
                               e.dataTransfer.setData('text/plain', item.id);
                               setDraggedItemId(item.id);
+                              draggedItemIdRef.current = item.id;
                             }}
                             onDragEnter={(e) => {
                               e.preventDefault();
@@ -1267,12 +1271,14 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                             onDrop={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              // The dragged ID is kept in React state from dragstart.
-                              // Do not depend on dataTransfer.getData() here.
-                              void handleMenuItemDrop(item.id, draggedItemId || undefined);
+                              // Use the ref first: it survives React drag/drop event timing.
+                              // dataTransfer is a fallback for browsers that provide it.
+                              const sourceId = draggedItemIdRef.current || draggedItemId || e.dataTransfer.getData('text/plain') || undefined;
+                              void handleMenuItemDrop(item.id, sourceId);
                             }}
                             onDragEnd={() => {
                               setDraggedItemId(null);
+                              draggedItemIdRef.current = null;
                               setDragOverItemId(null);
                             }}                            className={`${selectedItemIds.has(item.id) ? 'bg-red-950/20' : 'hover:bg-[#1a1d29]'} ${draggedItemId === item.id ? 'opacity-40' : ''} ${dragOverItemId === item.id ? 'ring-2 ring-[#FFD11A] ring-inset' : ''} cursor-grab active:cursor-grabbing`}
                           >
