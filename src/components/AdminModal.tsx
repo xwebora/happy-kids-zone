@@ -364,7 +364,10 @@ const handleSaveItem = async (e: React.FormEvent) => {
         available: formAvailable,
         isChefSpecial: formIsSpecial,
         isPopular: formIsPopular,
-        sortOrder: items.filter((it) => it.category === formCategory).length,
+        // Never change a meal's saved position when editing it.
+        // Reordering is handled only by drag-and-drop, otherwise an edit would
+        // silently overwrite sortOrder and make the menu appear to jump after refresh.
+        sortOrder: editingItem.sortOrder,
       };
 
       // السعر: إذا تركه المستخدم فارغاً أثناء التعديل، يبقى السعر القديم كما هو.
@@ -413,6 +416,11 @@ const handleSaveItem = async (e: React.FormEvent) => {
     // ============================================
     else {
       const newItemData: Omit<MenuItem, 'id'> = {
+        // New meals are appended after the current highest saved position.
+        sortOrder: items.reduce(
+          (max, item) => Math.max(max, typeof item.sortOrder === 'number' ? item.sortOrder : -1),
+          -1
+        ) + 1,
         name: formNameAr,
         nameEn: formNameEn || formNameAr,
         nameKu: formNameKu || formNameEn || formNameAr,
