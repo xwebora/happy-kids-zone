@@ -168,18 +168,21 @@ export async function parseMenuItemsExcel(
   raw.forEach((r, index) => {
     const line = index + 2;
     const categoryNameEn = text(r['Category EN']);
+    const legacyCategoryId = text(r['Category ID']);
     const name = text(r['Name AR']);
     const nameEn = text(r['Name EN']);
     const price = num(r['Price']);
 
-    if (!categoryNameEn) errors.push('السطر ' + line + ': Category EN مطلوب');
-    else if (!categoryByNameEn.has(normalizeName(categoryNameEn))) errors.push('السطر ' + line + ': التصنيف الإنجليزي "' + categoryNameEn + '" غير موجود في النظام');
+    const category = categoryByNameEn.get(normalizeName(categoryNameEn))
+      || (legacyCategoryId ? categories.find(c => c.id === legacyCategoryId) : undefined);
+
+    if (!categoryNameEn && !legacyCategoryId) errors.push('السطر ' + line + ': Category EN مطلوب');
+    else if (!category) errors.push('السطر ' + line + ': التصنيف غير موجود في النظام');
 
     if (!nameEn) errors.push('السطر ' + line + ': Name EN مطلوب');
     if (!name) errors.push('السطر ' + line + ': Name AR مطلوب');
     if (price === undefined || price < 0) errors.push('السطر ' + line + ': Price غير صحيح');
 
-    const category = categoryByNameEn.get(normalizeName(categoryNameEn));
     if (!category || !nameEn || !name || price === undefined || price < 0) return;
 
     const existing = existingByNameEn.get(normalizeName(nameEn));
