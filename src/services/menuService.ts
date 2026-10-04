@@ -80,14 +80,16 @@ export async function deleteAllMenuItems(items: MenuItem[]): Promise<void> {
 
 /** حفظ ترتيب الوجبات بعد السحب والإفلات. */
 export async function reorderMenuItems(items: MenuItem[]): Promise<void> {
-  // Persist the exact visual order as a single contiguous sequence.
-  // setDoc(..., { merge: true }) is intentionally used instead of updateDoc
-  // so ordering never depends on another field being present in the document.
+  // Persist the exact visual order and verify the values directly from Firestore.
+  // This makes it impossible for a later state update to hide a failed write.
   const batchSize = 450;
+  const expected = new Map<string, number>();
+
   for (let i = 0; i < items.length; i += batchSize) {
     const batch = writeBatch(db);
     items.slice(i, i + batchSize).forEach((item, index) => {
       const absoluteIndex = i + index;
+      expected.set(item.id, absoluteIndex);
       batch.set(
         doc(db, MENU_ITEMS_COLLECTION, item.id),
         { sortOrder: absoluteIndex },
@@ -96,6 +98,26 @@ export async function reorderMenuItems(items: MenuItem[]): Promise<void> {
     });
     await batch.commit();
   }
+
+  // Read the saved documents back from Firestore and verify sortOrder.
+  const verification = await Promise.all(
+    Array.from(expected.entries()).map(async ([id, expectedOrder]) => {
+      const snapshot = await getDoc(doc(db, MENU_ITEMS_COLLECTION, id));
+      const actualOrder = snapshot.exists() ? snapshot.data().sortOrder : undefined;
+      return { id, expectedOrder, actualOrder };
+    })
+  );
+
+  const failed = verification.filter(
+    ({ expectedOrder, actualOrder }) => actualOrder !== expectedOrder
+  );
+
+  if (failed.length > 0) {
+    console.error('❌ Firestore sortOrder verification failed:', failed);
+    throw new Error(`Firestore did not save sortOrder for ${failed.length} meal(s)`);
+  }
+
+  console.log('✅ Firestore sortOrder verification passed:', verification);
 }
 
 /** ترتيب الوجبات داخل تصنيف واحد فقط. */
