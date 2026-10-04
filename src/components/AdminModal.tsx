@@ -40,6 +40,7 @@ import { User } from 'firebase/auth';
 import {
   updateMenuItem,
   deleteMenuItem,
+  deleteAllMenuItems,
   setMenuItem,
   migrateAllDataToFirestore,
   setRestaurantInfo,
@@ -440,6 +441,48 @@ const handleSaveItem = async (e: React.FormEvent) => {
       }
     },
   });};
+
+
+const handleDeleteAllItems = () => {
+  if (items.length === 0) {
+    setSyncBanner(isAr ? 'لا توجد وجبات لحذفها' : 'There are no meals to delete');
+    setTimeout(() => setSyncBanner(null), 2500);
+    return;
+  }
+
+  setConfirmDialog({
+    isOpen: true,
+    title: isAr ? 'حذف جميع الوجبات نهائياً' : 'Delete All Meals Permanently',
+    message: isAr
+      ? `تحذير: سيتم حذف جميع الوجبات وعددها ${items.length} من قاعدة البيانات نهائياً. لا يمكن التراجع عن هذه العملية. هل أنت متأكد؟`
+      : `Warning: All ${items.length} meals will be permanently deleted from the database. This action cannot be undone. Are you sure?`,
+    onConfirm: async () => {
+      setConfirmDialog(null);
+      setExcelBusy(true);
+
+      try {
+        await deleteAllMenuItems(items);
+        onUpdateItems([]);
+        setSyncBanner(
+          isAr
+            ? `تم حذف جميع الوجبات (${items.length}) بنجاح`
+            : `All ${items.length} meals were deleted successfully`
+        );
+      } catch (error: any) {
+        console.error('❌ Delete all meals error:', error);
+        alert(
+          isAr
+            ? `تعذر حذف جميع الوجبات من قاعدة البيانات:\\n${error?.message || error}`
+            : `Failed to delete all meals:\\n${error?.message || error}`
+        );
+      } finally {
+        setExcelBusy(false);
+      }
+
+      setTimeout(() => setSyncBanner(null), 4000);
+    },
+  });
+};
 
 // نقل الوجبات الحالية إلى Firestore
 const handleMigrateItemsToFirestore = async () => {
@@ -1130,6 +1173,18 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                     ))}
                   </tbody>
                 </table>
+              </div>
+              {/* Delete All Meals */}
+              <div className="flex justify-end pt-1">
+                <button
+                  type="button"
+                  onClick={handleDeleteAllItems}
+                  disabled={items.length === 0 || excelBusy}
+                  className="px-4 py-2 rounded-xl bg-red-950/60 hover:bg-red-900 disabled:opacity-40 disabled:cursor-not-allowed text-red-300 hover:text-white border border-red-800/60 text-xs font-black flex items-center gap-2 transition-all"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>{isAr ? 'حذف جميع الوجبات' : 'Delete All Meals'}</span>
+                </button>
               </div>
             </div>
           )}
