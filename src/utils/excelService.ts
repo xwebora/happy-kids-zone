@@ -3,7 +3,9 @@ import type { MenuItem, Category } from '../types';
 
 export type ImportResult<T> = { rows: T[]; errors: string[] };
 const text = (v: unknown) => v == null ? '' : String(v).trim();
-const num = (v: unknown) => { const n = Number(v); return Number.isFinite(n) ? n : undefined; };
+const num = (v: unknown) => { const value = text(v); if (!value) return undefined; const n = Number(value); return Number.isFinite(n) ? n : undefined; };
+const DEFAULT_ITEM_IMAGE = 'https://drive.google.com/thumbnail?id=1D1HT9bZB2wj3S9K3tazS68J-_GPdZ5wO&sz=w1600';
+
 const bool = (v: unknown, fallback=false) => { const s=text(v).toLowerCase(); if (!s) return fallback; return ['true','1','yes','نعم'].includes(s); };
 
 const normalizeName = (v: unknown) => text(v).toLowerCase().replace(/\s+/g, ' ').trim();
