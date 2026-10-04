@@ -121,6 +121,28 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [savedSuccessId, setSavedSuccessId] = useState<string | null>(null);
   const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set());
 
+  // Display items grouped by category and ordered by their persisted sortOrder.
+  const orderedItems = [...items].sort((a, b) => {
+    const categoryIndex = (categoryId: string) => {
+      const category = categories.find((c) => c.id === categoryId);
+      return category?.sortOrder ?? categories.findIndex((c) => c.id === categoryId);
+    };
+
+    const catA = categoryIndex(a.category);
+    const catB = categoryIndex(b.category);
+
+    if (catA !== catB) return catA - catB;
+
+    const orderA = typeof a.sortOrder === 'number'
+      ? a.sortOrder
+      : items.filter((x) => x.category === a.category).findIndex((x) => x.id === a.id);
+    const orderB = typeof b.sortOrder === 'number'
+      ? b.sortOrder
+      : items.filter((x) => x.category === b.category).findIndex((x) => x.id === b.id);
+
+    return orderA - orderB;
+  });
+
   // Category Form State
   const [editingCat, setEditingCat] = useState<Category | null>(null);
   const [catNameAr, setCatNameAr] = useState('');
