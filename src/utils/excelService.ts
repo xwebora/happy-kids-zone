@@ -15,8 +15,41 @@ const ITEM_HEADERS = [
   'Prep Time KU', 'Available'
 ];
 
-function downloadTemplate(headers: string[], sheetName: string, filename: string) {
-  const ws = XLSX.utils.aoa_to_sheet([headers]);
+const SAMPLE_CATEGORY = {
+  'Category ID': 'category-example',
+  'Name AR': 'برجر',
+  'Name EN': 'Burger',
+  'Name KU': 'بەرگەر',
+  'Icon': 'Hamburger'
+};
+
+const SAMPLE_ITEM = {
+  'Item ID': 'item-example',
+  'Category ID': 'category-example',
+  'Name AR': 'برجر لحم',
+  'Name EN': 'Beef Burger',
+  'Name KU': 'بەرگەری گۆشت',
+  'Description AR': 'برجر لحم طازج مع الجبن والخضار',
+  'Description EN': 'Fresh beef burger with cheese and vegetables',
+  'Description KU': 'بەرگەری گۆشتی تازە لەگەڵ پەنیر و سەوزە',
+  'Price': 7500,
+  'Original Price': 8500,
+  'Image URL': 'https://example.com/burger.jpg',
+  'Drive File ID': '',
+  'Popular': 'TRUE',
+  'Chef Special': 'FALSE',
+  'Calories': 650,
+  'Prep Time AR': '15 دقيقة',
+  'Prep Time EN': '15 min',
+  'Prep Time KU': '١٥ خولەک',
+  'Available': 'TRUE'
+};
+
+function downloadTemplate(headers: string[], sample: Record<string, unknown>, sheetName: string, filename: string) {
+  const ws = XLSX.utils.aoa_to_sheet([
+    headers,
+    headers.map(header => sample[header] ?? '')
+  ]);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, sheetName);
   XLSX.writeFile(wb, filename);
@@ -33,8 +66,8 @@ export function exportMenuItemsToExcel(items: MenuItem[]) {
  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Menu Items'); XLSX.writeFile(wb,'menu-items.xlsx');
 }
 export function downloadExcelTemplate(type:'categories'|'items'){ 
-  if(type==='categories') downloadTemplate(CATEGORY_HEADERS,'Categories','categories-template.xlsx');
-  else downloadTemplate(ITEM_HEADERS,'Menu Items','menu-items-template.xlsx');
+  if(type==='categories') downloadTemplate(CATEGORY_HEADERS,SAMPLE_CATEGORY,'Categories','categories-template.xlsx');
+  else downloadTemplate(ITEM_HEADERS,SAMPLE_ITEM,'Menu Items','menu-items-template.xlsx');
 }
 
 export async function parseCategoriesExcel(file:File):Promise<ImportResult<Category>>{
