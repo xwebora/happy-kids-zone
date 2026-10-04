@@ -53,14 +53,6 @@ export async function updateMenuItem(id: string, item: Partial<Omit<MenuItem, 'i
   await updateDoc(doc(db, MENU_ITEMS_COLLECTION, id), item);
 }
 
-export async function updateMenuItemsOrder(items: MenuItem[]): Promise<void> {
-  const batch = writeBatch(db);
-  items.forEach((item, index) => {
-    batch.update(doc(db, MENU_ITEMS_COLLECTION, item.id), { sortOrder: index });
-  });
-  await batch.commit();
-}
-
 export async function deleteMenuItem(id: string): Promise<void> {
   await deleteDoc(doc(db, MENU_ITEMS_COLLECTION, id));
 }
@@ -74,6 +66,25 @@ export async function deleteAllMenuItems(items: MenuItem[]): Promise<void> {
     });
     await batch.commit();
   }
+}
+
+/** حفظ ترتيب الوجبات بعد السحب والإفلات. */
+export async function reorderMenuItems(items: MenuItem[]): Promise<void> {
+  const batch = writeBatch(db);
+  items.forEach((item, index) => {
+    batch.update(doc(db, MENU_ITEMS_COLLECTION, item.id), { sortOrder: index });
+  });
+  await batch.commit();
+}
+
+/** ترتيب الوجبات داخل تصنيف واحد فقط. */
+export async function reorderMenuItemsInCategory(items: MenuItem[], categoryId: string): Promise<void> {
+  const categoryItems = items.filter((item) => item.category === categoryId);
+  const batch = writeBatch(db);
+  categoryItems.forEach((item, index) => {
+    batch.update(doc(db, MENU_ITEMS_COLLECTION, item.id), { sortOrder: index });
+  });
+  await batch.commit();
 }
 
 export async function getCategories(): Promise<Category[]> {
@@ -92,16 +103,17 @@ export async function setCategory(id: string, category: Omit<Category, 'id'>): P
   await setDoc(doc(db, CATEGORIES_COLLECTION, id), category);
 }
 
-export async function updateCategoriesOrder(categories: Category[]): Promise<void> {
+export async function deleteCategory(id: string): Promise<void> {
+  await deleteDoc(doc(db, CATEGORIES_COLLECTION, id));
+}
+
+/** حفظ ترتيب التصنيفات بعد السحب والإفلات. */
+export async function reorderCategories(categories: Category[]): Promise<void> {
   const batch = writeBatch(db);
   categories.forEach((category, index) => {
     batch.update(doc(db, CATEGORIES_COLLECTION, category.id), { sortOrder: index });
   });
   await batch.commit();
-}
-
-export async function deleteCategory(id: string): Promise<void> {
-  await deleteDoc(doc(db, CATEGORIES_COLLECTION, id));
 }
 
 export async function setRestaurantInfo(restaurant: RestaurantInfo): Promise<void> {
@@ -111,7 +123,7 @@ export async function setRestaurantInfo(restaurant: RestaurantInfo): Promise<voi
 export async function getRestaurantInfo(): Promise<RestaurantInfo | null> {
   const snapshot = await getDocs(collection(db, RESTAURANT_COLLECTION));
   const mainDoc = snapshot.docs.find((item) => item.id === 'main');
-  return mainDoc ? mainDoc.data() as RestaurantInfo : null;
+  return mainDoc ? (mainDoc.data() as RestaurantInfo) : null;
 }
 
 export async function setHeroConfig(hero: HeroConfig): Promise<void> {
@@ -121,7 +133,7 @@ export async function setHeroConfig(hero: HeroConfig): Promise<void> {
 export async function getHeroConfig(): Promise<HeroConfig | null> {
   const snapshot = await getDocs(collection(db, HERO_COLLECTION));
   const mainDoc = snapshot.docs.find((item) => item.id === 'main');
-  return mainDoc ? mainDoc.data() as HeroConfig : null;
+  return mainDoc ? (mainDoc.data() as HeroConfig) : null;
 }
 
 export interface MigrationResult {
@@ -131,21 +143,30 @@ export interface MigrationResult {
   hero: boolean;
 }
 
-export async function migrateAllDataToFirestore(items: MenuItem[], categories: Category[], restaurant: RestaurantInfo, hero: HeroConfig): Promise<MigrationResult> {
+export async function migrateAllDataToFirestore(
+  items: MenuItem[],
+  categories: Category[],
+  restaurant: RestaurantInfo,
+  hero: HeroConfig
+): Promise<MigrationResult> {
   let migratedItems = 0;
   let migratedCategories = 0;
-  for (const item of items) {
+
+  for (const [index, item] of items.entries()) {
     const { id, ...itemData } = item;
-    await setMenuItem(id, itemData);
+    await setMenuItem(id, { ...itemData, sortOrder: item.sortOrder ?? index });
     migratedItems++;
   }
-  for (const category of categories) {
+
+  for (const [index, category] of categories.entries()) {
     const { id, ...categoryData } = category;
-    await setCategory(id, categoryData);
+    await setCategory(id, { ...categoryData, sortOrder: category.sortOrder ?? index });
     migratedCategories++;
   }
+
   await setRestaurantInfo(restaurant);
   await setHeroConfig(hero);
+
   return { menuItems: migratedItems, categories: migratedCategories, restaurant: true, hero: true };
 }
 
