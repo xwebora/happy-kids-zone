@@ -175,7 +175,26 @@ export default function App() {
   useEffect(() => { const unsub = initAuth(setUser); return () => unsub(); }, []);
 
   const scrollToMenu = () => menuSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
-  const filteredItems = useMemo(() => items.filter(item => { const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory; const q = searchQuery.toLowerCase(); const matchesSearch = !searchQuery.trim() || String(item.name ?? '').toLowerCase().includes(q) || String(item.nameEn ?? '').toLowerCase().includes(q) || String(item.nameKu ?? '').toLowerCase().includes(q) || String(item.description ?? '').toLowerCase().includes(q) || String(item.descriptionEn ?? '').toLowerCase().includes(q) || String(item.descriptionKu ?? '').toLowerCase().includes(q); return matchesCategory && matchesSearch; }).sort((a,b) => sortBy === 'price-asc' ? a.price-b.price : sortBy === 'price-desc' ? b.price-a.price : sortBy === 'popular' ? (b.isPopular?1:0)-(a.isPopular?1:0) : ((b.isChefSpecial?2:0)+(b.isPopular?1:0))-((a.isChefSpecial?2:0)+(a.isPopular?1:0))), [items, selectedCategory, searchQuery, sortBy]);
+  const filteredItems = useMemo(() => items
+    .filter(item => {
+      const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+      const q = searchQuery.toLowerCase();
+      const matchesSearch = !searchQuery.trim() ||
+        String(item.name ?? '').toLowerCase().includes(q) ||
+        String(item.nameEn ?? '').toLowerCase().includes(q) ||
+        String(item.nameKu ?? '').toLowerCase().includes(q) ||
+        String(item.description ?? '').toLowerCase().includes(q) ||
+        String(item.descriptionEn ?? '').toLowerCase().includes(q) ||
+        String(item.descriptionKu ?? '').toLowerCase().includes(q);
+      return matchesCategory && matchesSearch;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'price-asc') return a.price - b.price;
+      if (sortBy === 'price-desc') return b.price - a.price;
+      if (sortBy === 'popular') return (b.isPopular ? 1 : 0) - (a.isPopular ? 1 : 0);
+      if (sortBy === 'default') return (a.sortOrder ?? 999999) - (b.sortOrder ?? 999999);
+      return ((b.isChefSpecial ? 2 : 0) + (b.isPopular ? 1 : 0)) - ((a.isChefSpecial ? 2 : 0) + (a.isPopular ? 1 : 0));
+    }), [items, selectedCategory, searchQuery, sortBy]);
   const renderCategoryIcon = (name?: string) => ({
   Flame: <Flame className="w-4 h-4" />,
   Beef: <Beef className="w-4 h-4" />,
