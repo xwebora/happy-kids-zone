@@ -224,7 +224,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
       sortOrder: globalOrderedItems.findIndex((orderedItem) => orderedItem.id === item.id),
     }));
 
-    console.log('🟣 DRAG DEBUG - BEFORE SAVE', {
+    console.log('🟣 DRAG DEBUG - BEFORE SAVE', JSON.stringify({
       before: items
         .filter((item) => item.category === source.category)
         .map((item) => ({ id: item.id, name: item.name, sortOrder: item.sortOrder })),
@@ -232,7 +232,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
         .filter((item) => item.category === source.category)
         .map((item) => ({ id: item.id, name: item.name, sortOrder: updatedItems.find((u) => u.id === item.id)?.sortOrder })),
       fullOrder: updatedItems.map((item) => ({ id: item.id, name: item.name, sortOrder: item.sortOrder })),
-    });
+    }, null, 2));
 
     onUpdateItems(updatedItems);
 
