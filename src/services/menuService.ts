@@ -8,6 +8,7 @@ import {
   doc,
   setDoc,
   onSnapshot,
+  writeBatch,
 } from 'firebase/firestore';
 
 import { db } from './firestore';
@@ -110,6 +111,26 @@ export async function deleteMenuItem(
   await deleteDoc(
     doc(db, MENU_ITEMS_COLLECTION, id)
   );
+}
+
+/**
+ * حذف جميع الوجبات على دفعات لتجنب حد Firestore البالغ 500 عملية لكل batch.
+ */
+export async function deleteAllMenuItems(
+  items: MenuItem[]
+): Promise<void> {
+  const batchSize = 450;
+
+  for (let i = 0; i < items.length; i += batchSize) {
+    const batch = writeBatch(db);
+    const chunk = items.slice(i, i + batchSize);
+
+    chunk.forEach((item) => {
+      batch.delete(doc(db, MENU_ITEMS_COLLECTION, item.id));
+    });
+
+    await batch.commit();
+  }
 }
 
 // ============================================================
