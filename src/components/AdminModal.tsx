@@ -127,11 +127,21 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
 
   const orderedItems = [...items].sort((a, b) => {
-    const catA = categories.find((c) => c.id === a.category)?.sortOrder ?? 999999;
-    const catB = categories.find((c) => c.id === b.category)?.sortOrder ?? 999999;
+    // Always group all items of the same category together.
+    // If a category has no sortOrder yet, use its current array position
+    // instead of the same 999999 fallback for every category.
+    const categoryIndex = (categoryId: string) => {
+      const category = categories.find((c) => c.id === categoryId);
+      return category?.sortOrder ?? categories.findIndex((c) => c.id === categoryId);
+    };
+
+    const catA = categoryIndex(a.category);
+    const catB = categoryIndex(b.category);
+
     if (catA !== catB) return catA - catB;
-    const orderA = a.sortOrder ?? items.findIndex((x) => x.id === a.id);
-    const orderB = b.sortOrder ?? items.findIndex((x) => x.id === b.id);
+
+    const orderA = a.sortOrder ?? items.filter((x) => x.category === a.category).findIndex((x) => x.id === a.id);
+    const orderB = b.sortOrder ?? items.filter((x) => x.category === b.category).findIndex((x) => x.id === b.id);
     return orderA - orderB;
   });
 
