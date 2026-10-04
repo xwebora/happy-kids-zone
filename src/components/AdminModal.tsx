@@ -145,28 +145,44 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     return orderA - orderB;
   });
 
-  const handleMenuItemDrop = async (targetId: string) => {
-    if (!draggedItemId || draggedItemId === targetId) return;
-    const dragged = items.find((x) => x.id === draggedItemId);
+  const handleMenuItemDrop = async (targetId: string, draggedIdFromEvent?: string) => {
+    const sourceId = draggedItemId || draggedIdFromEvent || null;
+    if (!sourceId || sourceId === targetId) {
+      setDraggedItemId(null);
+      return;
+    }
+
+    const dragged = items.find((x) => x.id === sourceId);
     const target = items.find((x) => x.id === targetId);
-    if (!dragged || !target || dragged.category !== target.category) return;
+    if (!dragged || !target || dragged.category !== target.category) {
+      setDraggedItemId(null);
+      return;
+    }
 
     const categoryItems = orderedItems.filter((x) => x.category === dragged.category);
-    const from = categoryItems.findIndex((x) => x.id === draggedItemId);
+    const from = categoryItems.findIndex((x) => x.id === sourceId);
     const to = categoryItems.findIndex((x) => x.id === targetId);
-    if (from < 0 || to < 0) return;
+    if (from < 0 || to < 0) {
+      setDraggedItemId(null);
+      return;
+    }
 
     const next = [...categoryItems];
     const [moved] = next.splice(from, 1);
     next.splice(to, 0, moved);
+
+    // Give every item in this category an explicit, unique order.
     const updates = new Map(next.map((x, index) => [x.id, index]));
-    const updatedItems = items.map((x) => updates.has(x.id) ? { ...x, sortOrder: updates.get(x.id) } : x);
+    const updatedItems = items.map((x) =>
+      updates.has(x.id) ? { ...x, sortOrder: updates.get(x.id) } : x
+    );
 
     setDraggedItemId(null);
     onUpdateItems(updatedItems);
+
     try {
       await reorderMenuItemsInCategory(updatedItems, dragged.category);
-      setSyncBanner(isAr ? 'تم حفظ ترتيب الوجبات' : 'Meal order saved');
+      setSyncBanner(isAr ? 'تم حفظ ترتيب الوجبات وظهر في المنيو' : 'Meal order saved to the menu');
       setTimeout(() => setSyncBanner(null), 2500);
     } catch (error) {
       console.error('Failed to save meal order:', error);
@@ -1192,12 +1208,24 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                           <tr
                             key={item.id}
                             draggable
-                            onDragStart={() => setDraggedItemId(item.id)}
-                            onDragOver={(e) => {
-                              const dragged = draggedItemId ? items.find((x) => x.id === draggedItemId) : null;
-                              if (dragged && dragged.category === item.category) e.preventDefault();
+                            onDragStart={(e) => {
+                              e.dataTransfer.effectAllowed = 'move';
+                              e.dataTransfer.setData('text/plain', item.id);
+                              setDraggedItemId(item.id);
                             }}
-                            onDrop={(e) => { e.preventDefault(); void handleMenuItemDrop(item.id); }}
+                            onDragOver={(e) => {
+                              const sourceId = draggedItemId || e.dataTransfer.getData('text/plain');
+                              const dragged = sourceId ? items.find((x) => x.id === sourceId) : null;
+                              if (dragged && dragged.category === item.category) {
+                                e.preventDefault();
+                                e.dataTransfer.dropEffect = 'move';
+                              }
+                            }}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              const sourceId = e.dataTransfer.getData('text/plain') || draggedItemId || undefined;
+                              void handleMenuItemDrop(item.id, sourceId);
+                            }}
                             onDragEnd={() => setDraggedItemId(null)}
                             className={`${selectedItemIds.has(item.id) ? 'bg-red-950/20' : 'hover:bg-[#1a1d29]'} ${draggedItemId === item.id ? 'opacity-40' : ''} cursor-grab active:cursor-grabbing`}
                           >
