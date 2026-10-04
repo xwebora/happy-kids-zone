@@ -208,7 +208,7 @@ export async function parseMenuItemsExcel(
       descriptionEn: text(r['Description EN']),
       descriptionKu: text(r['Description KU']),
       price,
-      image: text(r['Image URL']),
+      image: text(r['Image URL']) || DEFAULT_ITEM_IMAGE,
       available: bool(r['Available'], true),
       isPopular: bool(r['Popular']),
       isChefSpecial: bool(r['Chef Special'])
