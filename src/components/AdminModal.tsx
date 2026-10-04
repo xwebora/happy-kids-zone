@@ -1244,25 +1244,32 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                             }}
                             onDragEnter={(e) => {
                               e.preventDefault();
-                              const sourceId = e.dataTransfer.getData('text/plain') || draggedItemId;
+                              const sourceId = draggedItemId;
                               if (!sourceId || sourceId === item.id) return;
                               const source = items.find((x) => x.id === sourceId);
-                              if (source?.category === item.category) setDragOverItemId(item.id);
+                              if (source?.category === item.category) {
+                                setDragOverItemId(item.id);
+                              }
                             }}
                             onDragOver={(e) => {
-                              const sourceId = e.dataTransfer.getData('text/plain') || draggedItemId;
-                              const source = sourceId ? items.find((x) => x.id === sourceId) : null;
+                              // Always allow the browser to fire the drop event.
+                              // Reading dataTransfer.getData() during dragover is unreliable
+                              // in browsers, so use React state as the source of truth.
+                              e.preventDefault();
+                              e.dataTransfer.dropEffect = 'move';
+                              const sourceId = draggedItemId;
+                              if (!sourceId || sourceId === item.id) return;
+                              const source = items.find((x) => x.id === sourceId);
                               if (source?.category === item.category) {
-                                e.preventDefault();
-                                e.dataTransfer.dropEffect = 'move';
                                 setDragOverItemId(item.id);
                               }
                             }}
                             onDrop={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              const sourceId = e.dataTransfer.getData('text/plain') || draggedItemId || undefined;
-                              void handleMenuItemDrop(item.id, sourceId);
+                              // The dragged ID is kept in React state from dragstart.
+                              // Do not depend on dataTransfer.getData() here.
+                              void handleMenuItemDrop(item.id, draggedItemId || undefined);
                             }}
                             onDragEnd={() => {
                               setDraggedItemId(null);
