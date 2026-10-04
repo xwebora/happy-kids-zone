@@ -155,6 +155,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
 
     if (!sourceId || sourceId === targetId) {
       setDraggedItemId(null);
+      draggedItemIdRef.current = null;
       return;
     }
 
@@ -162,6 +163,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     const target = items.find((item) => item.id === targetId);
     if (!source || !target || source.category !== target.category) {
       setDraggedItemId(null);
+      draggedItemIdRef.current = null;
       return;
     }
 
@@ -170,6 +172,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     const toIndex = categoryItems.findIndex((item) => item.id === targetId);
     if (fromIndex < 0 || toIndex < 0) {
       setDraggedItemId(null);
+      draggedItemIdRef.current = null;
       return;
     }
 
@@ -201,7 +204,6 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     }));
 
     onUpdateItems(updatedItems);
-    setDraggedItemId(null);
 
     try {
       await reorderMenuItems(updatedItems);
@@ -210,6 +212,9 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     } catch (error) {
       console.error('Failed to persist meal order:', error);
       setSyncBanner(isAr ? 'فشل حفظ الترتيب في قاعدة البيانات' : 'Failed to save meal order');
+    } finally {
+      setDraggedItemId(null);
+      draggedItemIdRef.current = null;
     }
   };
 
@@ -1277,8 +1282,9 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                               void handleMenuItemDrop(item.id, sourceId);
                             }}
                             onDragEnd={() => {
+                              // Do not clear the drag ref here. Some browsers fire
+                              // dragend before drop; the drop handler must still have the source ID.
                               setDraggedItemId(null);
-                              draggedItemIdRef.current = null;
                               setDragOverItemId(null);
                             }}                            className={`${selectedItemIds.has(item.id) ? 'bg-red-950/20' : 'hover:bg-[#1a1d29]'} ${draggedItemId === item.id ? 'opacity-40' : ''} ${dragOverItemId === item.id ? 'ring-2 ring-[#FFD11A] ring-inset' : ''} cursor-grab active:cursor-grabbing`}
                           >
