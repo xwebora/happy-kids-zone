@@ -47,7 +47,7 @@ import {
   setRestaurantInfo,
   setCategory,
   deleteCategory,
-  reorderMenuItemsInCategory
+  reorderMenuItems
 } from '../services/menuService';
 
 interface AdminModalProps {
