@@ -119,6 +119,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   // Quick Price State
   const [quickPrices, setQuickPrices] = useState<Record<string, number>>({});
   const [savedSuccessId, setSavedSuccessId] = useState<string | null>(null);
+  const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set());
 
   // Category Form State
   const [editingCat, setEditingCat] = useState<Category | null>(null);
@@ -442,6 +443,51 @@ const handleSaveItem = async (e: React.FormEvent) => {
     },
   });};
 
+
+const handleDeleteSelectedItems = () => {
+  const selectedItems = items.filter((item) => selectedItemIds.has(item.id));
+  if (selectedItems.length === 0) return;
+  setConfirmDialog({
+    isOpen: true,
+    title: isAr ? 'حذف الوجبات المحددة' : 'Delete Selected Meals',
+    message: isAr
+      ? `سيتم حذف ${selectedItems.length} وجبة محددة نهائياً من قاعدة البيانات. هل أنت متأكد؟`
+      : `${selectedItems.length} selected meals will be permanently deleted from the database. Are you sure?`,
+    onConfirm: async () => {
+      setConfirmDialog(null);
+      setExcelBusy(true);
+      try {
+        await deleteAllMenuItems(selectedItems);
+        const deletedIds = new Set(selectedItems.map((item) => item.id));
+        onUpdateItems(items.filter((item) => !deletedIds.has(item.id)));
+        setSelectedItemIds(new Set());
+        setSyncBanner(isAr ? `تم حذف ${selectedItems.length} وجبة بنجاح` : `${selectedItems.length} meals deleted successfully`);
+      } catch (error: any) {
+        console.error('Delete selected meals error:', error);
+        alert(isAr ? `تعذر حذف الوجبات المحددة:\n${error?.message || error}` : `Failed to delete selected meals:\n${error?.message || error}`);
+      } finally {
+        setExcelBusy(false);
+      }
+      setTimeout(() => setSyncBanner(null), 4000);
+    },
+  });
+};
+
+const toggleItemSelection = (id: string) => {
+  setSelectedItemIds((prev) => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    return next;
+  });
+};
+
+const toggleSelectAllItems = () => {
+  setSelectedItemIds((prev) => {
+    if (items.length > 0 && prev.size === items.length) return new Set();
+    return new Set(items.map((item) => item.id));
+  });
+};
 
 const handleDeleteAllItems = () => {
   if (items.length === 0) {
@@ -1063,6 +1109,7 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                 <table className="w-full text-start text-xs">
                   <thead className="bg-[#12245e] text-[#a2bbf5] border-b-2 border-[#2855D9] font-bold">
                     <tr>
+                      <th className="py-3 px-4 w-12 text-center"><input type="checkbox" checked={items.length > 0 && selectedItemIds.size === items.length} onChange={toggleSelectAllItems} className="w-4 h-4 accent-[#FFD11A] cursor-pointer" /></th>
                       <th className="py-3 px-4">{isAr ? 'الصورة والاسم' : 'Image & Name'}</th>
                       <th className="py-3 px-4">{t.category}</th>
                       <th className="py-3 px-4">{isAr ? 'السعر الحالي' : 'Live Price'} ({isAr ? restaurant.currency : restaurant.currencyEn})</th>
@@ -1072,7 +1119,8 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                   </thead>
                   <tbody className="divide-y divide-[#211f18]">
                     {items.map((item) => (
-                      <tr key={item.id} className="hover:bg-[#1a1d29] transition-colors">
+                      <tr key={item.id} className={selectedItemIds.has(item.id) ? 'bg-red-950/20' : 'hover:bg-[#1a1d29]'}>
+                        <td className="py-3 px-4 text-center"><input type="checkbox" checked={selectedItemIds.has(item.id)} onChange={() => toggleItemSelection(item.id)} className="w-4 h-4 accent-[#FFD11A] cursor-pointer" /></td>
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-3">
                             <img
@@ -1174,17 +1222,19 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                   </tbody>
                 </table>
               </div>
-              {/* Delete All Meals */}
-              <div className="flex justify-end pt-1">
-                <button
-                  type="button"
-                  onClick={handleDeleteAllItems}
-                  disabled={items.length === 0 || excelBusy}
-                  className="px-4 py-2 rounded-xl bg-red-950/60 hover:bg-red-900 disabled:opacity-40 disabled:cursor-not-allowed text-red-300 hover:text-white border border-red-800/60 text-xs font-black flex items-center gap-2 transition-all"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  <span>{isAr ? 'حذف جميع الوجبات' : 'Delete All Meals'}</span>
-                </button>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+                <div className="text-xs text-[#8f99b5]">
+                  {selectedItemIds.size > 0 ? (isAr ? `تم تحديد ${selectedItemIds.size} من ${items.length} وجبة` : `${selectedItemIds.size} of ${items.length} meals selected`) : (isAr ? 'حدد الوجبات التي تريد حذفها' : 'Select meals to delete')}
+                </div>
+                <div className="flex items-center gap-2 justify-end">
+                  <button type="button" onClick={toggleSelectAllItems} disabled={items.length === 0 || excelBusy} className="px-3.5 py-2 rounded-xl bg-[#202b4b] hover:bg-[#29406f] disabled:opacity-40 text-[#bcd0ff] border border-[#31508e] text-xs font-bold">
+                    {selectedItemIds.size === items.length && items.length > 0 ? (isAr ? 'إلغاء تحديد الكل' : 'Deselect All') : (isAr ? 'تحديد الكل' : 'Select All')}
+                  </button>
+                  <button type="button" onClick={handleDeleteSelectedItems} disabled={selectedItemIds.size === 0 || excelBusy} className="px-4 py-2 rounded-xl bg-red-950/60 hover:bg-red-900 disabled:opacity-40 text-red-300 hover:text-white border border-red-800/60 text-xs font-black flex items-center gap-2">
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>{isAr ? `حذف المحدد${selectedItemIds.size ? ` (${selectedItemIds.size})` : ''}` : `Delete Selected${selectedItemIds.size ? ` (${selectedItemIds.size})` : ''}`}</span>
+                  </button>
+                </div>
               </div>
             </div>
           )}
