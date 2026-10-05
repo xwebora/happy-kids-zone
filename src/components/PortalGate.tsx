@@ -12,7 +12,9 @@ import {
   AlertCircle,
   Smile,
   Heart,
-  ExternalLink
+  ExternalLink,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { Language, RestaurantInfo, HeroConfig } from '../types';
 import { loginWithEmail } from '../services/auth';
