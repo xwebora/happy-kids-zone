@@ -11,16 +11,9 @@ import firebaseConfig from '@/firebase-applet-config.json';
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 export const auth = getAuth(app);
 
-// Firebase Authentication uses an email internally.
-// The admin UI intentionally exposes only username + password.
-const AUTH_EMAIL_DOMAIN = 'happy-kids-zone.firebaseapp.com';
-
-const usernameToAuthEmail = (username: string) =>
-  `${username.trim().toLowerCase()}@${AUTH_EMAIL_DOMAIN}`;
-
-export const loginWithUsername = async (username: string, password: string) => {
-  const email = usernameToAuthEmail(username);
-  return signInWithEmailAndPassword(auth, email, password);
+// Firebase Authentication uses the real email address entered by the admin.
+export const loginWithEmail = async (email: string, password: string) => {
+  return signInWithEmailAndPassword(auth, email.trim(), password);
 };
 
 /**
