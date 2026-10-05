@@ -24,7 +24,8 @@ import {
   Copy,
   FileSpreadsheet,
   Upload,
-  Download
+  Download,
+  GripVertical
 } from 'lucide-react';
 import {
   MenuItem,
@@ -120,6 +121,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [quickPrices, setQuickPrices] = useState<Record<string, number>>({});
   const [savedSuccessId, setSavedSuccessId] = useState<string | null>(null);
   const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set());
+  const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
+  const [dragOverItemId, setDragOverItemId] = useState<string | null>(null);
 
   // Display items grouped by category and ordered by their persisted sortOrder.
   const orderedItems = [...items].sort((a, b) => {
@@ -142,6 +145,58 @@ export const AdminModal: React.FC<AdminModalProps> = ({
 
     return orderA - orderB;
   });
+
+  const handleMenuItemDrop = async (targetId: string) => {
+    if (!draggedItemId || draggedItemId === targetId) {
+      setDraggedItemId(null);
+      setDragOverItemId(null);
+      return;
+    }
+
+    const dragged = items.find((item) => item.id === draggedItemId);
+    const target = items.find((item) => item.id === targetId);
+
+    if (!dragged || !target || dragged.category !== target.category) {
+      setDraggedItemId(null);
+      setDragOverItemId(null);
+      return;
+    }
+
+    const categoryItems = orderedItems.filter((item) => item.category === dragged.category);
+    const fromIndex = categoryItems.findIndex((item) => item.id === draggedItemId);
+    const toIndex = categoryItems.findIndex((item) => item.id === targetId);
+
+    if (fromIndex < 0 || toIndex < 0) {
+      setDraggedItemId(null);
+      setDragOverItemId(null);
+      return;
+    }
+
+    const nextCategoryItems = [...categoryItems];
+    const [movedItem] = nextCategoryItems.splice(fromIndex, 1);
+    nextCategoryItems.splice(toIndex, 0, movedItem);
+
+    const orderMap = new Map(nextCategoryItems.map((item, index) => [item.id, index]));
+    const updatedItems = items.map((item) =>
+      orderMap.has(item.id)
+        ? { ...item, sortOrder: orderMap.get(item.id) }
+        : item
+    );
+
+    setDraggedItemId(null);
+    setDragOverItemId(null);
+    onUpdateItems(updatedItems);
+
+    try {
+      const { reorderMenuItemsInCategory } = await import('../services/menuService');
+      await reorderMenuItemsInCategory(updatedItems, dragged.category);
+      setSyncBanner(isAr ? 'تم حفظ ترتيب الوجبات' : 'Meal order saved');
+      setTimeout(() => setSyncBanner(null), 2500);
+    } catch (error) {
+      console.error('Failed to save meal order:', error);
+      setSyncBanner(isAr ? 'تعذر حفظ ترتيب الوجبات' : 'Could not save meal order');
+    }
+  };
 
   // Category Form State
   const [editingCat, setEditingCat] = useState<Category | null>(null);
@@ -1169,9 +1224,30 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                             </tr>
                           )}
                           <tr
-                            key={item.id} className={`${selectedItemIds.has(item.id) ? 'bg-red-950/20' : 'hover:bg-[#1a1d29]'}`}
+                            key={item.id}
+                            draggable
+                            onDragStart={() => setDraggedItemId(item.id)}
+                            onDragOver={(event) => {
+                              event.preventDefault();
+                              if (draggedItemId !== item.id && draggedItemId) setDragOverItemId(item.id);
+                            }}
+                            onDragLeave={() => setDragOverItemId((current) => current === item.id ? null : current)}
+                            onDrop={(event) => {
+                              event.preventDefault();
+                              void handleMenuItemDrop(item.id);
+                            }}
+                            onDragEnd={() => {
+                              setDraggedItemId(null);
+                              setDragOverItemId(null);
+                            }}
+                            className={`${selectedItemIds.has(item.id) ? 'bg-red-950/20' : 'hover:bg-[#1a1d29]'} ${draggedItemId === item.id ? 'opacity-40' : ''} ${dragOverItemId === item.id ? 'ring-2 ring-inset ring-[#FFD11A] bg-[#1a3382]/50' : ''} cursor-grab active:cursor-grabbing`}
                           >
-                            <td className="py-3 px-4 text-center"><input type="checkbox" checked={selectedItemIds.has(item.id)} onChange={() => toggleItemSelection(item.id)} className="w-4 h-4 accent-[#FFD11A] cursor-pointer" /></td>
+                            <td className="py-3 px-4 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <GripVertical className="w-4 h-4 text-[#6f82b7]" title={isAr ? 'اسحب لتغيير الترتيب' : 'Drag to reorder'} />
+                              <input type="checkbox" checked={selectedItemIds.has(item.id)} onChange={() => toggleItemSelection(item.id)} className="w-4 h-4 accent-[#FFD11A] cursor-pointer" />
+                            </div>
+                          </td>
                             <td className="py-3 px-4">
                           <div className="flex items-center gap-3">
                             <img
