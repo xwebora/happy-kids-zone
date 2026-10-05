@@ -6,7 +6,7 @@ export const INITIAL_RESTAURANT_INFO: RestaurantInfo = {
   tagline: "عالم المرح والوجبات الشهية والحلويات السحرية لكل العائلة والأبطال الصغار!",
   taglineEn: "The ultimate wonderland of delicious kids meals, yummy treats & family fun!",
   phone: "+964 770 123 4567",
-  whatsapp: "+9647701234567",
+  whatsapp: "",
   address: "شارع المنصور، مجمع السعادة للأطفال، بغداد",
   addressEn: "Al-Mansour Street, Happy Kids Mall, Baghdad",
   workingHours: "يومياً من 11:00 صباحاً حتى 11:30 مساءً (الويكند حتى 12:30)",
