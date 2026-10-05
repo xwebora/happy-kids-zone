@@ -37,6 +37,7 @@ import {
 import { translations } from '../utils/i18n';
 import { exportCategoriesToExcel, exportMenuItemsToExcel, downloadExcelTemplate, parseCategoriesExcel, parseMenuItemsExcel } from '../utils/excelService';
 import { User } from 'firebase/auth';
+import { sendCurrentUserPasswordResetEmail } from '../services/auth';
 import {
   updateMenuItem,
   deleteMenuItem,
@@ -172,6 +173,34 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [settingsForm, setSettingsForm] = useState<RestaurantInfo>(restaurant);
   const [settingsSavedAlert, setSettingsSavedAlert] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [passwordResetBusy, setPasswordResetBusy] = useState(false);
+  const [passwordResetMessage, setPasswordResetMessage] = useState<string | null>(null);
+  const [passwordResetError, setPasswordResetError] = useState<string | null>(null);
+
+  const handleSendPasswordReset = async () => {
+    setPasswordResetBusy(true);
+    setPasswordResetMessage(null);
+    setPasswordResetError(null);
+
+    try {
+      const email = await sendCurrentUserPasswordResetEmail();
+      setPasswordResetMessage(
+        isAr
+          ? 'تم إرسال رابط تغيير كلمة المرور إلى ' + email + '. تحقق من بريدك الإلكتروني.'
+          : 'A password reset link was sent to ' + email + '. Check your email.'
+      );
+    } catch (error: any) {
+      console.error('Password reset email error:', error);
+      const message = error?.code === 'auth/too-many-requests'
+        ? (isAr ? 'تم إرسال طلبات كثيرة. حاول مرة أخرى لاحقاً.' : 'Too many requests. Please try again later.')
+        : error?.message === 'AUTH_EMAIL_NOT_AVAILABLE'
+          ? (isAr ? 'تعذر العثور على البريد الإلكتروني للحساب الحالي.' : 'The current account email could not be found.')
+          : (isAr ? 'تعذر إرسال رابط تغيير كلمة المرور. تأكد من إعدادات Firebase Authentication.' : 'Unable to send the password reset link. Check Firebase Authentication settings.');
+      setPasswordResetError(message);
+    } finally {
+      setPasswordResetBusy(false);
+    }
+  };
 
   const handleCopyMenuLink = () => {
     if (typeof window !== 'undefined') {
@@ -2486,21 +2515,63 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                   </div>
                 </div>
 
-                {/* Firebase Authentication */}
-                <div className="p-4 rounded-xl bg-[#0f1d47] border border-[#2855D9]/60 space-y-2">
-                  <h4 className="text-sm font-black text-[#FFD11A]">
-                    {isAr ? 'أمان تسجيل دخول المدير' : 'Admin Login Security'}
-                  </h4>
-                  <p className="text-xs text-[#b2c8fb] leading-relaxed">
-                    {isAr
-                      ? 'تسجيل الدخول أصبح محميًا بواسطة Firebase Authentication. اسم المستخدم وكلمة المرور لا يتم تخزينهما في Firestore.'
-                      : 'Admin login is protected by Firebase Authentication. Username and password are no longer stored in Firestore.'}
-                  </p>
-                  <p className="text-[11px] text-[#9cb5f5]">
-                    {isAr
-                      ? 'لتغيير كلمة المرور استخدم حساب Firebase Authentication.'
-                      : 'To change the password, manage the account in Firebase Authentication.'}
-                  </p>
+                {/* Firebase Authentication & Password Reset */}
+                <div className="p-4 rounded-xl bg-[#0f1d47] border border-[#2855D9]/60 space-y-4">
+                  <div>
+                    <h4 className="text-sm font-black text-[#FFD11A]">
+                      {isAr ? 'أمان حساب المدير' : 'Admin Account Security'}
+                    </h4>
+                    <p className="text-xs text-[#b2c8fb] leading-relaxed mt-1">
+                      {isAr
+                        ? 'تسجيل الدخول محمي بواسطة Firebase Authentication، وكلمة المرور لا يتم تخزينها في Firestore.'
+                        : 'Admin login is protected by Firebase Authentication, and the password is never stored in Firestore.'}
+                    </p>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-[#0a163e] border border-[#2855D9]/40 space-y-3">
+                    <div>
+                      <div className="text-xs font-bold text-white">
+                        {isAr ? 'تغيير كلمة المرور' : 'Change Password'}
+                      </div>
+                      <p className="text-[11px] text-[#9cb5f5] mt-1 leading-relaxed">
+                        {isAr
+                          ? 'سيتم إرسال رابط آمن إلى البريد الإلكتروني المرتبط بحساب المدير لتعيين كلمة مرور جديدة.'
+                          : 'A secure link will be sent to the email address linked to the admin account so you can set a new password.'}
+                      </p>
+                    </div>
+
+                    {passwordResetMessage && (
+                      <div className="p-3 rounded-lg bg-emerald-950/70 border border-emerald-600/50 text-emerald-300 text-[11px] flex items-start gap-2">
+                        <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
+                        <span>{passwordResetMessage}</span>
+                      </div>
+                    )}
+
+                    {passwordResetError && (
+                      <div className="p-3 rounded-lg bg-red-950/70 border border-red-600/50 text-red-300 text-[11px] flex items-start gap-2">
+                        <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                        <span>{passwordResetError}</span>
+                      </div>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={handleSendPasswordReset}
+                      disabled={passwordResetBusy}
+                      className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-[#2855D9] hover:bg-[#3564e9] disabled:opacity-60 disabled:cursor-not-allowed text-white text-xs font-bold flex items-center justify-center gap-2 transition-all"
+                    >
+                      {passwordResetBusy ? (
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Lock className="w-4 h-4" />
+                      )}
+                      <span>
+                        {passwordResetBusy
+                          ? (isAr ? 'جارٍ إرسال الرابط...' : 'Sending link...')
+                          : (isAr ? 'إرسال رابط تغيير كلمة المرور' : 'Send password reset link')}
+                      </span>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Restaurant Info */}
