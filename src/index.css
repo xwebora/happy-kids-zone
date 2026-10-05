@@ -1,1 +1,13 @@
 @import "tailwindcss";
+
+.menu-carousel {
+  touch-action: pan-x;
+  overscroll-behavior-x: contain;
+  overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: touch;
+  align-items: stretch;
+}
+
+.menu-carousel > * {
+  min-width: 0;
+}
