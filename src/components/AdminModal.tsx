@@ -183,19 +183,30 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     setPasswordResetError(null);
 
     try {
-      const email = await sendCurrentUserPasswordResetEmail();
+      const email = await sendCurrentUserPasswordResetEmail(
+        isAr ? 'ar' : isKu ? 'ku' : 'en'
+      );
       setPasswordResetMessage(
         isAr
-          ? 'تم إرسال رابط تغيير كلمة المرور إلى ' + email + '. تحقق من بريدك الإلكتروني.'
-          : 'A password reset link was sent to ' + email + '. Check your email.'
+          ? 'تم إرسال رابط تغيير كلمة المرور إلى ' + email + '. تحقق من البريد الوارد ومجلد الرسائل غير المرغوب فيها.'
+          : isKu
+            ? 'بەستەری گۆڕینی وشەی نهێنی بۆ ' + email + ' نێردرا. ئیمەیڵەکەت بپشکنە.'
+            : 'A password reset link was sent to ' + email + '. Check your inbox and spam folder.'
       );
     } catch (error: any) {
       console.error('Password reset email error:', error);
-      const message = error?.code === 'auth/too-many-requests'
+      const code = error?.code || 'unknown';
+      const message = code === 'auth/too-many-requests'
         ? (isAr ? 'تم إرسال طلبات كثيرة. حاول مرة أخرى لاحقاً.' : 'Too many requests. Please try again later.')
-        : error?.message === 'AUTH_EMAIL_NOT_AVAILABLE'
-          ? (isAr ? 'تعذر العثور على البريد الإلكتروني للحساب الحالي.' : 'The current account email could not be found.')
-          : (isAr ? 'تعذر إرسال رابط تغيير كلمة المرور. تأكد من إعدادات Firebase Authentication.' : 'Unable to send the password reset link. Check Firebase Authentication settings.');
+        : code === 'auth/user-not-found'
+          ? (isAr ? 'لا يوجد حساب Firebase بهذا البريد الإلكتروني.' : 'No Firebase account was found for this email address.')
+          : code === 'auth/invalid-email'
+            ? (isAr ? 'البريد الإلكتروني المرتبط بالحساب غير صالح.' : 'The account email address is invalid.')
+            : code === 'auth/unauthorized-continue-uri'
+              ? (isAr ? 'رابط العودة غير مصرح به. أضف xwebora.github.io إلى Authorized domains في Firebase Authentication.' : 'The return URL is not authorized. Add xwebora.github.io to Firebase Authentication Authorized domains.')
+              : error?.message === 'AUTH_EMAIL_NOT_AVAILABLE'
+                ? (isAr ? 'تعذر العثور على البريد الإلكتروني للحساب الحالي.' : 'The current account email could not be found.')
+                : (isAr ? 'تعذر إرسال رابط تغيير كلمة المرور. رمز الخطأ: ' + code : 'Unable to send the password reset link. Firebase error: ' + code);
       setPasswordResetError(message);
     } finally {
       setPasswordResetBusy(false);
