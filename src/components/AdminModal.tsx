@@ -2486,34 +2486,21 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                   </div>
                 </div>
 
-                {/* Credentials */}
-                <div className="p-4 rounded-xl bg-[#11131a] border border-[#2b271d] grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-[#a8a192] mb-1.5">
-                      {t.newAdminUsername} *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={settingsForm.adminUsername}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, adminUsername: e.target.value })}
-                      className="w-full bg-[#181a24] border border-[#332f25] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#d4af37]"
-                      dir="ltr"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-[#a8a192] mb-1.5">
-                      {t.newAdminPassword} *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={settingsForm.adminPassword}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, adminPassword: e.target.value })}
-                      className="w-full bg-[#181a24] border border-[#332f25] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#d4af37]"
-                      dir="ltr"
-                    />
-                  </div>
+                {/* Firebase Authentication */}
+                <div className="p-4 rounded-xl bg-[#0f1d47] border border-[#2855D9]/60 space-y-2">
+                  <h4 className="text-sm font-black text-[#FFD11A]">
+                    {isAr ? 'أمان تسجيل دخول المدير' : 'Admin Login Security'}
+                  </h4>
+                  <p className="text-xs text-[#b2c8fb] leading-relaxed">
+                    {isAr
+                      ? 'تسجيل الدخول أصبح محميًا بواسطة Firebase Authentication. اسم المستخدم وكلمة المرور لا يتم تخزينهما في Firestore.'
+                      : 'Admin login is protected by Firebase Authentication. Username and password are no longer stored in Firestore.'}
+                  </p>
+                  <p className="text-[11px] text-[#9cb5f5]">
+                    {isAr
+                      ? 'لتغيير كلمة المرور استخدم حساب Firebase Authentication.'
+                      : 'To change the password, manage the account in Firebase Authentication.'}
+                  </p>
                 </div>
 
                 {/* Restaurant Info */}
