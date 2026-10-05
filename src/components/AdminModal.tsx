@@ -24,7 +24,8 @@ import {
   Copy,
   FileSpreadsheet,
   Upload,
-  Download
+  Download,
+  GripVertical
 } from 'lucide-react';
 import {
   MenuItem,
@@ -45,7 +46,8 @@ import {
   migrateAllDataToFirestore,
   setRestaurantInfo,
   setCategory,
-  deleteCategory
+  deleteCategory,
+  reorderCategories
 } from '../services/menuService';
 
 interface AdminModalProps {
@@ -149,6 +151,8 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [catNameEn, setCatNameEn] = useState('');
   const [catNameKu, setCatNameKu] = useState('');
   const [catIcon, setCatIcon] = useState('Utensils');
+  const [draggedCategoryId, setDraggedCategoryId] = useState<string | null>(null);
+  const [dragOverCategoryId, setDragOverCategoryId] = useState<string | null>(null);
 
   // Hero Edit Form State
   const [heroForm, setHeroForm] = useState<HeroConfig>(hero);
@@ -730,7 +734,46 @@ const handleQuickPriceSave = async (id: string) => {
     );
   }
 };
- // Category Actions: Add or Update Category
+ // Reorder categories by drag and drop only (menu item order is untouched)
+const handleCategoryDrop = async (targetId: string) => {
+  if (!draggedCategoryId || draggedCategoryId === targetId) {
+    setDraggedCategoryId(null);
+    setDragOverCategoryId(null);
+    return;
+  }
+
+  const ordered = [...categories].sort((a, b) => {
+    const ao = typeof a.sortOrder === 'number' ? a.sortOrder : Number.MAX_SAFE_INTEGER;
+    const bo = typeof b.sortOrder === 'number' ? b.sortOrder : Number.MAX_SAFE_INTEGER;
+    return ao - bo;
+  });
+
+  const fromIndex = ordered.findIndex((c) => c.id === draggedCategoryId);
+  const toIndex = ordered.findIndex((c) => c.id === targetId);
+  if (fromIndex < 0 || toIndex < 0) return;
+
+  const [moved] = ordered.splice(fromIndex, 1);
+  ordered.splice(toIndex, 0, moved);
+  const updatedCategories = ordered.map((category, index) => ({
+    ...category,
+    sortOrder: index,
+  }));
+
+  setDraggedCategoryId(null);
+  setDragOverCategoryId(null);
+
+  try {
+    onUpdateCategories(updatedCategories);
+    await reorderCategories(updatedCategories);
+    setSyncBanner(isAr ? 'تم حفظ ترتيب الأصناف بنجاح' : 'Category order saved successfully');
+    setTimeout(() => setSyncBanner(null), 2500);
+  } catch (error: any) {
+    console.error('Category reorder error:', error);
+    alert(isAr ? 'تعذر حفظ ترتيب الأصناف' : 'Failed to save category order');
+  }
+};
+
+// Category Actions: Add or Update Category
 const handleSaveCategory = async (e: React.FormEvent) => {
   e.preventDefault();
 
@@ -760,6 +803,7 @@ const handleSaveCategory = async (e: React.FormEvent) => {
           nameEn: updatedCategory.nameEn,
           nameKu: updatedCategory.nameKu,
           icon: updatedCategory.icon,
+          sortOrder: updatedCategory.sortOrder,
         }
       );
 
@@ -793,6 +837,7 @@ const handleSaveCategory = async (e: React.FormEvent) => {
       nameEn: catNameEn || catNameAr,
       nameKu: catNameKu || catNameEn || catNameAr,
       icon: catIcon,
+      sortOrder: categories.length,
     };
 
     try {
@@ -803,6 +848,7 @@ const handleSaveCategory = async (e: React.FormEvent) => {
           nameEn: newCat.nameEn,
           nameKu: newCat.nameKu,
           icon: newCat.icon,
+          sortOrder: newCat.sortOrder,
         }
       );
 
@@ -1719,12 +1765,34 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#211f18]">
-                    {categories.map((cat) => {
+                    {[...categories].sort((a, b) => {
+                      const ao = typeof a.sortOrder === 'number' ? a.sortOrder : Number.MAX_SAFE_INTEGER;
+                      const bo = typeof b.sortOrder === 'number' ? b.sortOrder : Number.MAX_SAFE_INTEGER;
+                      return ao - bo;
+                    }).map((cat) => {
                       const count = items.filter((i) => i.category === cat.id).length;
                       return (
-                        <tr key={cat.id} className="hover:bg-[#1a1d29] transition-colors">
+                        <tr
+                          key={cat.id}
+                          draggable
+                          onDragStart={() => setDraggedCategoryId(cat.id)}
+                          onDragOver={(event) => {
+                            event.preventDefault();
+                            if (draggedCategoryId !== cat.id) setDragOverCategoryId(cat.id);
+                          }}
+                          onDragLeave={() => setDragOverCategoryId((current) => current === cat.id ? null : current)}
+                          onDrop={(event) => {
+                            event.preventDefault();
+                            void handleCategoryDrop(cat.id);
+                          }}
+                          onDragEnd={() => {
+                            setDraggedCategoryId(null);
+                            setDragOverCategoryId(null);
+                          }}
+                          className={`hover:bg-[#1a1d29] transition-colors ${draggedCategoryId === cat.id ? 'opacity-40' : ''} ${dragOverCategoryId === cat.id ? 'ring-2 ring-inset ring-[#FFD11A] bg-[#1a3382]/40' : ''} cursor-grab active:cursor-grabbing`}
+                        >
                           <td className="py-3 px-4 font-bold text-white text-sm font-['Amiri',serif]">
-                            {cat.name}
+                            <div className="flex items-center gap-2"><GripVertical className="w-4 h-4 text-[#6f82b7] flex-shrink-0" title={isAr ? 'اسحب لتغيير ترتيب الصنف' : 'Drag to reorder category'} />{cat.name}</div>
                           </td>
                           <td className="py-3 px-4 text-[#8e877c] font-sans">
                             {cat.nameEn || '-'}
