@@ -187,7 +187,12 @@ export async function migrateAllDataToFirestore(
     migratedCategories++;
   }
 
-  await setRestaurantInfo(restaurant);
+  // Never overwrite an existing restaurant document during migration.
+  // This prevents old/default contact data from replacing the values saved in Firestore.
+  const restaurantSnapshot = await getDoc(doc(db, RESTAURANT_COLLECTION, 'main'));
+  if (!restaurantSnapshot.exists()) {
+    await setRestaurantInfo(restaurant);
+  }
   await setHeroConfig(hero);
 
   return { menuItems: migratedItems, categories: migratedCategories, restaurant: true, hero: true };
