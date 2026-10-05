@@ -1,4 +1,4 @@
-const CACHE_NAME = 'happy-kids-admin-v1';
+const CACHE_NAME = 'happy-kids-admin-v2';
 const APP_SHELL = '/happy-kids-zone/';
 
 self.addEventListener('install', () => self.skipWaiting());
