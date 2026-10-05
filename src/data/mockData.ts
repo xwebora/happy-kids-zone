@@ -14,8 +14,6 @@ export const INITIAL_RESTAURANT_INFO: RestaurantInfo = {
   currency: "د.ع",
   currencyEn: "IQD",
   driveFolderName: "Happy_Kids_Zone_Menu",
-  adminUsername: "admin",
-  adminPassword: "admin123",
 };
 
 export const INITIAL_HERO_CONFIG: HeroConfig = {
