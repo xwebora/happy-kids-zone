@@ -157,7 +157,11 @@ export default function App() {
         // This prevents deleted items/categories from reappearing briefly after refresh.
         setItems(firestoreItems);
         setCategories(firestoreCategories);
-        if (firestoreRestaurant) setRestaurant(firestoreRestaurant);
+        if (firestoreRestaurant) {
+          // Keep any fields missing from older Firestore documents by merging
+          // the stored restaurant data over the complete default structure.
+          setRestaurant((current) => ({ ...current, ...firestoreRestaurant }));
+        }
         if (firestoreHero) setHeroConfig(firestoreHero);
         if (firestoreWelcome) setWelcomeConfig(firestoreWelcome);
       } catch (error) { console.error('❌ Firestore loading failed:', error); }
