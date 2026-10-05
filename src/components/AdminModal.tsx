@@ -2550,6 +2550,27 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                     />
                   </div>
                   <div>
+                    <label className="block text-xs font-semibold text-[#a8a192] mb-1.5">{t.workingHoursAr}</label>
+                    <input
+                      type="text"
+                      value={settingsForm.workingHours}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, workingHours: e.target.value })}
+                      placeholder="مثال: يومياً من 11:00 صباحاً حتى 11:30 مساءً (الويكند حتى 12:30)"
+                      className="w-full bg-[#101218] border border-[#312c21] rounded-xl px-3.5 py-2 text-xs text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#a8a192] mb-1.5">{t.workingHoursEn}</label>
+                    <input
+                      type="text"
+                      value={settingsForm.workingHoursEn}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, workingHoursEn: e.target.value })}
+                      placeholder="Example: Daily 11:00 AM - 11:30 PM (Weekends until 12:30 AM)"
+                      className="w-full bg-[#101218] border border-[#312c21] rounded-xl px-3.5 py-2 text-xs text-white"
+                      dir="ltr"
+                    />
+                  </div>
+                  <div>
                     <label className="block text-xs font-semibold text-[#a8a192] mb-1.5">{t.currencyAr}</label>
                     <input
                       type="text"
