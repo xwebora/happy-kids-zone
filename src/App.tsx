@@ -172,7 +172,19 @@ export default function App() {
   }, []);
   useEffect(() => { localStorage.setItem(STORAGE_KEY_LAYOUT, layoutMode); }, [layoutMode]);
   useEffect(() => { localStorage.setItem(STORAGE_KEY_LANG, language); document.documentElement.lang = language; document.documentElement.dir = language === 'ar' || language === 'ku' ? 'rtl' : 'ltr'; }, [language]);
-  useEffect(() => { const unsub = initAuth(setUser); return () => unsub(); }, []);
+  useEffect(() => {
+    const unsub = initAuth(
+      (authenticatedUser) => {
+        setUser(authenticatedUser);
+        setIsAdminAuthenticated(true);
+      },
+      () => {
+        setUser(null);
+        setIsAdminAuthenticated(false);
+      }
+    );
+    return () => unsub();
+  }, []);
 
   const scrollToMenu = () => menuSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
   const filteredItems = useMemo(() => items
@@ -219,10 +231,10 @@ export default function App() {
     return <WelcomeScreen config={welcomeConfig} onLanguageSelect={goToMenu} />;
   }
 
-  if (viewMode === 'portal') return <AnimatePresence mode="wait"><motion.div key="portal" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}><PortalGate language={portalLanguage} onLanguageChange={handlePortalLanguageChange} restaurant={restaurant} hero={heroConfig} adminonly={true} onSelectCustomerView={() => goToMenu(portalLanguage)} onAdminLoginSuccess={() => { setIsAdminAuthenticated(true); navigateToView('admin'); setIsAdminModalOpen(true); }} /></motion.div></AnimatePresence>;
+  if (viewMode === 'portal') return <AnimatePresence mode="wait"><motion.div key="portal" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}><PortalGate language={portalLanguage} onLanguageChange={handlePortalLanguageChange} restaurant={restaurant} hero={heroConfig} adminOnly={true} onSelectCustomerView={() => goToMenu(portalLanguage)} onAdminLoginSuccess={() => { setIsAdminAuthenticated(true); navigateToView('admin'); setIsAdminModalOpen(true); }} /></motion.div></AnimatePresence>;
 
   if (viewMode === 'admin') {
-    if (!isAdminAuthenticated) return <PortalGate language={portalLanguage} onLanguageChange={handlePortalLanguageChange} restaurant={restaurant} hero={heroConfig} adminonly={true} onSelectCustomerView={() => goToMenu(portalLanguage)} onAdminLoginSuccess={() => { setIsAdminAuthenticated(true); navigateToView('admin'); }} />;
+    if (!isAdminAuthenticated) return <PortalGate language={portalLanguage} onLanguageChange={handlePortalLanguageChange} restaurant={restaurant} hero={heroConfig} adminOnly={true} onSelectCustomerView={() => goToMenu(portalLanguage)} onAdminLoginSuccess={() => { setIsAdminAuthenticated(true); navigateToView('admin'); }} />;
     return <div className="min-h-screen bg-[#0a163e] text-white flex flex-col font-['Noto_Kufi_Arabic']"><AdminModal isOpen={true} onClose={() => navigateToView('portal')} items={items} categories={categories} hero={heroConfig} restaurant={restaurant} language={portalLanguage} onUpdateItems={setItems} onUpdateCategories={setCategories} onUpdateHero={setHeroConfig} welcomeConfig={welcomeConfig} onUpdateWelcome={setWelcomeConfig} onUpdateRestaurant={setRestaurant} user={user} onUserChange={setUser} onAdminLogout={() => { setIsAdminAuthenticated(false); navigateToView('portal'); }} /></div>;
   }
 
