@@ -135,7 +135,9 @@ export async function reorderCategories(categories: Category[]): Promise<void> {
 
 export async function setRestaurantInfo(restaurant: RestaurantInfo): Promise<void> {
   const { adminUsername: _adminUsername, adminPassword: _adminPassword, ...publicRestaurantInfo } = restaurant;
-  await setDoc(doc(db, RESTAURANT_COLLECTION, 'main'), publicRestaurantInfo);
+  // Merge instead of replacing the whole document so phone, WhatsApp,
+  // working hours, and other fields are never lost when updating one setting.
+  await setDoc(doc(db, RESTAURANT_COLLECTION, 'main'), publicRestaurantInfo, { merge: true });
 }
 
 export async function getRestaurantInfo(): Promise<RestaurantInfo | null> {
