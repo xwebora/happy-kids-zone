@@ -15,6 +15,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { Language, RestaurantInfo, HeroConfig } from '../types';
+import { loginWithUsername } from '../services/auth';
 import { translations } from '../utils/i18n';
 import { HappyKidsLogo } from './HappyKidsLogo';
 
@@ -45,16 +46,17 @@ export const PortalGate: React.FC<PortalGateProps> = ({
   const t = translations[language];
   const isRtl = language === 'ar';
 
-  const handleAdminSubmit = (e: React.FormEvent) => {
+  const handleAdminSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (
-      usernameInput.trim().toLowerCase() === restaurant.adminUsername.trim().toLowerCase() &&
-      passwordInput === restaurant.adminPassword
-    ) {
-      setErrorMsg('');
+    setErrorMsg('');
+
+    try {
+      await loginWithUsername(usernameInput, passwordInput);
+      setPasswordInput('');
       setShowLoginModal(false);
       onAdminLoginSuccess();
-    } else {
+    } catch (error: any) {
+      console.error('Admin login failed:', error);
       setErrorMsg(t.loginError);
     }
   };
