@@ -1,1 +1,48 @@
 @import "tailwindcss";
+
+
+.puzzle-piece {
+  --puzzle-color: #12245e;
+  --puzzle-border: #2855D9;
+  --puzzle-text: #fff;
+  position: relative;
+  isolation: isolate;
+  min-height: 48px;
+  color: var(--puzzle-text);
+  background: var(--puzzle-color);
+  border: 2px solid var(--puzzle-border);
+  border-radius: 15px;
+  box-shadow: 0 4px 0 rgb(0 0 0 / 0.18), 0 8px 16px rgb(0 0 0 / 0.12);
+  transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+  overflow: visible;
+}
+.puzzle-piece::before,
+.puzzle-piece::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: 17px;
+  height: 17px;
+  border: 2px solid var(--puzzle-border);
+  border-radius: 50%;
+  background: var(--puzzle-color);
+}
+.puzzle-piece::before {
+  right: 18px;
+  bottom: -10px;
+  border-top-color: transparent;
+}
+.puzzle-piece::after {
+  left: -10px;
+  top: 12px;
+  background: #0a163e;
+  border-color: var(--puzzle-border);
+  box-shadow: inset 0 0 0 4px #0a163e;
+}
+.puzzle-piece:hover {
+  transform: translateY(-2px) rotate(-0.5deg);
+  box-shadow: 0 6px 0 rgb(0 0 0 / 0.2), 0 12px 20px rgb(0 0 0 / 0.16);
+}
+.puzzle-piece:active {
+  transform: translateY(1px) scale(0.98);
+}
