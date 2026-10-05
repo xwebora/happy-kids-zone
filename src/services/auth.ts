@@ -36,13 +36,27 @@ export const initAuth = (
 /**
  * Send a password reset link to the currently signed-in admin email.
  */
-export const sendCurrentUserPasswordResetEmail = async () => {
-  const email = auth.currentUser?.email;
+export const sendCurrentUserPasswordResetEmail = async (language: 'ar' | 'en' | 'ku' = 'ar') => {
+  const email = auth.currentUser?.email?.trim();
   if (!email) {
     throw new Error('AUTH_EMAIL_NOT_AVAILABLE');
   }
 
-  await sendPasswordResetEmail(auth, email);
+  // Keep the Firebase email action localized to the dashboard language.
+  auth.languageCode = language === 'ar' ? 'ar' : language === 'ku' ? 'ku' : 'en';
+
+  // After the password is changed, Firebase can return the user to the admin portal.
+  // The continue URL domain must be added to Firebase Authentication > Settings > Authorized domains.
+  const continueUrl =
+    typeof window !== 'undefined'
+      ? `${window.location.origin}${window.location.pathname}#/admin`
+      : undefined;
+
+  const actionCodeSettings = continueUrl
+    ? { url: continueUrl }
+    : undefined;
+
+  await sendPasswordResetEmail(auth, email, actionCodeSettings);
   return email;
 };
 
