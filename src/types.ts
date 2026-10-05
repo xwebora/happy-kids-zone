@@ -88,8 +88,8 @@ export interface RestaurantInfo {
   currencyEn: string;
   currencyKu?: string;
   driveFolderName?: string;
-  adminUsername: string;
-  adminPassword: string;
+  adminUsername?: string;
+  adminPassword?: string;
 }
 
 export interface WelcomeConfig {
