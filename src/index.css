@@ -22,40 +22,57 @@
   box-shadow: 0 4px 0 rgb(0 0 0 / 0.18), 0 8px 16px rgb(0 0 0 / 0.12);
   transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
   overflow: visible;
-  margin-left: 6px;
-  margin-right: 6px;
+  margin: 10px 12px;
 }
 
-.puzzle-piece::before,
-.puzzle-piece::after {
-  content: "";
+.puzzle-content {
+  position: relative;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.puzzle-tab {
   position: absolute;
-  z-index: -1;
-  pointer-events: none;
-}
-
-.puzzle-piece::before {
+  z-index: 2;
   width: 22px;
   height: 22px;
-  right: -13px;
-  top: 50%;
-  transform: translateY(-50%);
+  border: 3px solid var(--puzzle-border);
   border-radius: 50%;
   background: var(--puzzle-color);
-  border: 3px solid var(--puzzle-border);
+  pointer-events: none;
   box-sizing: border-box;
 }
 
-.puzzle-piece::after {
-  width: 22px;
-  height: 22px;
-  left: -13px;
+.puzzle-tab-right {
+  right: -14px;
   top: 50%;
   transform: translateY(-50%);
-  border-radius: 50%;
+}
+
+.puzzle-tab-left {
+  left: -14px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.puzzle-tab-top {
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.puzzle-tab-bottom {
+  bottom: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.puzzle-tab.puzzle-hole {
   background: #0a163e;
-  border: 3px solid var(--puzzle-border);
-  box-sizing: border-box;
+  box-shadow: inset 0 0 0 4px #0a163e;
 }
 
 .puzzle-piece:hover {
