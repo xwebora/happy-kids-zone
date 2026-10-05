@@ -106,12 +106,16 @@ export async function reorderMenuItemsInCategory(items: MenuItem[], categoryId: 
 
 export async function getCategories(): Promise<Category[]> {
   const snapshot = await getDocs(collection(db, CATEGORIES_COLLECTION));
-  return snapshot.docs.map((item) => ({ id: item.id, ...item.data() })) as Category[];
+  return snapshot.docs
+    .map((item) => ({ id: item.id, ...item.data() }) as Category)
+    .sort((a, b) => (a.sortOrder ?? Number.MAX_SAFE_INTEGER) - (b.sortOrder ?? Number.MAX_SAFE_INTEGER));
 }
 
 export function subscribeToCategories(callback: (categories: Category[]) => void) {
   return onSnapshot(collection(db, CATEGORIES_COLLECTION), (snapshot) => {
-    const categories = snapshot.docs.map((item) => ({ id: item.id, ...item.data() })) as Category[];
+    const categories = snapshot.docs
+      .map((item) => ({ id: item.id, ...item.data() }) as Category)
+      .sort((a, b) => (a.sortOrder ?? Number.MAX_SAFE_INTEGER) - (b.sortOrder ?? Number.MAX_SAFE_INTEGER));
     callback(categories);
   });
 }
