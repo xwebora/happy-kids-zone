@@ -300,14 +300,23 @@ export const PortalGate: React.FC<PortalGateProps> = ({
                 <div className="relative">
                   <KeyRound className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7595e8]" />
                   <input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     required
                     placeholder="••••••••"
                     value={passwordInput}
                     onChange={(e) => setPasswordInput(e.target.value)}
-                    className="w-full bg-[#0a163e] border border-[#2855D9] rounded-xl pr-10 pl-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#FFD11A]"
+                    className="w-full bg-[#0a163e] border border-[#2855D9] rounded-xl pr-10 pl-11 py-2.5 text-sm text-white focus:outline-none focus:border-[#FFD11A]"
                     dir="ltr"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((value) => !value)}
+                    aria-label={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+                    title={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#7595e8] hover:text-[#FFD11A] transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
 
