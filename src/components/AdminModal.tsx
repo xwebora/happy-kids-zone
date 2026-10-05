@@ -171,6 +171,12 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   // Settings State (Credentials & info)
   const [settingsForm, setSettingsForm] = useState<RestaurantInfo>(restaurant);
   const [settingsSavedAlert, setSettingsSavedAlert] = useState(false);
+
+  // Keep the settings form synchronized with the latest Firestore restaurant data.
+  // This is important when the dashboard opens before the async Firestore load finishes.
+  React.useEffect(() => {
+    setSettingsForm((current) => ({ ...current, ...restaurant }));
+  }, [restaurant]);
   const [linkCopied, setLinkCopied] = useState(false);
   const handleCopyMenuLink = () => {
     if (typeof window !== 'undefined') {
