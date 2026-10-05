@@ -134,13 +134,17 @@ export async function reorderCategories(categories: Category[]): Promise<void> {
 }
 
 export async function setRestaurantInfo(restaurant: RestaurantInfo): Promise<void> {
-  await setDoc(doc(db, RESTAURANT_COLLECTION, 'main'), restaurant);
+  const { adminUsername: _adminUsername, adminPassword: _adminPassword, ...publicRestaurantInfo } = restaurant;
+  await setDoc(doc(db, RESTAURANT_COLLECTION, 'main'), publicRestaurantInfo);
 }
 
 export async function getRestaurantInfo(): Promise<RestaurantInfo | null> {
   const snapshot = await getDocs(collection(db, RESTAURANT_COLLECTION));
   const mainDoc = snapshot.docs.find((item) => item.id === 'main');
-  return mainDoc ? (mainDoc.data() as RestaurantInfo) : null;
+  if (!mainDoc) return null;
+  const data = mainDoc.data();
+  const { adminUsername: _adminUsername, adminPassword: _adminPassword, ...publicRestaurantInfo } = data;
+  return publicRestaurantInfo as RestaurantInfo;
 }
 
 export async function setHeroConfig(hero: HeroConfig): Promise<void> {
