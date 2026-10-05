@@ -15,7 +15,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { Language, RestaurantInfo, HeroConfig } from '../types';
-import { loginWithUsername } from '../services/auth';
+import { loginWithEmail } from '../services/auth';
 import { translations } from '../utils/i18n';
 import { HappyKidsLogo } from './HappyKidsLogo';
 
@@ -51,7 +51,7 @@ export const PortalGate: React.FC<PortalGateProps> = ({
     setErrorMsg('');
 
     try {
-      await loginWithUsername(usernameInput, passwordInput);
+      await loginWithEmail(usernameInput, passwordInput);
       setPasswordInput('');
       setShowLoginModal(false);
       onAdminLoginSuccess();
@@ -261,7 +261,7 @@ export const PortalGate: React.FC<PortalGateProps> = ({
                   {t.loginTitle}
                 </h3>
                 <p className="text-xs text-[#9cb5f5]">
-                  {language === 'ar' ? 'أدخل اسم المستخدم وكلمة المرور' : 'Enter admin username & password'}
+                  {language === 'ar' ? 'أدخل البريد الإلكتروني وكلمة المرور' : 'Enter admin email & password'}
                 </p>
               </div>
             </div>
@@ -276,14 +276,14 @@ export const PortalGate: React.FC<PortalGateProps> = ({
             <form onSubmit={handleAdminSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-[#c5d5fc] mb-1.5">
-                  {t.usernameLabel}
+                  {language === 'ar' ? 'البريد الإلكتروني' : 'Email address'}
                 </label>
                 <div className="relative">
                   <User className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7595e8]" />
                   <input
                     type="text"
                     required
-                    placeholder={language === 'ar' ? 'اسم المستخدم' : 'Username'}
+                    placeholder={language === 'ar' ? 'البريد الإلكتروني' : 'Email address'}
                     value={usernameInput}
                     onChange={(e) => setUsernameInput(e.target.value)}
                     className="w-full bg-[#0a163e] border border-[#2855D9] rounded-xl pr-10 pl-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#FFD11A]"
