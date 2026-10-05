@@ -6,21 +6,21 @@ import './index.css';
 const PWA_MANIFEST_HREF = '/happy-kids-zone/manifest.json';
 const PWA_SW_HREF = '/happy-kids-zone/sw.js';
 
-function isAdminRoute() {
+function isPwaRoute() {
   const hash = decodeURIComponent(window.location.hash || '').toLowerCase();
   const route = hash.replace(/^#/, '').replace(/^\//, '').replace(/\/$/, '').split('?')[0];
-  return route === 'admin';
+  return route === 'portal' || route === 'admin';
 }
 
-function syncAdminPwa() {
-  const existing = document.querySelector<HTMLLinkElement>('link[data-admin-pwa-manifest]');
+function syncPwaManifest() {
+  const existing = document.querySelector<HTMLLinkElement>('link[data-happy-kids-pwa-manifest]');
 
-  if (isAdminRoute()) {
+  if (isPwaRoute()) {
     if (!existing) {
       const link = document.createElement('link');
       link.rel = 'manifest';
       link.href = PWA_MANIFEST_HREF;
-      link.dataset.adminPwaManifest = 'true';
+      link.dataset.happyKidsPwaManifest = 'true';
       document.head.appendChild(link);
     }
   } else if (existing) {
@@ -28,8 +28,8 @@ function syncAdminPwa() {
   }
 }
 
-syncAdminPwa();
-window.addEventListener('hashchange', syncAdminPwa);
+syncPwaManifest();
+window.addEventListener('hashchange', syncPwaManifest);
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
