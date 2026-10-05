@@ -4,6 +4,7 @@ import {
   onAuthStateChanged,
   User,
   signInWithEmailAndPassword,
+  sendPasswordResetEmail,
   signOut,
 } from 'firebase/auth';
 import firebaseConfig from '@/firebase-applet-config.json';
@@ -30,6 +31,19 @@ export const initAuth = (
       onAuthFailure?.();
     }
   });
+};
+
+/**
+ * Send a password reset link to the currently signed-in admin email.
+ */
+export const sendCurrentUserPasswordResetEmail = async () => {
+  const email = auth.currentUser?.email;
+  if (!email) {
+    throw new Error('AUTH_EMAIL_NOT_AVAILABLE');
+  }
+
+  await sendPasswordResetEmail(auth, email);
+  return email;
 };
 
 export const logout = async () => {
