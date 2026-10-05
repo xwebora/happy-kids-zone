@@ -41,6 +41,7 @@ export const PortalGate: React.FC<PortalGateProps> = ({
   const [showLoginModal, setShowLoginModal] = useState(adminOnly);
   const [usernameInput, setUsernameInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
   const t = translations[language];
