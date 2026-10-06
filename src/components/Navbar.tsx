@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Search, X, Menu as MenuIcon, Languages, Check, ChevronDown, LayoutGrid, StretchHorizontal, GalleryHorizontal } from 'lucide-react';
-import { Language, RestaurantInfo, MenuLayoutMode } from '../types';
+import { Search, X, Menu as MenuIcon, Languages, Check, ChevronDown } from 'lucide-react';
+import { Language, RestaurantInfo } from '../types';
 import { translations } from '../utils/i18n';
 import { HappyKidsLogo } from './HappyKidsLogo';
 
@@ -11,8 +11,6 @@ interface NavbarProps {
   onBackToPortal?: () => void;
   onSearchChange: (query: string) => void;
   searchQuery: string;
-  layoutMode?: MenuLayoutMode;
-  onLayoutModeChange?: (mode: MenuLayoutMode) => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -21,8 +19,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   onLanguageChange,
   onSearchChange,
   searchQuery,
-  layoutMode = 'grid',
-  onLayoutModeChange,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
@@ -67,48 +63,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Action Buttons: Layout Switcher + Language + Brand Themes */}
           <div className="flex items-center gap-2 sm:gap-3">
             
-            {/* Quick Layout Mode Buttons in Top Navbar */}
-            {onLayoutModeChange && (
-              <div className="hidden sm:flex items-center gap-1 p-1 rounded-2xl bg-white/10 border-2 border-white/20 shadow-md shrink-0">
-                <button
-                  onClick={() => onLayoutModeChange('grid')}
-                  className={`p-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                    layoutMode === 'grid'
-                      ? 'bg-[#FFD11A] text-[#0a163e] shadow-md font-bold scale-105'
-                      : 'text-white/80 hover:text-white hover:bg-white/15'
-                  }`}
-                  title={t.layoutGrid}
-                  aria-label={t.layoutGrid}
-                >
-                  <LayoutGrid className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => onLayoutModeChange('horizontal')}
-                  className={`p-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                    layoutMode === 'horizontal'
-                      ? 'bg-[#FFD11A] text-[#0a163e] shadow-md font-bold scale-105'
-                      : 'text-white/80 hover:text-white hover:bg-white/15'
-                  }`}
-                  title={t.layoutHorizontal}
-                  aria-label={t.layoutHorizontal}
-                >
-                  <StretchHorizontal className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => onLayoutModeChange('carousel')}
-                  className={`p-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                    layoutMode === 'carousel'
-                      ? 'bg-[#FFD11A] text-[#0a163e] shadow-md font-bold scale-105'
-                      : 'text-white/80 hover:text-white hover:bg-white/15'
-                  }`}
-                  title={t.layoutCarousel}
-                  aria-label={t.layoutCarousel}
-                >
-                  <GalleryHorizontal className="w-4 h-4" />
-                </button>
-              </div>
-            )}
-
             {/* Language Dropdown - menu only */}
             <div className="relative">
               <button
@@ -185,56 +139,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               />
             </div>
             
-            {/* Mobile Layout Mode Selector */}
-            {onLayoutModeChange && (
-              <div className="pt-2">
-                <div className="text-[11px] font-black text-white/60 mb-2">
-                  {language === 'ar' ? 'طريقة عرض الوجبات:' : 'Menu Layout:'}
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <button
-                    onClick={() => {
-                      onLayoutModeChange('grid');
-                    }}
-                    className={`py-2 px-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 border transition-all ${
-                      layoutMode === 'grid'
-                        ? 'border-[#FFD11A] bg-[#FFD11A] text-[#0a163e] shadow-md font-bold'
-                        : 'border-white/15 bg-white/5 text-white/80'
-                    }`}
-                  >
-                    <LayoutGrid className="w-4 h-4" />
-                    <span>{language === 'ar' ? 'شبكي' : 'Grid'}</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      onLayoutModeChange('horizontal');
-                    }}
-                    className={`py-2 px-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 border transition-all ${
-                      layoutMode === 'horizontal'
-                        ? 'border-[#FFD11A] bg-[#FFD11A] text-[#0a163e] shadow-md font-bold'
-                        : 'border-white/15 bg-white/5 text-white/80'
-                    }`}
-                  >
-                    <StretchHorizontal className="w-4 h-4" />
-                    <span>{language === 'ar' ? 'عريض' : 'List'}</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      onLayoutModeChange('carousel');
-                    }}
-                    className={`py-2 px-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 border transition-all ${
-                      layoutMode === 'carousel'
-                        ? 'border-[#FFD11A] bg-[#FFD11A] text-[#0a163e] shadow-md font-bold'
-                        : 'border-white/15 bg-white/5 text-white/80'
-                    }`}
-                  >
-                    <GalleryHorizontal className="w-4 h-4" />
-                    <span>{language === 'ar' ? 'سلايدر' : 'Slider'}</span>
-                  </button>
-                </div>
-              </div>
-            )}
-
             <div className="pt-2">
               <div className="text-[11px] font-black text-white/60 mb-2">
                 {language === 'ar' ? 'اللغة:' : language === 'en' ? 'Language:' : 'زمان:'}
