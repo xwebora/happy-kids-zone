@@ -91,7 +91,7 @@ export default function App() {
     }
 
     if (typeof window !== 'undefined') {
-      const menuUrl = `${window.location.origin}${window.location.pathname}#/${menuRoute}`;
+      const menuUrl = `${window.location.origin}${window.location.pathname}?v=${Date.now()}#/${menuRoute}`;
       window.location.assign(menuUrl);
       return;
     }
