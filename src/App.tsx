@@ -214,9 +214,23 @@ export default function App() {
       if (sortBy === 'price-desc') return b.price - a.price;
       if (sortBy === 'popular') return (b.isPopular ? 1 : 0) - (a.isPopular ? 1 : 0);
       if (sortBy === 'default') {
-        // sortOrder is the single source of truth written by Admin drag-and-drop.
-        // Do NOT sort by category first here, otherwise the customer's menu can
-        // ignore the exact global order saved in Firestore.
+        // The "All" view follows the same hierarchy used by the menu:
+        // 1) category order from categories.sortOrder
+        // 2) item order inside that category from item.sortOrder
+        // This makes the All view move directly from the last item of one
+        // category to the first item of the next category.
+        const categoryIndex = (categoryId: string) => {
+          const category = categories.find((c) => c.id === categoryId);
+          return category?.sortOrder ?? categories.findIndex((c) => c.id === categoryId);
+        };
+
+        const categoryOrderA = categoryIndex(a.category);
+        const categoryOrderB = categoryIndex(b.category);
+
+        if (categoryOrderA !== categoryOrderB) {
+          return categoryOrderA - categoryOrderB;
+        }
+
         return (a.sortOrder ?? 999999) - (b.sortOrder ?? 999999);
       }
       return ((b.isChefSpecial ? 2 : 0) + (b.isPopular ? 1 : 0)) - ((a.isChefSpecial ? 2 : 0) + (a.isPopular ? 1 : 0));
