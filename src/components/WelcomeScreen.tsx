@@ -39,7 +39,6 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 
   return (
     <div className="fixed inset-0 z-[9999] w-screen h-screen overflow-hidden bg-black">
-      {/* BACKGROUND */}
       {config.backgroundType === 'video' && config.backgroundUrl ? (
         <video
           className="absolute inset-0 w-full h-full object-cover"
@@ -63,13 +62,22 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         <div className="absolute inset-0 bg-[#0a163e]" />
       )}
 
-      <div className="absolute inset-0 bg-black" style={{ opacity: Math.max(0, Math.min(1, config.overlayOpacity ?? 0.45)) }} />
+      <div
+        className="absolute inset-0 bg-black"
+        style={{ opacity: Math.max(0, Math.min(1, config.overlayOpacity ?? 0.45)) }}
+      />
       <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60" />
 
       <div className={`relative z-10 w-full h-full flex flex-col items-center justify-center px-5 transition-all duration-1000 ease-out ${getAnimationClass()}`}>
         {config.logoUrl && (
           <div className="mb-8">
-            <img src={config.logoUrl} alt="Restaurant Logo" className="max-w-[180px] sm:max-w-[220px] md:max-w-[260px] max-h-[150px] sm:max-h-[180px] md:max-h-[200px] object-contain drop-shadow-[0_8px_25px_rgba(0,0,0,0.6)]" loading="eager" decoding="async" />
+            <img
+              src={config.logoUrl}
+              alt="Restaurant Logo"
+              className="max-w-[180px] sm:max-w-[220px] md:max-w-[260px] max-h-[150px] sm:max-h-[180px] md:max-h-[200px] object-contain drop-shadow-[0_8px_25px_rgba(0,0,0,0.6)]"
+              loading="eager"
+              decoding="async"
+            />
           </div>
         )}
 
@@ -81,9 +89,27 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         </div>
 
         <div className="flex flex-wrap justify-center gap-3 mt-10 max-w-[500px]">
-          <a href="#/menu-kr" className="min-w-[105px] px-6 py-3 rounded-2xl bg-white/15 backdrop-blur-md border border-white/40 text-white font-black hover:bg-[#FFD11A] hover:text-[#0a163e] hover:border-[#FFD11A] hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg text-center">کوردی</a>
-          <a href="#/menu-ar" className="min-w-[105px] px-6 py-3 rounded-2xl bg-white/15 backdrop-blur-md border border-white/40 text-white font-black hover:bg-[#FFD11A] hover:text-[#0a163e] hover:border-[#FFD11A] hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg text-center">العربية</a>
-          <a href="#/menu-en" className="min-w-[105px] px-6 py-3 rounded-2xl bg-white/15 backdrop-blur-md border border-white/40 text-white font-black hover:bg-[#FFD11A] hover:text-[#0a163e] hover:border-[#FFD11A] hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg text-center">English</a>
+          <button
+            type="button"
+            onClick={() => onLanguageSelect('ku')}
+            className="min-w-[105px] px-6 py-3 rounded-2xl bg-white/15 backdrop-blur-md border border-white/40 text-white font-black hover:bg-[#FFD11A] hover:text-[#0a163e] hover:border-[#FFD11A] hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg text-center"
+          >
+            کوردی
+          </button>
+          <button
+            type="button"
+            onClick={() => onLanguageSelect('ar')}
+            className="min-w-[105px] px-6 py-3 rounded-2xl bg-white/15 backdrop-blur-md border border-white/40 text-white font-black hover:bg-[#FFD11A] hover:text-[#0a163e] hover:border-[#FFD11A] hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg text-center"
+          >
+            العربية
+          </button>
+          <button
+            type="button"
+            onClick={() => onLanguageSelect('en')}
+            className="min-w-[105px] px-6 py-3 rounded-2xl bg-white/15 backdrop-blur-md border border-white/40 text-white font-black hover:bg-[#FFD11A] hover:text-[#0a163e] hover:border-[#FFD11A] hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg text-center"
+          >
+            English
+          </button>
         </div>
       </div>
     </div>
