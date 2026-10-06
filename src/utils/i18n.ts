@@ -19,10 +19,10 @@ export const translations = {
     defaultLoginHint: 'بيانات الدخول الافتراضية: اسم المستخدم admin / كلمة المرور admin123',
 
     // Login modal
-    loginTitle: 'تسجيل الدخول للوحة الإدارة',
+    loginTitle: 'تسجيل الدخول إلى لوحة الإدارة',
     usernameLabel: 'اسم المدير (Username)',
     passwordLabel: 'كلمة المرور (Password)',
-    loginAction: 'دخول للوحة التحكم',
+    loginAction: 'تسجيل الدخول',
     loginError: 'اسم المستخدم أو كلمة المرور غير صحيحة',
     cancel: 'إلغاء',
 
