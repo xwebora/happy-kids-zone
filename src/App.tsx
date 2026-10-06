@@ -284,15 +284,34 @@ export default function App() {
 
   const categoryForHighlight = selectedCategory === 'all' ? activeCategory : selectedCategory;
 
-  // When the user explicitly selects a category, start that category from
-  // its first item instead of keeping the previous scroll position.
+  // Category buttons are navigation anchors, not filters. Selecting a category
+  // keeps the complete menu list active so scrolling can continue from the last
+  // item of this category directly into the first item of the next category.
   const selectCategory = (categoryId: string) => {
-    setSelectedCategory(categoryId);
+    setSelectedCategory('all');
     setActiveCategory(categoryId);
+
     requestAnimationFrame(() => {
-      menuSectionRef.current?.scrollIntoView({
+      if (categoryId === 'all') {
+        menuSectionRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        });
+        return;
+      }
+
+      const firstItem = Array.from(
+        document.querySelectorAll<HTMLElement>('[data-menu-category]')
+      ).find((element) => element.dataset.menuCategory === categoryId);
+
+      if (!firstItem) return;
+
+      // Leave enough room for the navbar and sticky category bar.
+      const offset = 150;
+      const top = firstItem.getBoundingClientRect().top + window.scrollY - offset;
+      window.scrollTo({
+        top: Math.max(0, top),
         behavior: 'smooth',
-        block: 'start',
       });
     });
   };
