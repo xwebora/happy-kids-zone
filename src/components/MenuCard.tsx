@@ -115,8 +115,7 @@ export const MenuCard: React.FC<MenuCardProps> = ({
         animate="visible"
         exit="exit"
         whileHover={{ 
-          y: -5, 
-          scale: 1.015,
+          y: -5,
           transition: { type: 'spring', stiffness: 450, damping: 20 }
         }}
         whileTap={{ scale: 0.99 }}
@@ -323,13 +322,12 @@ export const MenuCard: React.FC<MenuCardProps> = ({
       animate="visible"
       exit="exit"
       whileHover={{ 
-        y: -10, 
+        y: -6,
         rotate: hoverRotate,
-        scale: 1.028,
         transition: { type: 'spring', stiffness: 450, damping: 18 }
       }}
       whileTap={{ scale: 0.98 }}
-      className={`group relative rounded-3xl bg-[#0f2156] border-2 transition-all duration-300 flex flex-col overflow-hidden shadow-lg ${
+      className={`group relative rounded-3xl bg-[#0f2156] border-2 transition-all duration-300 flex flex-col overflow-hidden shadow-lg isolate ${
         isCarousel ? 'w-[280px] sm:w-[320px] flex-shrink-0 snap-start' : ''
       } ${
         item.available 
