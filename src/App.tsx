@@ -201,6 +201,45 @@ export default function App() {
 
   const scrollToMenu = () => menuSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
 
+  const filteredItems = useMemo(() => items
+    .filter(item => {
+      const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+      const q = searchQuery.toLowerCase();
+      const matchesSearch = !searchQuery.trim() ||
+        String(item.name ?? '').toLowerCase().includes(q) ||
+        String(item.nameEn ?? '').toLowerCase().includes(q) ||
+        String(item.nameKu ?? '').toLowerCase().includes(q) ||
+        String(item.description ?? '').toLowerCase().includes(q) ||
+        String(item.descriptionEn ?? '').toLowerCase().includes(q) ||
+        String(item.descriptionKu ?? '').toLowerCase().includes(q);
+      return matchesCategory && matchesSearch;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'price-asc') return a.price - b.price;
+      if (sortBy === 'price-desc') return b.price - a.price;
+      if (sortBy === 'popular') return (b.isPopular ? 1 : 0) - (a.isPopular ? 1 : 0);
+      if (sortBy === 'default') {
+        // The "All" view follows the same hierarchy used by the menu:
+        // 1) category order from categories.sortOrder
+        // 2) item order inside that category from item.sortOrder
+        // This makes the All view move directly from the last item of one
+        // category to the first item of the next category.
+        const categoryIndex = (categoryId: string) => {
+          const category = categories.find((c) => c.id === categoryId);
+          return category?.sortOrder ?? categories.findIndex((c) => c.id === categoryId);
+        };
+
+        const categoryOrderA = categoryIndex(a.category);
+        const categoryOrderB = categoryIndex(b.category);
+
+        if (categoryOrderA !== categoryOrderB) {
+          return categoryOrderA - categoryOrderB;
+        }
+
+        return (a.sortOrder ?? 999999) - (b.sortOrder ?? 999999);
+      }
+      return ((b.isChefSpecial ? 2 : 0) + (b.isPopular ? 1 : 0)) - ((a.isChefSpecial ? 2 : 0) + (a.isPopular ? 1 : 0));
+    }), [items, selectedCategory, searchQuery, sortBy]);
   // While viewing "All", automatically highlight the category whose first
   // visible item is currently in the reading area. The list itself remains
   // unfiltered, so scrolling continues naturally from one category to the next.
@@ -243,46 +282,6 @@ export default function App() {
   }, [selectedCategory, filteredItems]);
 
   const categoryForHighlight = selectedCategory === 'all' ? activeCategory : selectedCategory;
-
-  const filteredItems = useMemo(() => items
-    .filter(item => {
-      const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
-      const q = searchQuery.toLowerCase();
-      const matchesSearch = !searchQuery.trim() ||
-        String(item.name ?? '').toLowerCase().includes(q) ||
-        String(item.nameEn ?? '').toLowerCase().includes(q) ||
-        String(item.nameKu ?? '').toLowerCase().includes(q) ||
-        String(item.description ?? '').toLowerCase().includes(q) ||
-        String(item.descriptionEn ?? '').toLowerCase().includes(q) ||
-        String(item.descriptionKu ?? '').toLowerCase().includes(q);
-      return matchesCategory && matchesSearch;
-    })
-    .sort((a, b) => {
-      if (sortBy === 'price-asc') return a.price - b.price;
-      if (sortBy === 'price-desc') return b.price - a.price;
-      if (sortBy === 'popular') return (b.isPopular ? 1 : 0) - (a.isPopular ? 1 : 0);
-      if (sortBy === 'default') {
-        // The "All" view follows the same hierarchy used by the menu:
-        // 1) category order from categories.sortOrder
-        // 2) item order inside that category from item.sortOrder
-        // This makes the All view move directly from the last item of one
-        // category to the first item of the next category.
-        const categoryIndex = (categoryId: string) => {
-          const category = categories.find((c) => c.id === categoryId);
-          return category?.sortOrder ?? categories.findIndex((c) => c.id === categoryId);
-        };
-
-        const categoryOrderA = categoryIndex(a.category);
-        const categoryOrderB = categoryIndex(b.category);
-
-        if (categoryOrderA !== categoryOrderB) {
-          return categoryOrderA - categoryOrderB;
-        }
-
-        return (a.sortOrder ?? 999999) - (b.sortOrder ?? 999999);
-      }
-      return ((b.isChefSpecial ? 2 : 0) + (b.isPopular ? 1 : 0)) - ((a.isChefSpecial ? 2 : 0) + (a.isPopular ? 1 : 0));
-    }), [items, selectedCategory, searchQuery, sortBy]);
   const renderCategoryIcon = (name?: string) => ({
   Flame: <Flame className="w-4 h-4" />,
   Beef: <Beef className="w-4 h-4" />,
