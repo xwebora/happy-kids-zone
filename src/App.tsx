@@ -143,6 +143,10 @@ export default function App() {
   const [heroConfig, setHeroConfig] = useState<HeroConfig>(INITIAL_HERO_CONFIG);
   const [welcomeConfig, setWelcomeConfig] = useState<any>(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
+  // Separate the category used for filtering from the category highlighted while
+  // browsing the "All" list. This lets the active category follow the scroll
+  // position without filtering the list and jumping the user to another section.
+  const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'default' | 'price-asc' | 'price-desc' | 'popular'>('default');
   const [layoutMode, setLayoutMode] = useState<MenuLayoutMode>(() => { try { const saved = localStorage.getItem(STORAGE_KEY_LAYOUT) as MenuLayoutMode; return saved === 'grid' || saved === 'horizontal' || saved === 'carousel' ? saved : 'grid'; } catch { return 'grid'; } });
@@ -196,6 +200,50 @@ export default function App() {
   }, []);
 
   const scrollToMenu = () => menuSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+
+  // While viewing "All", automatically highlight the category whose first
+  // visible item is currently in the reading area. The list itself remains
+  // unfiltered, so scrolling continues naturally from one category to the next.
+  useEffect(() => {
+    if (selectedCategory !== 'all' || filteredItems.length === 0) {
+      return;
+    }
+
+    const elements = Array.from(
+      document.querySelectorAll<HTMLElement>('[data-menu-category]')
+    );
+
+    if (!elements.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .map((entry) => ({
+            element: entry.target as HTMLElement,
+            top: Math.abs(entry.boundingClientRect.top - window.innerHeight * 0.32),
+          }))
+          .sort((a, b) => a.top - b.top);
+
+        if (visible.length) {
+          const categoryId = visible[0].element.dataset.menuCategory;
+          if (categoryId) setActiveCategory(categoryId);
+        }
+      },
+      {
+        root: null,
+        // Creates a reading band around the upper third of the screen.
+        rootMargin: '-18% 0px -58% 0px',
+        threshold: 0,
+      }
+    );
+
+    elements.forEach((element) => observer.observe(element));
+    return () => observer.disconnect();
+  }, [selectedCategory, filteredItems]);
+
+  const categoryForHighlight = selectedCategory === 'all' ? activeCategory : selectedCategory;
+
   const filteredItems = useMemo(() => items
     .filter(item => {
       const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
@@ -268,8 +316,8 @@ export default function App() {
   return <motion.div initial={{opacity:0}} animate={{opacity:1}} className="min-h-screen text-white flex flex-col font-['Noto_Kufi_Arabic'] bg-[#0a163e] selection:bg-[#FFD11A] selection:text-[#0a163e]">
     <Navbar restaurant={restaurant} language={language} onLanguageChange={handleMenuLanguageChange} onSearchChange={setSearchQuery} searchQuery={searchQuery} layoutMode={layoutMode} onLayoutModeChange={setLayoutMode} />
     <main ref={menuSectionRef} className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-6">
-      <div className={`sticky top-20 z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 backdrop-blur-md border-y shadow-lg bg-[#0a163e]/90 border-[#1e3b96]/60 shadow-[#0a163e]/60`}><div className="flex items-center gap-2.5 overflow-x-auto pb-1 pt-1 scrollbar-none px-1"><motion.button onClick={()=>setSelectedCategory('all')} className="relative px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black flex items-center gap-2 whitespace-nowrap border-2" style={{borderColor:selectedCategory==='all'?'#FFD11A':'#2855D9',backgroundColor:selectedCategory==='all'?'#FFD11A':'#12245e',color:selectedCategory==='all'?'#0a163e':'#fff'}}><Utensils className="w-4 h-4"/><span>{t.allCategories}</span></motion.button>{categories.map((category,index)=>{const active=selectedCategory===category.id;const color=getCategoryColor(index);const categoryName=language==='ku'?(category.nameKu||category.nameEn||category.name):language==='en'?(category.nameEn||category.name):category.name;return <motion.button key={category.id} onClick={()=>setSelectedCategory(category.id)} className="px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black flex items-center gap-2 whitespace-nowrap border-2" style={{borderColor:active?color:'#2855D9',backgroundColor:active?color:'#12245e',color:active?'#0a163e':'#fff'}}>{renderCategoryIcon(category.icon)}<span>{categoryName}</span></motion.button>})}</div></div>
-      <section className="space-y-6">{searchQuery&&<div className="text-sm text-white/70">{t.searchResultFor} <span className="text-[#FFD11A] font-bold">{searchQuery}</span></div>}{filteredItems.length===0?<div className="text-center py-20 text-white/60">{t.noItemsFound}</div>:<motion.div variants={gridContainerVariants} initial="hidden" animate="visible" className={layoutMode==='grid'?'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5':layoutMode==='horizontal'?'flex flex-col gap-4':'menu-carousel flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 px-1'}>{filteredItems.map((item, index)=><MenuCard key={item.id} item={item} index={index} language={language} currency={language==='en'?restaurant.currencyEn:restaurant.currency} layoutVariant={layoutMode === 'carousel' ? 'carousel' : layoutMode === 'horizontal' ? 'horizontal' : 'vertical'} onEdit={()=>setIsAdminModalOpen(true)} onDelete={()=>{}} />)}</motion.div>}</section>
+      <div className={`sticky top-20 z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 backdrop-blur-md border-y shadow-lg bg-[#0a163e]/90 border-[#1e3b96]/60 shadow-[#0a163e]/60`}><div className="flex items-center gap-2.5 overflow-x-auto pb-1 pt-1 scrollbar-none px-1"><motion.button onClick={()=>{setSelectedCategory('all');setActiveCategory('all')}} className="relative px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black flex items-center gap-2 whitespace-nowrap border-2" style={{borderColor:categoryForHighlight==='all'?'#FFD11A':'#2855D9',backgroundColor:categoryForHighlight==='all'?'#FFD11A':'#12245e',color:categoryForHighlight==='all'?'#0a163e':'#fff'}}><Utensils className="w-4 h-4"/><span>{t.allCategories}</span></motion.button>{categories.map((category,index)=>{const active=categoryForHighlight===category.id;const color=getCategoryColor(index);const categoryName=language==='ku'?(category.nameKu||category.nameEn||category.name):language==='en'?(category.nameEn||category.name):category.name;return <motion.button key={category.id} onClick={()=>{setSelectedCategory(category.id);setActiveCategory(category.id)}} className="px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black flex items-center gap-2 whitespace-nowrap border-2" style={{borderColor:active?color:'#2855D9',backgroundColor:active?color:'#12245e',color:active?'#0a163e':'#fff'}}>{renderCategoryIcon(category.icon)}<span>{categoryName}</span></motion.button>})}</div></div>
+      <section className="space-y-6">{searchQuery&&<div className="text-sm text-white/70">{t.searchResultFor} <span className="text-[#FFD11A] font-bold">{searchQuery}</span></div>}{filteredItems.length===0?<div className="text-center py-20 text-white/60">{t.noItemsFound}</div>:<motion.div variants={gridContainerVariants} initial="hidden" animate="visible" className={layoutMode==='grid'?'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5':layoutMode==='horizontal'?'flex flex-col gap-4':'menu-carousel flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 px-1'}>{filteredItems.map((item, index)=><div key={item.id} data-menu-category={item.category} className="contents"><MenuCard item={item} index={index} language={language} currency={language==='en'?restaurant.currencyEn:restaurant.currency} layoutVariant={layoutMode === 'carousel' ? 'carousel' : layoutMode === 'horizontal' ? 'horizontal' : 'vertical'} onEdit={()=>setIsAdminModalOpen(true)} onDelete={()=>{}} /></div>)}</motion.div>}</section>
     </main><Footer restaurant={restaurant} language={language} />
   </motion.div>;
 }
