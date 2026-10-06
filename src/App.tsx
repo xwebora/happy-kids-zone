@@ -7,7 +7,7 @@ import { MenuCard } from './components/MenuCard';
 import { AdminModal } from './components/AdminModal';
 import { Footer } from './components/Footer';
 import { WelcomeScreen } from './components/WelcomeScreen';
-import { MenuItem, Category, RestaurantInfo, HeroConfig, Language, MenuLayoutMode, BrandThemeMode } from './types';
+import { MenuItem, Category, RestaurantInfo, HeroConfig, Language, BrandThemeMode } from './types';
 import { INITIAL_MENU_ITEMS, INITIAL_CATEGORIES, INITIAL_RESTAURANT_INFO, INITIAL_HERO_CONFIG } from './data/mockData';
 import { initAuth } from './services/auth';
 import { getWelcomeConfig, getMenuItems, getCategories, getRestaurantInfo, getHeroConfig, subscribeToMenuItems, subscribeToCategories } from './services/menuService';
@@ -17,7 +17,6 @@ import { Utensils, Flame, Beef, Salad, Cake, Coffee, Smile, Hamburger, Pizza, Sa
 
 const STORAGE_KEY_LANG = 'happy_kids_lang_v4';
 const STORAGE_KEY_PORTAL_LANG = 'happy_kids_portal_lang_v1';
-const STORAGE_KEY_LAYOUT = 'happy_kids_layout_v4';
 
 const LEGACY_DATA_STORAGE_KEYS = [
   'happy_kids_items_v4',
@@ -149,7 +148,6 @@ export default function App() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'default' | 'price-asc' | 'price-desc' | 'popular'>('default');
-  const [layoutMode, setLayoutMode] = useState<MenuLayoutMode>(() => { try { const saved = localStorage.getItem(STORAGE_KEY_LAYOUT) as MenuLayoutMode; return saved === 'grid' || saved === 'horizontal' || saved === 'carousel' ? saved : 'grid'; } catch { return 'grid'; } });
   const [user, setUser] = useState<User | null>(null);
   const menuSectionRef = useRef<HTMLDivElement>(null);
   const categoryBarRef = useRef<HTMLDivElement>(null);
@@ -184,7 +182,6 @@ export default function App() {
       try { localStorage.removeItem(key); } catch { /* ignore storage errors */ }
     });
   }, []);
-  useEffect(() => { localStorage.setItem(STORAGE_KEY_LAYOUT, layoutMode); }, [layoutMode]);
   useEffect(() => { localStorage.setItem(STORAGE_KEY_LANG, language); document.documentElement.lang = language; document.documentElement.dir = language === 'ar' || language === 'ku' ? 'rtl' : 'ltr'; }, [language]);
   useEffect(() => {
     const unsub = initAuth(
@@ -363,10 +360,10 @@ export default function App() {
   }
 
   return <motion.div initial={{opacity:0}} animate={{opacity:1}} className="min-h-screen text-white flex flex-col font-['Noto_Kufi_Arabic'] bg-[#0a163e] selection:bg-[#FFD11A] selection:text-[#0a163e]">
-    <Navbar restaurant={restaurant} language={language} onLanguageChange={handleMenuLanguageChange} onSearchChange={setSearchQuery} searchQuery={searchQuery} layoutMode={layoutMode} onLayoutModeChange={setLayoutMode} />
+    <Navbar restaurant={restaurant} language={language} onLanguageChange={handleMenuLanguageChange} onSearchChange={setSearchQuery} searchQuery={searchQuery} />
     <main ref={menuSectionRef} className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-6">
       <div className={`sticky top-20 z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 backdrop-blur-md border-y shadow-lg bg-[#0a163e]/90 border-[#1e3b96]/60 shadow-[#0a163e]/60`}><div ref={categoryBarRef} className="flex items-center gap-2.5 overflow-x-auto pb-1 pt-1 scrollbar-none px-1"><motion.button onClick={()=>selectCategory('all')} className="relative px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black flex items-center gap-2 whitespace-nowrap border-2" data-active-category={categoryForHighlight==='all'?'true':'false'} style={{borderColor:categoryForHighlight==='all'?'#FFD11A':'#2855D9',backgroundColor:categoryForHighlight==='all'?'#FFD11A':'#12245e',color:categoryForHighlight==='all'?'#0a163e':'#fff'}}><Utensils className="w-4 h-4"/><span>{t.allCategories}</span></motion.button>{categories.map((category,index)=>{const active=categoryForHighlight===category.id;const color=getCategoryColor(index);const categoryName=language==='ku'?(category.nameKu||category.nameEn||category.name):language==='en'?(category.nameEn||category.name):category.name;return <motion.button key={category.id} onClick={()=>selectCategory(category.id)} className="px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black flex items-center gap-2 whitespace-nowrap border-2" data-active-category={active?'true':'false'} style={{borderColor:active?color:'#2855D9',backgroundColor:active?color:'#12245e',color:active?'#0a163e':'#fff'}}>{renderCategoryIcon(category.icon)}<span>{categoryName}</span></motion.button>})}</div></div>
-      <section className="space-y-6">{searchQuery&&<div className="text-sm text-white/70">{t.searchResultFor} <span className="text-[#FFD11A] font-bold">{searchQuery}</span></div>}{filteredItems.length===0?<div className="text-center py-20 text-white/60">{t.noItemsFound}</div>:<motion.div variants={gridContainerVariants} initial="hidden" animate="visible" className={layoutMode==='grid'?'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5':layoutMode==='horizontal'?'flex flex-col gap-4':'menu-carousel flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 px-1'}>{filteredItems.map((item, index)=><div key={item.id} data-menu-category={item.category} className="min-w-0"><MenuCard item={item} index={index} language={language} currency={language==='en'?restaurant.currencyEn:restaurant.currency} layoutVariant={layoutMode === 'carousel' ? 'carousel' : layoutMode === 'horizontal' ? 'horizontal' : 'vertical'} onEdit={()=>setIsAdminModalOpen(true)} onDelete={()=>{}} /></div>)}</motion.div>}</section>
+      <section className="space-y-6">{searchQuery&&<div className="text-sm text-white/70">{t.searchResultFor} <span className="text-[#FFD11A] font-bold">{searchQuery}</span></div>}{filteredItems.length===0?<div className="text-center py-20 text-white/60">{t.noItemsFound}</div>:<motion.div variants={gridContainerVariants} initial="hidden" animate="visible" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">{filteredItems.map((item, index)=><div key={item.id} data-menu-category={item.category} className="min-w-0"><MenuCard item={item} index={index} language={language} currency={language==='en'?restaurant.currencyEn:restaurant.currency} layoutVariant="vertical" onEdit={()=>setIsAdminModalOpen(true)} onDelete={()=>{}} /></div>)}</motion.div>}</section>
     </main><Footer restaurant={restaurant} language={language} />
   </motion.div>;
 }
