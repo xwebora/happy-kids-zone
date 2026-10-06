@@ -3,12 +3,17 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 
-const PWA_SW_HREF = '/happy-kids-zone/sw.js';
-
+// Disable the legacy PWA service worker so deployed builds always load the latest assets.
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register(PWA_SW_HREF, { scope: '/happy-kids-zone/' })
-      .catch((error) => console.error('PWA service worker registration failed:', error));
+  window.addEventListener('load', async () => {
+    try {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map((registration) => registration.unregister()));
+      const cacheKeys = await caches.keys();
+      await Promise.all(cacheKeys.map((key) => caches.delete(key)));
+    } catch (error) {
+      console.warn('Legacy service worker cleanup skipped:', error);
+    }
   });
 }
 
