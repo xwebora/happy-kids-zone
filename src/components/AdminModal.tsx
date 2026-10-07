@@ -27,7 +27,8 @@ import {
   Download,
   GripVertical,
   Wine,
-  CupSoda
+  CupSoda,
+  Store
 } from 'lucide-react';
 import {
   MenuItem,
@@ -1748,6 +1749,7 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                       <option value="IceCreamBowl">Ice Cream Bowl (آيس كريم)</option>
   <option value="Wine">Wine (مشروبات باردة)</option>
   <option value="CupSoda">Cup Soda (ميلك شيك)</option>
+  <option value="Store">Store (ماركت)</option>
                     </select>
                   </div>
                 </div>
