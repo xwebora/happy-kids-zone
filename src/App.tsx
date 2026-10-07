@@ -13,7 +13,7 @@ import { initAuth } from './services/auth';
 import { getWelcomeConfig, getMenuItems, getCategories, getRestaurantInfo, getHeroConfig, subscribeToMenuItems, subscribeToCategories } from './services/menuService';
 import { translations } from './utils/i18n';
 import { User } from 'firebase/auth';
-import { Utensils, Flame, Beef, Salad, Cake, Coffee, Smile, Hamburger, Pizza, Sandwich, IceCreamBowl, Wine, CupSoda } from 'lucide-react';
+import { Utensils, Flame, Beef, Salad, Cake, Coffee, Smile, Hamburger, Pizza, Sandwich, IceCreamBowl, Wine, CupSoda, Store } from 'lucide-react';
 
 const STORAGE_KEY_LANG = 'happy_kids_lang_v4';
 const STORAGE_KEY_PORTAL_LANG = 'happy_kids_portal_lang_v1';
@@ -342,6 +342,7 @@ export default function App() {
   IceCreamBowl: <IceCreamBowl className="w-4 h-4" />,
   Wine: <Wine className="w-4 h-4" />,
   CupSoda: <CupSoda className="w-4 h-4" />,
+  Store: <Store className="w-4 h-4" />,
 } as any)[name || ''] || <Utensils className="w-4 h-4" />;
   const getCategoryColor = (i: number) => ['#F2292E','#F7941D','#FFD11A','#78C943','#71359B','#2855D9'][i % 6];
 
