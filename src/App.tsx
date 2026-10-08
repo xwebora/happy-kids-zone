@@ -10,7 +10,7 @@ import { WelcomeScreen } from './components/WelcomeScreen';
 import { MenuItem, Category, RestaurantInfo, HeroConfig, Language, BrandThemeMode } from './types';
 import { INITIAL_MENU_ITEMS, INITIAL_CATEGORIES, INITIAL_RESTAURANT_INFO, INITIAL_HERO_CONFIG } from './data/mockData';
 import { initAuth } from './services/auth';
-import { getWelcomeConfig, getMenuItems, getCategories, getRestaurantInfo, getHeroConfig, subscribeToMenuItems, subscribeToCategories } from './services/menuService';
+import { getWelcomeConfig, getRestaurantInfo, getHeroConfig, subscribeToMenuItems, subscribeToCategories } from './services/menuService';
 import { translations } from './utils/i18n';
 import { User } from 'firebase/auth';
 import { Utensils, Flame, Beef, Salad, Cake, Coffee, Smile, Hamburger, Pizza, Sandwich, IceCreamBowl, Wine, CupSoda, Store } from 'lucide-react';
@@ -138,7 +138,9 @@ export default function App() {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [restaurant, setRestaurant] = useState<RestaurantInfo>(INITIAL_RESTAURANT_INFO);
-  const [firestoreReady, setFirestoreReady] = useState(false);
+  const [menuReady, setMenuReady] = useState(false);
+  const [categoriesReady, setCategoriesReady] = useState(false);
+  const firestoreReady = menuReady && categoriesReady;
   const [heroConfig, setHeroConfig] = useState<HeroConfig>(INITIAL_HERO_CONFIG);
   const [welcomeConfig, setWelcomeConfig] = useState<any>(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -153,30 +155,46 @@ export default function App() {
   const categoryBarRef = useRef<HTMLDivElement>(null);
   const t = translations[language] ?? translations.ar;
 
+  // Menu data is loaded once through the live Firestore listeners below.
+  // Do not also call getDocs() here: onSnapshot already delivers the initial
+  // snapshot and keeps the menu synchronized with later admin changes.
   useEffect(() => {
-    (async () => {
-      try {
-        const [firestoreItems, firestoreCategories, firestoreRestaurant, firestoreHero, firestoreWelcome] = await Promise.all([getMenuItems(), getCategories(), getRestaurantInfo(), getHeroConfig(), getWelcomeConfig()]);
-        // Always apply Firestore results, including empty arrays.
-        // This prevents deleted items/categories from reappearing briefly after refresh.
-        setItems(firestoreItems);
-        setCategories(firestoreCategories);
+    const unsubscribe = subscribeToMenuItems((nextItems) => {
+      setItems(nextItems);
+      setMenuReady(true);
+    });
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToCategories((nextCategories) => {
+      setCategories(nextCategories);
+      setCategoriesReady(true);
+    });
+    return unsubscribe;
+  }, []);
+
+  // Non-menu configuration is loaded independently so it never blocks the menu.
+  useEffect(() => {
+    let cancelled = false;
+
+    Promise.all([getRestaurantInfo(), getHeroConfig(), getWelcomeConfig()])
+      .then(([firestoreRestaurant, firestoreHero, firestoreWelcome]) => {
+        if (cancelled) return;
         if (firestoreRestaurant) {
-          // Keep any fields missing from older Firestore documents by merging
-          // the stored restaurant data over the complete default structure.
           setRestaurant((current) => ({ ...current, ...firestoreRestaurant }));
         }
         if (firestoreHero) setHeroConfig(firestoreHero);
-        if (firestoreWelcome) setWelcomeConfig(firestoreWelcome);
-      } catch (error) {
-        console.error('❌ Firestore loading failed:', error);
-      } finally {
-        setFirestoreReady(true);
-      }
-    })();
+        setWelcomeConfig(firestoreWelcome);
+      })
+      .catch((error) => {
+        if (!cancelled) console.error('❌ Firestore configuration loading failed:', error);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
-  useEffect(() => subscribeToMenuItems(setItems), []);
-  useEffect(() => subscribeToCategories(setCategories), []);
   useEffect(() => {
     LEGACY_DATA_STORAGE_KEYS.forEach((key) => {
       try { localStorage.removeItem(key); } catch { /* ignore storage errors */ }
