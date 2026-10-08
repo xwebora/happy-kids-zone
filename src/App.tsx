@@ -159,20 +159,38 @@ export default function App() {
   // Do not also call getDocs() here: onSnapshot already delivers the initial
   // snapshot and keeps the menu synchronized with later admin changes.
   useEffect(() => {
+    // Do not load the full menu while the welcome screen is displayed.
+    // This is important on phones because onSnapshot sends the complete
+    // menu collection immediately (currently 100+ items).
+    if (viewMode !== 'customer' && viewMode !== 'admin') {
+      setMenuReady(false);
+      return;
+    }
+
+    setMenuReady(false);
     const unsubscribe = subscribeToMenuItems((nextItems) => {
       setItems(nextItems);
       setMenuReady(true);
     });
+
     return unsubscribe;
-  }, []);
+  }, [viewMode]);
 
   useEffect(() => {
+    // Categories are only needed by the customer menu and admin panel.
+    if (viewMode !== 'customer' && viewMode !== 'admin') {
+      setCategoriesReady(false);
+      return;
+    }
+
+    setCategoriesReady(false);
     const unsubscribe = subscribeToCategories((nextCategories) => {
       setCategories(nextCategories);
       setCategoriesReady(true);
     });
+
     return unsubscribe;
-  }, []);
+  }, [viewMode]);
 
   // Non-menu configuration is loaded independently so it never blocks the menu.
   useEffect(() => {
@@ -217,7 +235,10 @@ export default function App() {
 
   const scrollToMenu = () => menuSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
 
-  const filteredItems = useMemo(() => items
+  const filteredItems = useMemo(() => {
+    if (viewMode !== 'customer' && viewMode !== 'admin') return [];
+
+    return items
     .filter(item => {
       const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
       const q = searchQuery.toLowerCase();
@@ -255,12 +276,13 @@ export default function App() {
         return (a.sortOrder ?? 999999) - (b.sortOrder ?? 999999);
       }
       return ((b.isChefSpecial ? 2 : 0) + (b.isPopular ? 1 : 0)) - ((a.isChefSpecial ? 2 : 0) + (a.isPopular ? 1 : 0));
-    }), [items, selectedCategory, searchQuery, sortBy]);
+    });
+  }, [viewMode, items, categories, selectedCategory, searchQuery, sortBy]);
   // While viewing "All", automatically highlight the category whose first
   // visible item is currently in the reading area. The list itself remains
   // unfiltered, so scrolling continues naturally from one category to the next.
   useEffect(() => {
-    if (selectedCategory !== 'all' || filteredItems.length === 0) {
+    if (viewMode !== 'customer' || selectedCategory !== 'all' || filteredItems.length === 0) {
       return;
     }
 
@@ -295,7 +317,7 @@ export default function App() {
 
     elements.forEach((element) => observer.observe(element));
     return () => observer.disconnect();
-  }, [selectedCategory, filteredItems]);
+  }, [viewMode, selectedCategory, filteredItems]);
 
   const categoryForHighlight = selectedCategory === 'all' ? activeCategory : selectedCategory;
 
