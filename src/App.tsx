@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { motion, AnimatePresence, type Variants } from 'motion/react';
 import { PortalGate } from './components/PortalGate';
 import { Navbar } from './components/Navbar';
@@ -10,7 +10,7 @@ import { WelcomeScreen } from './components/WelcomeScreen';
 import { MenuItem, Category, RestaurantInfo, HeroConfig, Language, BrandThemeMode } from './types';
 import { INITIAL_MENU_ITEMS, INITIAL_CATEGORIES, INITIAL_RESTAURANT_INFO, INITIAL_HERO_CONFIG } from './data/mockData';
 import { initAuth } from './services/auth';
-import { getWelcomeConfig, getRestaurantInfo, getHeroConfig, subscribeToMenuItems, subscribeToCategories } from './services/menuService';
+import { getWelcomeConfig, getRestaurantInfo, getHeroConfig, subscribeToMenuItems, subscribeToMenuItemsByCategory, subscribeToCategories } from './services/menuService';
 import { translations } from './utils/i18n';
 import { User } from 'firebase/auth';
 import { Utensils, Flame, Beef, Salad, Cake, Coffee, Smile, Hamburger, Pizza, Sandwich, IceCreamBowl, Wine, CupSoda, Store } from 'lucide-react';
@@ -155,31 +155,41 @@ export default function App() {
   const categoryBarRef = useRef<HTMLDivElement>(null);
   const t = translations[language] ?? translations.ar;
 
-  // Menu data is loaded once through the live Firestore listeners below.
-  // Do not also call getDocs() here: onSnapshot already delivers the initial
-  // snapshot and keeps the menu synchronized with later admin changes.
-  useEffect(() => {
-    // Do not load the full menu while the welcome screen is displayed.
-    // This is important on phones because onSnapshot sends the complete
-    // menu collection immediately (currently 100+ items).
-    if (viewMode !== 'customer' && viewMode !== 'admin') {
-      setMenuReady(false);
-      return;
-    }
+  // Customer menu loading is category-based:
+  // 1) load only the first category according to categories.sortOrder
+  // 2) load the next category when the user reaches the end of the loaded menu
+  // 3) keep each category on a live Firestore listener
+  // Admin mode still receives the complete menu because the admin panel needs it.
+  const customerCategorySubscriptionsRef = useRef<Record<string, () => void>>({});
+  const loadedCustomerCategoriesRef = useRef<Set<string>>(new Set());
+  const loadingCustomerCategoriesRef = useRef<Set<string>>(new Set());
+  const [loadedCustomerCategories, setLoadedCustomerCategories] = useState<string[]>([]);
 
-    setMenuReady(false);
-    const unsubscribe = subscribeToMenuItems((nextItems) => {
-      setItems(nextItems);
+  const loadCustomerCategory = useCallback((categoryId: string) => {
+    if (!categoryId) return;
+    if (customerCategorySubscriptionsRef.current[categoryId]) return;
+    if (loadingCustomerCategoriesRef.current.has(categoryId)) return;
+
+    loadingCustomerCategoriesRef.current.add(categoryId);
+
+    const unsubscribe = subscribeToMenuItemsByCategory(categoryId, (nextItems) => {
+      setItems((currentItems) => {
+        const withoutThisCategory = currentItems.filter((item) => item.category !== categoryId);
+        return [...withoutThisCategory, ...nextItems];
+      });
+
+      loadingCustomerCategoriesRef.current.delete(categoryId);
+      loadedCustomerCategoriesRef.current.add(categoryId);
+      setLoadedCustomerCategories(Array.from(loadedCustomerCategoriesRef.current));
       setMenuReady(true);
     });
 
-    return unsubscribe;
-  }, [viewMode]);
+    customerCategorySubscriptionsRef.current[categoryId] = unsubscribe;
+  }, []);
 
   useEffect(() => {
-    // Categories are only needed by the customer menu and admin panel.
     if (viewMode !== 'customer' && viewMode !== 'admin') {
-      setCategoriesReady(false);
+      setMenuReady(false);
       return;
     }
 
@@ -191,6 +201,105 @@ export default function App() {
 
     return unsubscribe;
   }, [viewMode]);
+
+  useEffect(() => {
+    if (viewMode === 'admin') {
+      setMenuReady(false);
+      const unsubscribe = subscribeToMenuItems((nextItems) => {
+        setItems(nextItems);
+        setMenuReady(true);
+      });
+      return unsubscribe;
+    }
+
+    if (viewMode !== 'customer') {
+      return;
+    }
+
+    setMenuReady(false);
+    setItems([]);
+    loadedCustomerCategoriesRef.current = new Set();
+    loadingCustomerCategoriesRef.current = new Set();
+    setLoadedCustomerCategories([]);
+
+    return () => {
+      Object.values(customerCategorySubscriptionsRef.current).forEach((unsubscribe) => unsubscribe());
+      customerCategorySubscriptionsRef.current = {};
+      loadedCustomerCategoriesRef.current = new Set();
+      loadingCustomerCategoriesRef.current = new Set();
+    };
+  }, [viewMode]);
+
+  // Once categories are known, start with the first category in the current
+  // saved order. Changing category order in the admin panel automatically
+  // changes which category is loaded first.
+  useEffect(() => {
+    if (viewMode !== 'customer' || !categoriesReady || categories.length === 0) return;
+    const firstCategoryId = categories[0].id;
+    loadCustomerCategory(firstCategoryId);
+  }, [viewMode, categoriesReady, categories, loadCustomerCategory]);
+
+  // Search should still work across the complete menu. We load the remaining
+  // categories only when the customer actually starts searching.
+  useEffect(() => {
+    if (viewMode !== 'customer' || !searchQuery.trim() || categories.length === 0) return;
+    categories.forEach((category) => loadCustomerCategory(category.id));
+  }, [viewMode, searchQuery, categories, loadCustomerCategory]);
+
+  // When a loaded category reaches the viewport end, subscribe to the next
+  // category in the CURRENT category order. This keeps the menu continuous
+  // while avoiding a 100+ document download on initial menu entry.
+  useEffect(() => {
+    if (viewMode !== 'customer' || !categoriesReady || categories.length === 0) return;
+
+    const loadedIds = new Set(loadedCustomerCategories);
+    const lastLoadedIndex = categories.reduce(
+      (lastIndex, category, index) => (loadedIds.has(category.id) ? index : lastIndex),
+      -1
+    );
+
+    if (lastLoadedIndex < 0 || lastLoadedIndex >= categories.length - 1) return;
+
+    const lastLoadedCategoryId = categories[lastLoadedIndex].id;
+    const categoryElements = Array.from(
+      document.querySelectorAll<HTMLElement>(
+        `[data-menu-category="${CSS.escape(lastLoadedCategoryId)}"]`
+      )
+    );
+
+    if (!categoryElements.length) {
+      loadCustomerCategory(categories[lastLoadedIndex + 1].id);
+      return;
+    }
+
+    const lastItemElement = categoryElements[categoryElements.length - 1];
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          loadCustomerCategory(categories[lastLoadedIndex + 1].id);
+        }
+      },
+      { root: null, rootMargin: '0px 0px 700px 0px', threshold: 0 }
+    );
+
+    observer.observe(lastItemElement);
+    return () => observer.disconnect();
+  }, [viewMode, categoriesReady, categories, loadedCustomerCategories, filteredItems.length, loadCustomerCategory]);
+
+  // Empty categories have no last item to observe, so advance automatically.
+  useEffect(() => {
+    if (viewMode !== 'customer' || !categoriesReady) return;
+
+    const loadedIds = new Set(loadedCustomerCategories);
+    const nextCategoryIndex = categories.findIndex((category) => !loadedIds.has(category.id));
+    if (nextCategoryIndex <= 0) return;
+
+    const previousCategory = categories[nextCategoryIndex - 1];
+    const previousCategoryItems = items.filter((item) => item.category === previousCategory.id);
+    if (previousCategoryItems.length === 0) {
+      loadCustomerCategory(categories[nextCategoryIndex].id);
+    }
+  }, [viewMode, categoriesReady, categories, loadedCustomerCategories, items, loadCustomerCategory]);
 
   // Non-menu configuration is loaded independently so it never blocks the menu.
   useEffect(() => {
@@ -328,7 +437,11 @@ export default function App() {
     setSelectedCategory('all');
     setActiveCategory(categoryId);
 
-    requestAnimationFrame(() => {
+    if (categoryId !== 'all') {
+      loadCustomerCategory(categoryId);
+    }
+
+    const scrollToCategory = (attempt = 0) => {
       if (categoryId === 'all') {
         menuSectionRef.current?.scrollIntoView({
           behavior: 'smooth',
@@ -341,16 +454,22 @@ export default function App() {
         document.querySelectorAll<HTMLElement>('[data-menu-category]')
       ).find((element) => element.dataset.menuCategory === categoryId);
 
-      if (!firstItem) return;
+      if (!firstItem) {
+        if (attempt < 20) {
+          window.setTimeout(() => scrollToCategory(attempt + 1), 100);
+        }
+        return;
+      }
 
-      // Leave enough room for the navbar and sticky category bar.
       const offset = 150;
       const top = firstItem.getBoundingClientRect().top + window.scrollY - offset;
       window.scrollTo({
         top: Math.max(0, top),
         behavior: 'smooth',
       });
-    });
+    };
+
+    requestAnimationFrame(() => scrollToCategory());
   };
 
   // Keep the active category button visible in the horizontal category bar,
