@@ -364,13 +364,17 @@ export default function App() {
 } as any)[name || ''] || <Utensils className="w-4 h-4" />;
   const getCategoryColor = (i: number) => ['#F2292E','#F7941D','#FFD11A','#78C943','#71359B','#2855D9'][i % 6];
 
-  if (!firestoreReady) {
-    return <div className="fixed inset-0 flex items-center justify-center bg-[#0a163e] text-white"><div className="text-center"><div className="w-10 h-10 border-4 border-white/20 border-t-[#FFD11A] rounded-full animate-spin mx-auto mb-4" /><p className="font-semibold">{language === 'en' ? 'Loading...' : 'جاري تحميل البيانات...'}</p></div></div>;
+  // The welcome screen must not wait for menu data. Menu items/categories
+  // are only needed after entering the customer menu.
+  if (viewMode === 'welcome') {
+    if (!welcomeConfig) {
+      return <div className="fixed inset-0 flex items-center justify-center bg-[#0a163e] text-white"><div className="text-center"><div className="w-10 h-10 border-4 border-white/20 border-t-[#FFD11A] rounded-full animate-spin mx-auto mb-4" /><p className="font-semibold">{language === 'en' ? 'Loading...' : 'جاري التحميل...'}</p></div></div>;
+    }
+    return <WelcomeScreen config={welcomeConfig} onLanguageSelect={goToMenu} />;
   }
 
-  if (viewMode === 'welcome') {
-    if (!welcomeConfig) return <div className="fixed inset-0 flex items-center justify-center bg-black text-white">Loading...</div>;
-    return <WelcomeScreen config={welcomeConfig} onLanguageSelect={goToMenu} />;
+  if (!firestoreReady) {
+    return <div className="fixed inset-0 flex items-center justify-center bg-[#0a163e] text-white"><div className="text-center"><div className="w-10 h-10 border-4 border-white/20 border-t-[#FFD11A] rounded-full animate-spin mx-auto mb-4" /><p className="font-semibold">{language === 'en' ? 'Loading...' : 'جاري تحميل البيانات...'}</p></div></div>;
   }
 
   if (viewMode === 'portal') return <AnimatePresence mode="wait"><motion.div key="portal" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}><PortalGate language={portalLanguage} onLanguageChange={handlePortalLanguageChange} restaurant={restaurant} hero={heroConfig} adminOnly={true} onSelectCustomerView={() => goToMenu(portalLanguage)} onAdminLoginSuccess={() => { setIsAdminAuthenticated(true); navigateToView('admin'); setIsAdminModalOpen(true); }} /></motion.div></AnimatePresence>;
