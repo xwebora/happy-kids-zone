@@ -239,14 +239,36 @@ export default function App() {
     loadCustomerCategory(firstCategoryId);
   }, [viewMode, categoriesReady, categories, loadCustomerCategory]);
 
-  // Search should still work across the complete menu. We load the remaining
-  // categories only when the customer actually starts searching.
+  // After the first category becomes available, preload the remaining
+  // categories in the background. The first category is still shown immediately,
+  // but category buttons do not force the customer to wait for a cold Firestore
+  // subscription when they jump directly to a later category.
+  useEffect(() => {
+    if (
+      viewMode !== 'customer' ||
+      !categoriesReady ||
+      categories.length <= 1 ||
+      loadedCustomerCategories.length === 0
+    ) return;
+
+    categories.forEach((category) => {
+      if (!loadedCustomerCategoriesRef.current.has(category.id)) {
+        loadCustomerCategory(category.id);
+      }
+    });
+  }, [viewMode, categoriesReady, categories, loadedCustomerCategories, loadCustomerCategory]);
+
+  // Search is kept as an explicit safety net. If the background preload has
+  // not completed yet, searching immediately subscribes to every category.
   useEffect(() => {
     if (viewMode !== 'customer' || !searchQuery.trim() || categories.length === 0) return;
     categories.forEach((category) => loadCustomerCategory(category.id));
   }, [viewMode, searchQuery, categories, loadCustomerCategory]);
 
-  // When a loaded category reaches the viewport end, subscribe to the next
+  // When a loaded category reaches the viewport end, the next category is
+  // already being preloaded in the background. This observer remains as a
+  // fallback for slow connections or newly changed category order.
+
   // category in the CURRENT category order. This keeps the menu continuous
   // while avoiding a 100+ document download on initial menu entry.
   useEffect(() => {
@@ -274,10 +296,18 @@ export default function App() {
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries.some((entry) => entry.isIntersecting)) {
+          // Preload the next category well before the customer reaches it.
           loadCustomerCategory(categories[lastLoadedIndex + 1].id);
+
+          // Also warm up one additional category when possible. This prevents
+          // a visible pause if the customer scrolls quickly through a category.
+          const followingCategory = categories[lastLoadedIndex + 2];
+          if (followingCategory) {
+            loadCustomerCategory(followingCategory.id);
+          }
         }
       },
-      { root: null, rootMargin: '0px 0px 700px 0px', threshold: 0 }
+      { root: null, rootMargin: '0px 0px 1400px 0px', threshold: 0 }
     );
 
     observer.observe(lastItemElement);
@@ -453,8 +483,11 @@ export default function App() {
       ).find((element) => element.dataset.menuCategory === categoryId);
 
       if (!firstItem) {
-        if (attempt < 20) {
-          window.setTimeout(() => scrollToCategory(attempt + 1), 100);
+        // The category is already being preloaded in the background. Keep
+        // checking briefly so the navigation moves as soon as its first item
+        // is committed to the DOM.
+        if (attempt < 60) {
+          window.setTimeout(() => scrollToCategory(attempt + 1), 75);
         }
         return;
       }
