@@ -145,9 +145,8 @@ export async function setRestaurantInfo(restaurant: RestaurantInfo): Promise<voi
 }
 
 export async function getRestaurantInfo(): Promise<RestaurantInfo | null> {
-  const snapshot = await getDocs(collection(db, RESTAURANT_COLLECTION));
-  const mainDoc = snapshot.docs.find((item) => item.id === 'main');
-  if (!mainDoc) return null;
+  const mainDoc = await getDoc(doc(db, RESTAURANT_COLLECTION, 'main'));
+  if (!mainDoc.exists()) return null;
   const data = mainDoc.data();
   const { adminUsername: _adminUsername, adminPassword: _adminPassword, ...publicRestaurantInfo } = data;
   return publicRestaurantInfo as RestaurantInfo;
@@ -158,9 +157,8 @@ export async function setHeroConfig(hero: HeroConfig): Promise<void> {
 }
 
 export async function getHeroConfig(): Promise<HeroConfig | null> {
-  const snapshot = await getDocs(collection(db, HERO_COLLECTION));
-  const mainDoc = snapshot.docs.find((item) => item.id === 'main');
-  return mainDoc ? (mainDoc.data() as HeroConfig) : null;
+  const mainDoc = await getDoc(doc(db, HERO_COLLECTION, 'main'));
+  return mainDoc.exists() ? (mainDoc.data() as HeroConfig) : null;
 }
 
 export interface MigrationResult {
