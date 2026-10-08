@@ -8,6 +8,8 @@ import {
   doc,
   setDoc,
   onSnapshot,
+  query,
+  where,
   writeBatch,
 } from 'firebase/firestore';
 
@@ -46,6 +48,22 @@ export function subscribeToMenuItems(callback: (items: MenuItem[]) => void) {
   return onSnapshot(menuItemsCollection, (snapshot) => {
     const items = snapshot.docs.map((item) => ({ id: item.id, ...item.data() })) as MenuItem[];
     // Firestore does not guarantee document order. Always restore the saved admin order.
+    callback(sortMenuItemsByOrder(items));
+  });
+}
+
+/**
+ * Live-load only the menu items belonging to one category.
+ * The customer menu uses this to avoid downloading the entire menu at once.
+ */
+export function subscribeToMenuItemsByCategory(
+  categoryId: string,
+  callback: (items: MenuItem[]) => void
+) {
+  const categoryQuery = query(menuItemsCollection, where('category', '==', categoryId));
+
+  return onSnapshot(categoryQuery, (snapshot) => {
+    const items = snapshot.docs.map((item) => ({ id: item.id, ...item.data() })) as MenuItem[];
     callback(sortMenuItemsByOrder(items));
   });
 }
