@@ -340,7 +340,34 @@ export default function App() {
     return () => unsub();
   }, []);
 
-  const scrollToMenu = () => menuSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const scrollToMenu = () => menuSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  // Keep scrolling between categories soft and predictable. CSS scroll-behavior
+  // handles normal anchor movement, while this helper gives category jumps a
+  // consistent offset below the sticky navigation bar.
+  const smoothScrollToCategory = useCallback((categoryId: string) => {
+    if (categoryId === 'all') {
+      menuSectionRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+      return;
+    }
+
+    const firstItem = Array.from(
+      document.querySelectorAll<HTMLElement>('[data-menu-category]')
+    ).find((element) => element.dataset.menuCategory === categoryId);
+
+    if (!firstItem) return;
+
+    const stickyOffset = 150;
+    const targetTop = firstItem.getBoundingClientRect().top + window.scrollY - stickyOffset;
+
+    window.scrollTo({
+      top: Math.max(0, targetTop),
+      behavior: 'smooth',
+    });
+  }, []);
 
   const filteredItems = useMemo(() => {
     if (viewMode !== 'customer' && viewMode !== 'admin') return [];
@@ -440,31 +467,25 @@ export default function App() {
     }
 
     const scrollToCategory = (attempt = 0) => {
-      if (categoryId === 'all') {
-        menuSectionRef.current?.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start',
-        });
-        return;
-      }
-
       const firstItem = Array.from(
         document.querySelectorAll<HTMLElement>('[data-menu-category]')
       ).find((element) => element.dataset.menuCategory === categoryId);
 
+      if (categoryId === 'all') {
+        smoothScrollToCategory('all');
+        return;
+      }
+
       if (!firstItem) {
-        if (attempt < 20) {
+        // The category may still be loading. Give the progressive loader a
+        // little time, then retry without creating a visible jump.
+        if (attempt < 25) {
           window.setTimeout(() => scrollToCategory(attempt + 1), 100);
         }
         return;
       }
 
-      const offset = 150;
-      const top = firstItem.getBoundingClientRect().top + window.scrollY - offset;
-      window.scrollTo({
-        top: Math.max(0, top),
-        behavior: 'smooth',
-      });
+      smoothScrollToCategory(categoryId);
     };
 
     requestAnimationFrame(() => scrollToCategory());
@@ -485,6 +506,17 @@ export default function App() {
       inline: 'center',
     });
   }, [categoryForHighlight]);
+
+  // Enable native smooth scrolling for any browser-generated anchor movement.
+  useEffect(() => {
+    const root = document.documentElement;
+    const previousBehavior = root.style.scrollBehavior;
+    root.style.scrollBehavior = 'smooth';
+
+    return () => {
+      root.style.scrollBehavior = previousBehavior;
+    };
+  }, []);
 
   const renderCategoryIcon = (name?: string) => ({
   Flame: <Flame className="w-4 h-4" />,
