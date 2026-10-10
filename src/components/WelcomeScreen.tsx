@@ -76,7 +76,10 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
               alt="Restaurant Logo"
               className="max-w-[180px] sm:max-w-[220px] md:max-w-[260px] max-h-[150px] sm:max-h-[180px] md:max-h-[200px] object-contain drop-shadow-[0_8px_25px_rgba(0,0,0,0.6)]"
               loading="eager"
-              decoding="async"
+              fetchPriority="high"
+              decoding="sync"
+              width={260}
+              height={200}
             />
           </div>
         )}
