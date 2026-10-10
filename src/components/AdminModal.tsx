@@ -111,10 +111,6 @@ export const AdminModal: React.FC<AdminModalProps> = ({
   const [formOrigPrice, setFormOrigPrice] = useState<number | ''>('');
   const [formCategory, setFormCategory] = useState(categories[0]?.id || 'main');
   const [formImageUrl, setFormImageUrl] = useState('');
-  const [formCalories, setFormCalories] = useState<number | ''>('');
-  const [formPrepTimeAr, setFormPrepTimeAr] = useState('');
-  const [formPrepTimeEn, setFormPrepTimeEn] = useState('');
-  const [formPrepTimeKu, setFormPrepTimeKu] = useState('');
   const [formIsSpecial, setFormIsSpecial] = useState(false);
   const [formIsPopular, setFormIsPopular] = useState(false);
   const [formAvailable, setFormAvailable] = useState(true);
@@ -245,10 +241,6 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     setFormOrigPrice(item.originalPrice ?? '');
     setFormCategory(text(item.category));
     setFormImageUrl(text(item.image));
-    setFormCalories(item.calories ?? '');
-    setFormPrepTimeAr(text(item.preparationTime));
-    setFormPrepTimeEn(text(item.preparationTimeEn));
-    setFormPrepTimeKu(text(item.preparationTimeKu));
     setFormIsSpecial(!!item.isChefSpecial);
     setFormIsPopular(!!item.isPopular);
     setFormAvailable(item.available);
@@ -267,10 +259,6 @@ export const AdminModal: React.FC<AdminModalProps> = ({
     setFormOrigPrice('');
     setFormCategory(categories[0]?.id || 'main');
     setFormImageUrl('');
-    setFormCalories('');
-    setFormPrepTimeAr('');
-    setFormPrepTimeEn('');
-    setFormPrepTimeKu('');
     setFormIsSpecial(false);
     setFormIsPopular(false);
     setFormAvailable(true);
@@ -325,17 +313,6 @@ const handleSaveItem = async (e: React.FormEvent) => {
       // السعر قبل الخصم: فارغ = حذف القيمة القديمة من Firestore.
       updatedItem.originalPrice = formOrigPrice === '' ? deleteField() : Number(formOrigPrice);
 
-      // السعرات: فارغ = حذف القيمة القديمة من Firestore.
-      updatedItem.calories = formCalories === '' ? deleteField() : Number(formCalories);
-
-      // وقت التحضير لكل لغة مستقل. الفارغ يحذف القيمة القديمة بدلاً من نسخ لغة أخرى.
-      const prepAr = String(formPrepTimeAr ?? '').trim();
-      const prepEn = String(formPrepTimeEn ?? '').trim();
-      const prepKu = String(formPrepTimeKu ?? '').trim();
-      updatedItem.preparationTime = prepAr ? prepAr : deleteField();
-      updatedItem.preparationTimeEn = prepEn ? prepEn : deleteField();
-      updatedItem.preparationTimeKu = prepKu ? prepKu : deleteField();
-
       // حفظ في Firestore
       await updateMenuItem(
         editingItem.id,
@@ -387,10 +364,6 @@ const handleSaveItem = async (e: React.FormEvent) => {
 
       // الحقول الاختيارية لا تُرسل إلى Firestore عندما تكون فارغة.
       if (formOrigPrice !== '') newItemData.originalPrice = Number(formOrigPrice);
-      if (formCalories !== '') newItemData.calories = Number(formCalories);
-      if (String(formPrepTimeAr ?? '').trim()) newItemData.preparationTime = String(formPrepTimeAr).trim();
-      if (String(formPrepTimeEn ?? '').trim()) newItemData.preparationTimeEn = String(formPrepTimeEn).trim();
-      if (String(formPrepTimeKu ?? '').trim()) newItemData.preparationTimeKu = String(formPrepTimeKu).trim();
       // Generate the document ID for the Firestore menu item.
       const firestoreId = crypto.randomUUID();
 
@@ -1488,52 +1461,6 @@ const handleSaveSettings = async (e: React.FormEvent) => {
                       ))}
                     </select>
                   </div>
-                </div>
-
-                {/* Additional Details */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-[#a8a192] mb-1.5">
-                      {t.itemCalories}
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="750"
-                      value={formCalories}
-                      onChange={(e) => setFormCalories(e.target.value === '' ? '' : Number(e.target.value))}
-                      className="w-full bg-[#101218] border border-[#312c21] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#d4af37]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-[#a8a192] mb-1.5">
-                      {t.prepTime}
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="20 دقيقة"
-                      value={formPrepTimeAr}
-                      onChange={(e) => setFormPrepTimeAr(e.target.value)}
-                      className="w-full bg-[#101218] border border-[#312c21] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#d4af37]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-[#a8a192] mb-1.5">
-                      {t.prepTimeEn}
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="20 min"
-                      value={formPrepTimeEn}
-                      onChange={(e) => setFormPrepTimeEn(e.target.value)}
-                      className="w-full bg-[#101218] border border-[#312c21] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#d4af37]"
-                      dir="ltr"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#a8a192] mb-1.5">{t.prepTimeKu || 'کاتی ئامادەکردن بە کوردی'}</label>
-                  <input type="text" placeholder="20 خولەک" value={formPrepTimeKu} onChange={(e) => setFormPrepTimeKu(e.target.value)} className="w-full bg-[#101218] border border-[#312c21] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[#d4af37]" dir="rtl" />
                 </div>
 
                 {/* Google Drive Image Link */}
