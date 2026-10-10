@@ -66,9 +66,6 @@ export const INITIAL_MENU_ITEMS: MenuItem[] = [
     image: "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=800&q=80",
     isPopular: true,
     isChefSpecial: true,
-    calories: 520,
-    preparationTime: "12 دقيقة",
-    preparationTimeEn: "12 min",
     available: true,
   },
   {
@@ -83,9 +80,6 @@ export const INITIAL_MENU_ITEMS: MenuItem[] = [
     image: "https://images.unsplash.com/photo-1562967914-608f82629710?auto=format&fit=crop&w=800&q=80",
     isPopular: true,
     isChefSpecial: false,
-    calories: 460,
-    preparationTime: "10 دقائق",
-    preparationTimeEn: "10 min",
     available: true,
   },
   {
@@ -99,9 +93,6 @@ export const INITIAL_MENU_ITEMS: MenuItem[] = [
     image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=800&q=80",
     isPopular: true,
     isChefSpecial: true,
-    calories: 410,
-    preparationTime: "15 دقيقة",
-    preparationTimeEn: "15 min",
     available: true,
   },
   {
@@ -115,9 +106,6 @@ export const INITIAL_MENU_ITEMS: MenuItem[] = [
     image: "https://images.unsplash.com/photo-1543339308-43e59d6b73a6?auto=format&fit=crop&w=800&q=80",
     isPopular: false,
     isChefSpecial: false,
-    calories: 480,
-    preparationTime: "10 دقائق",
-    preparationTimeEn: "10 min",
     available: true,
   },
   {
@@ -131,9 +119,6 @@ export const INITIAL_MENU_ITEMS: MenuItem[] = [
     image: "https://images.unsplash.com/photo-1576107232684-1279f3908594?auto=format&fit=crop&w=800&q=80",
     isPopular: true,
     isChefSpecial: false,
-    calories: 290,
-    preparationTime: "8 دقائق",
-    preparationTimeEn: "8 min",
     available: true,
   },
   {
@@ -148,9 +133,6 @@ export const INITIAL_MENU_ITEMS: MenuItem[] = [
     image: "https://images.unsplash.com/photo-1562376552-0d160a2f238d?auto=format&fit=crop&w=800&q=80",
     isPopular: true,
     isChefSpecial: true,
-    calories: 490,
-    preparationTime: "10 دقائق",
-    preparationTimeEn: "10 min",
     available: true,
   },
   {
@@ -164,9 +146,6 @@ export const INITIAL_MENU_ITEMS: MenuItem[] = [
     image: "https://images.unsplash.com/photo-1572490122747-3968b75cc699?auto=format&fit=crop&w=800&q=80",
     isPopular: true,
     isChefSpecial: true,
-    calories: 360,
-    preparationTime: "6 دقائق",
-    preparationTimeEn: "6 min",
     available: true,
   },
   {
@@ -178,9 +157,6 @@ export const INITIAL_MENU_ITEMS: MenuItem[] = [
     price: 4500,
     category: "drinks-shakes",
     image: "https://images.unsplash.com/photo-1505252585461-04db1eb84625?auto=format&fit=crop&w=800&q=80",
-    calories: 140,
-    preparationTime: "5 دقائق",
-    preparationTimeEn: "5 min",
     available: true,
   }
 ];
