@@ -100,6 +100,95 @@ export const MenuCard: React.FC<MenuCardProps> = ({
     }
   };
 
+  // Compact list card: small image beside the meal name and description.
+  if (layoutVariant === 'vertical') {
+    return (
+      <motion.div
+        layout
+        custom={index}
+        variants={cardVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        whileHover={{ y: -2, transition: { type: 'spring', stiffness: 450, damping: 24 } }}
+        whileTap={{ scale: 0.995 }}
+        className={`group relative flex w-full min-w-0 items-stretch gap-3 sm:gap-4 overflow-hidden rounded-2xl border bg-[#0f2156] p-3 shadow-md transition-all duration-300 ${
+          item.available
+            ? 'border-[#2855D9] hover:border-[#FFD11A] hover:shadow-lg hover:shadow-[#2855D9]/20'
+            : 'border-red-800/40 opacity-75'
+        }`}
+      >
+        <div className="relative h-24 w-24 sm:h-28 sm:w-28 flex-shrink-0 overflow-hidden rounded-xl bg-[#0a163e]">
+          <motion.img
+            src={item.image || 'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=600&q=80'}
+            alt={displayName}
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            loading="lazy"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=600&q=80';
+            }}
+          />
+          {!item.available && (
+            <span className="absolute inset-x-1 bottom-1 rounded-md bg-[#F2292E]/95 px-1 py-0.5 text-center text-[9px] font-bold text-white">
+              {t.notAvailable}
+            </span>
+          )}
+          {item.available && hasDiscountPrice && (
+            <span className="absolute start-1 top-1 rounded-md bg-[#F2292E] px-1.5 py-0.5 text-[10px] font-black text-white">
+              {Math.round(((safeOriginalPrice! - safePrice) / safeOriginalPrice!) * 100)}%
+            </span>
+          )}
+        </div>
+
+        <div className="flex min-w-0 flex-1 flex-col justify-between gap-2 py-0.5">
+          <div className="min-w-0">
+            <div className="flex items-start gap-2">
+              <h3 className="min-w-0 flex-1 text-sm sm:text-base font-black leading-snug text-white font-['Noto_Kufi_Arabic'] group-hover:text-[#FFD11A] transition-colors line-clamp-2">
+                {displayName}
+              </h3>
+              {item.isChefSpecial && <span className="flex-shrink-0 rounded-full bg-[#FFD11A] p-1 text-[#0a163e]" title={t.specialBadge}><Sparkles className="h-3.5 w-3.5" /></span>}
+              {item.isPopular && !item.isChefSpecial && <span className="flex-shrink-0 rounded-full bg-[#F7941D] p-1 text-white" title={t.popularBadge}><Star className="h-3.5 w-3.5 fill-current" /></span>}
+            </div>
+            {displayDesc && (
+              <p className="mt-1 text-xs leading-relaxed text-[#c5d5fc] line-clamp-2 sm:line-clamp-3">
+                {displayDesc}
+              </p>
+            )}
+          </div>
+
+          <div className="flex min-w-0 items-center justify-between gap-2 border-t border-[#1e3b96] pt-2">
+            <div className="flex min-w-0 flex-wrap items-baseline gap-x-1.5">
+              <span className="text-base sm:text-lg font-black tracking-tight text-[#FFD11A] font-['Fredoka',sans-serif]">
+                {safePrice.toLocaleString()}
+              </span>
+              <span className="text-[10px] sm:text-xs font-bold text-[#9ebbf9]">{currency}</span>
+              {hasDiscountPrice && <span className="text-[10px] text-[#7897dc] line-through">{safeOriginalPrice!.toLocaleString()}</span>}
+            </div>
+            {isAdmin ? (
+              <div className="flex flex-shrink-0 items-center gap-1.5">
+                <button onClick={() => onEdit?.(item)} className="rounded-lg border border-[#2855D9] bg-[#12245e] p-2 text-white transition-colors hover:bg-[#FFD11A] hover:text-[#0a163e]" title={t.editItem}><Edit3 className="h-4 w-4" /></button>
+                <button onClick={() => onDelete?.(item)} className="rounded-lg border border-[#F2292E]/60 bg-[#F2292E]/30 p-2 text-[#ffc6c7] transition-colors hover:bg-[#F2292E] hover:text-white" title={t.deleteItem}><Trash2 className="h-4 w-4" /></button>
+              </div>
+            ) : (
+              <div className="relative flex-shrink-0">
+                <AnimatePresence>
+                  {floatingParticles.map((p) => (
+                    <motion.div key={p.id} initial={{ opacity: 1, scale: 0.6, x: 0, y: 0 }} animate={{ opacity: 0, scale: 1.4, x: p.x, y: p.y }} exit={{ opacity: 0 }} transition={{ duration: 0.7, ease: 'easeOut' }} className="pointer-events-none absolute -top-1 start-2 z-30">
+                      <Heart className="h-3.5 w-3.5 fill-current" style={{ color: p.color }} />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+                <motion.button onClick={handleLikeClick} whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.85 }} className={`flex h-8 w-8 items-center justify-center rounded-full border-2 transition-colors ${isLiked ? 'border-[#F2292E] bg-[#F2292E] text-white' : 'border-[#2855D9] bg-[#12245e] text-[#78C943] hover:border-[#F2292E] hover:text-[#F2292E]'}`} title={isLiked ? 'أعجبني!' : 'إعجاب'}>
+                  <Heart className={`h-4 w-4 ${isLiked ? 'fill-current' : 'fill-transparent'}`} />
+                </motion.button>
+              </div>
+            )}
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
   // Horizontal / Wide landscape card layout
   if (layoutVariant === 'horizontal') {
     return (
