@@ -89,15 +89,16 @@ export default function App() {
       // Ignore storage errors.
     }
 
-    if (typeof window !== 'undefined') {
-      const appBasePath = window.location.pathname.replace(/admin\/?$/, '');
-      const menuUrl = `${window.location.origin}${appBasePath}?v=${Date.now()}#/${menuRoute}`;
-      window.location.assign(menuUrl);
-      return;
-    }
-
     setLanguage(selectedLanguage);
     setViewMode('customer');
+
+    // Navigate by hash only: keep the current React app and live data mounted.
+    if (typeof window !== 'undefined') {
+      const nextHash = `#/${menuRoute}`;
+      if (window.location.hash !== nextHash) {
+        window.location.hash = nextHash;
+      }
+    }
   };
 
   const navigateToView = (view: ViewMode) => {
@@ -188,20 +189,15 @@ export default function App() {
     customerCategorySubscriptionsRef.current[categoryId] = unsubscribe;
   }, []);
 
+  // Keep categories live across route changes instead of refetching them
+  // every time the user leaves and re-enters the menu.
   useEffect(() => {
-    if (viewMode !== 'customer' && viewMode !== 'admin') {
-      setMenuReady(false);
-      return;
-    }
-
-    setCategoriesReady(false);
     const unsubscribe = subscribeToCategories((nextCategories) => {
       setCategories(nextCategories);
       setCategoriesReady(true);
     });
-
     return unsubscribe;
-  }, [viewMode]);
+  }, []);
 
   useEffect(() => {
     if (viewMode === 'admin') {
@@ -213,23 +209,21 @@ export default function App() {
       return unsubscribe;
     }
 
-    if (viewMode !== 'customer') {
-      return;
+    if (viewMode === 'customer') {
+      // Keep already-loaded customer data visible when returning to the menu.
+      setMenuReady(loadedCustomerCategoriesRef.current.size > 0);
     }
+  }, [viewMode]);
 
-    setMenuReady(false);
-    setItems([]);
-    loadedCustomerCategoriesRef.current = new Set();
-    loadingCustomerCategoriesRef.current = new Set();
-    setLoadedCustomerCategories([]);
-
+  // Keep category subscriptions and their cached data alive across navigation.
+  useEffect(() => {
     return () => {
       Object.values(customerCategorySubscriptionsRef.current).forEach((unsubscribe) => unsubscribe());
       customerCategorySubscriptionsRef.current = {};
       loadedCustomerCategoriesRef.current = new Set();
       loadingCustomerCategoriesRef.current = new Set();
     };
-  }, [viewMode]);
+  }, []);
 
   // Once categories are known, start with the first category in the current
   // saved order. Changing category order in the admin panel automatically
@@ -550,10 +544,6 @@ export default function App() {
   // Render the shell as soon as categories are available and let the first
   // category populate the grid asynchronously. Admin still waits for its full menu.
   if (viewMode === 'admin' && !firestoreReady) {
-    return <div className="fixed inset-0 flex items-center justify-center bg-[#0a163e] text-white"><div className="text-center"><div className="w-10 h-10 border-4 border-white/20 border-t-[#FFD11A] rounded-full animate-spin mx-auto mb-4" /><p className="font-semibold">{'جاري التحميل...'}</p></div></div>;
-  }
-
-  if (viewMode === 'customer' && !categoriesReady) {
     return <div className="fixed inset-0 flex items-center justify-center bg-[#0a163e] text-white"><div className="text-center"><div className="w-10 h-10 border-4 border-white/20 border-t-[#FFD11A] rounded-full animate-spin mx-auto mb-4" /><p className="font-semibold">{'جاري التحميل...'}</p></div></div>;
   }
 
