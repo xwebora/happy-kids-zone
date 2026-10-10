@@ -1,0 +1,27 @@
+{
+  "name": "Happy Kids Zone - لوحة التحكم",
+  "short_name": "Happy Kids Admin",
+  "description": "لوحة تحكم Happy Kids Zone",
+  "start_url": "/happy-kids-zone/admin/#/portal",
+  "scope": "/happy-kids-zone/admin/",
+  "id": "/happy-kids-zone/admin/",
+  "display": "standalone",
+  "background_color": "#0a163e",
+  "theme_color": "#0a163e",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "/happy-kids-zone/pwa-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/happy-kids-zone/pwa-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
