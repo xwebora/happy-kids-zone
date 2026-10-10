@@ -301,8 +301,8 @@ const handleSaveItem = async (e: React.FormEvent) => {
         available: formAvailable,
         isChefSpecial: formIsSpecial,
         isPopular: formIsPopular,
-        // Never change a meal's saved position when editing it.
-        sortOrder: editingItem.sortOrder,
+        // Preserve saved position when present; legacy items may not have sortOrder.
+        ...(typeof editingItem.sortOrder === 'number' ? { sortOrder: editingItem.sortOrder } : {}),
       };
 
       // السعر: إذا تركه المستخدم فارغاً أثناء التعديل، يبقى السعر القديم كما هو.
