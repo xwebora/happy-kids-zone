@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence, type Variants } from 'motion/react';
-import { Flame, Clock, Edit3, Trash2, XCircle, Sparkles, Heart, Star } from 'lucide-react';
+import { Edit3, Trash2, XCircle, Sparkles, Heart, Star } from 'lucide-react';
 import { MenuItem, Language } from '../types';
 import { translations } from '../utils/i18n';
 
@@ -71,10 +71,6 @@ export const MenuCard: React.FC<MenuCardProps> = ({
     : isKu
       ? (item.descriptionKu || item.descriptionEn || item.description)
       : (item.descriptionEn || item.description);
-  const displayPrep = isAr
-    ? item.preparationTime
-    : (item.preparationTimeEn || item.preparationTime);
-
   // Optional discount price must never render as NaN.
   const safePrice = Number.isFinite(Number(item.price)) ? Number(item.price) : 0;
   const safeOriginalPrice = Number.isFinite(Number(item.originalPrice))
@@ -214,21 +210,6 @@ export const MenuCard: React.FC<MenuCardProps> = ({
                 
               </div>
 
-              {/* Prep time & calories tag in horizontal card */}
-              <div className="flex items-center gap-2 self-start flex-shrink-0">
-                {displayPrep && (
-                  <span className="flex items-center gap-1 text-[11px] text-[#FFD11A] bg-[#12245e] border border-[#2855D9] px-2.5 py-1 rounded-xl font-bold">
-                    <Clock className="w-3 h-3" />
-                    <span>{displayPrep}</span>
-                  </span>
-                )}
-                {item.calories && (
-                  <span className="flex items-center gap-1 text-[11px] text-[#78C943] bg-[#12245e] border border-[#2855D9] px-2.5 py-1 rounded-xl font-bold">
-                    <Flame className="w-3 h-3" />
-                    <span>{item.calories} {t.calories}</span>
-                  </span>
-                )}
-              </div>
             </div>
 
             <p className="text-xs sm:text-sm text-[#c5d5fc] leading-relaxed line-clamp-3 mt-2">
@@ -413,20 +394,6 @@ export const MenuCard: React.FC<MenuCardProps> = ({
           )}
         </div>
 
-        {/* Prep Time & Calories in corner */}
-        <div className="absolute bottom-2.5 end-3 flex items-center gap-2 text-[11px] text-white bg-[#0a163e]/90 backdrop-blur-sm px-2.5 py-1 rounded-xl border border-[#2855D9] font-bold shadow">
-          {displayPrep && (
-            <span className="flex items-center gap-1">
-              <Clock className="w-3 h-3 text-[#FFD11A]" />
-              <span>{displayPrep}</span>
-            </span>
-          )}
-          {item.calories && (
-            <span className="border-e border-[#2855D9] pe-2 me-1 text-[#78C943]">
-              {item.calories} {t.calories}
-            </span>
-          )}
-        </div>
       </div>
 
       {/* Content */}
