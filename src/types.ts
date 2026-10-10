@@ -17,10 +17,6 @@ export interface MenuItem {
   driveFileId?: string;
   isPopular?: boolean;
   isChefSpecial?: boolean;
-  calories?: number;
-  preparationTime?: string;
-  preparationTimeEn?: string;
-  preparationTimeKu?: string;
   available: boolean;
   sortOrder?: number;
 }
