@@ -104,9 +104,6 @@ export const translations = {
     origPrice: 'السعر قبل الخصم (اختياري)',
     category: 'الصنف / الفئة',
     selectCategory: 'اختر الصنف',
-    prepTime: 'وقت التحضير بالعربية',
-    prepTimeEn: 'وقت التحضير بالإنجليزية',
-    itemCalories: 'السعرات الحرارية',
     itemImage: 'صورة الطبق',
     imageUploadOrUrl: 'اختر صورة من جهازك لرفعها إلى Drive أو ضع رابطاً مباشراً',
     chooseFromDevice: 'اختر صورة من جهازك',
@@ -406,7 +403,6 @@ ku: {
 
   nameKu: 'ناوی خواردن بە کوردی',
   descKu: 'وەسف بە کوردی',
-  prepTimeKu: 'کاتی ئامادەکردن بە کوردی',
 
   categoryNameKu: 'ناوی جۆر بە کوردی',
   category: 'جۆر',
