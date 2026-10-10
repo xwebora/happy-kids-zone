@@ -24,8 +24,7 @@ const ITEM_HEADERS = [
   'Name AR', 'Name EN', 'Name KU',
   'Category EN', 'Description AR', 'Description EN', 'Description KU', 'Price',
   'Original Price', 'Image URL', 'Drive File ID', 'Popular',
-  'Chef Special', 'Calories', 'Prep Time AR', 'Prep Time EN',
-  'Prep Time KU', 'Available'
+  'Chef Special', 'Available'
 ];
 
 const SAMPLE_CATEGORY = {
@@ -49,10 +48,6 @@ const SAMPLE_ITEM = {
   'Drive File ID': '',
   'Popular': 'TRUE',
   'Chef Special': 'FALSE',
-  'Calories': 650,
-  'Prep Time AR': '15 دقيقة',
-  'Prep Time EN': '15 min',
-  'Prep Time KU': '١٥ خولەک',
   'Available': 'TRUE'
 };
 
@@ -95,10 +90,6 @@ export function exportMenuItemsToExcel(items: MenuItem[], categories: Category[]
     'Drive File ID': i.driveFileId || '',
     'Popular': i.isPopular ? 'TRUE' : 'FALSE',
     'Chef Special': i.isChefSpecial ? 'TRUE' : 'FALSE',
-    'Calories': i.calories ?? '',
-    'Prep Time AR': i.preparationTime || '',
-    'Prep Time EN': i.preparationTimeEn || '',
-    'Prep Time KU': i.preparationTimeKu || '',
     'Available': i.available ? 'TRUE' : 'FALSE'
   }));
   const ws = XLSX.utils.json_to_sheet(rows, { header: ITEM_HEADERS });
@@ -216,11 +207,6 @@ export async function parseMenuItemsExcel(
 
     const op = num(r['Original Price']);
     if (op !== undefined) item.originalPrice = op;
-    const cal = num(r['Calories']);
-    if (cal !== undefined) item.calories = cal;
-    item.preparationTime = text(r['Prep Time AR']);
-    item.preparationTimeEn = text(r['Prep Time EN']);
-    item.preparationTimeKu = text(r['Prep Time KU']);
     const drive = text(r['Drive File ID']);
     if (drive) item.driveFileId = drive;
     rows.push(item);
