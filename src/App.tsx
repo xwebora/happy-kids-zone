@@ -90,7 +90,8 @@ export default function App() {
     }
 
     if (typeof window !== 'undefined') {
-      const menuUrl = `${window.location.origin}${window.location.pathname}?v=${Date.now()}#/${menuRoute}`;
+      const appBasePath = window.location.pathname.replace(/admin\/?$/, '');
+      const menuUrl = `${window.location.origin}${appBasePath}?v=${Date.now()}#/${menuRoute}`;
       window.location.assign(menuUrl);
       return;
     }
