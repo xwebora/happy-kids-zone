@@ -78,7 +78,12 @@ export async function setMenuItem(id: string, item: Omit<MenuItem, 'id'>): Promi
 }
 
 export async function updateMenuItem(id: string, item: Partial<Omit<MenuItem, 'id'>>): Promise<void> {
-  await updateDoc(doc(db, MENU_ITEMS_COLLECTION, id), item);
+  // Firestore rejects undefined values. Older menu documents may not have every optional field.
+  const safeItem = Object.fromEntries(
+    Object.entries(item).filter(([, value]) => value !== undefined)
+  );
+  if (Object.keys(safeItem).length === 0) return;
+  await updateDoc(doc(db, MENU_ITEMS_COLLECTION, id), safeItem);
 }
 
 export async function deleteMenuItem(id: string): Promise<void> {
