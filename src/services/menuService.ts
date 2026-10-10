@@ -218,7 +218,7 @@ export async function migrateAllDataToFirestore(
   return { menuItems: migratedItems, categories: migratedCategories, restaurant: true, hero: true };
 }
 
-const DEFAULT_WELCOME_CONFIG: WelcomeConfig = {
+export const DEFAULT_WELCOME_CONFIG: WelcomeConfig = {
   enabled: true,
   backgroundType: 'video',
   backgroundUrl: '/happy-kids-zone/welcome-video.mp4',
