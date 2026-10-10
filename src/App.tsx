@@ -10,7 +10,7 @@ import { WelcomeScreen } from './components/WelcomeScreen';
 import { MenuItem, Category, RestaurantInfo, HeroConfig, Language, BrandThemeMode } from './types';
 import { INITIAL_MENU_ITEMS, INITIAL_CATEGORIES, INITIAL_RESTAURANT_INFO, INITIAL_HERO_CONFIG } from './data/mockData';
 import { initAuth } from './services/auth';
-import { getWelcomeConfig, getRestaurantInfo, getHeroConfig, subscribeToMenuItems, subscribeToMenuItemsByCategory, subscribeToCategories } from './services/menuService';
+import { DEFAULT_WELCOME_CONFIG, getWelcomeConfig, getRestaurantInfo, getHeroConfig, subscribeToMenuItems, subscribeToMenuItemsByCategory, subscribeToCategories } from './services/menuService';
 import { translations } from './utils/i18n';
 import { User } from 'firebase/auth';
 import { Utensils, Flame, Beef, Salad, Cake, Coffee, Smile, Hamburger, Pizza, Sandwich, IceCreamBowl, Wine, CupSoda, Store } from 'lucide-react';
@@ -144,7 +144,8 @@ export default function App() {
   const [categoriesReady, setCategoriesReady] = useState(false);
   const firestoreReady = menuReady && categoriesReady;
   const [heroConfig, setHeroConfig] = useState<HeroConfig>(INITIAL_HERO_CONFIG);
-  const [welcomeConfig, setWelcomeConfig] = useState<any>(null);
+  // Render the welcome screen immediately with safe defaults while Firestore settings load.
+  const [welcomeConfig, setWelcomeConfig] = useState<any>(DEFAULT_WELCOME_CONFIG);
   const [selectedCategory, setSelectedCategory] = useState('all');
   // Separate the category used for filtering from the category highlighted while
   // browsing the "All" list. This lets the active category follow the scroll
@@ -534,9 +535,6 @@ export default function App() {
   // The welcome screen must not wait for menu data. Menu items/categories
   // are only needed after entering the customer menu.
   if (viewMode === 'welcome') {
-    if (!welcomeConfig) {
-      return <div className="fixed inset-0 flex items-center justify-center bg-[#0a163e] text-white"><div className="text-center"><div className="w-10 h-10 border-4 border-white/20 border-t-[#FFD11A] rounded-full animate-spin mx-auto mb-4" /><p className="font-semibold">{language === 'en' ? 'Loading...' : 'جاري التحميل...'}</p></div></div>;
-    }
     return <WelcomeScreen config={welcomeConfig} onLanguageSelect={goToMenu} />;
   }
 
