@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence, type Variants } from 'motion/react';
 import { Edit3, Trash2, XCircle, Sparkles, Heart, Star } from 'lucide-react';
 import { MenuItem, Language } from '../types';
 import { translations } from '../utils/i18n';
@@ -16,50 +15,16 @@ interface MenuCardProps {
   theme?: 'dark' | 'light';
 }
 
-// Child animation variants for lively kids staggered pop-in
-export const cardVariants: Variants = {
-  hidden: { 
-    opacity: 0, 
-    scale: 0.82, 
-    y: 35,
-    rotate: -1.5,
-  },
-  visible: (i: number) => ({
-    opacity: 1,
-    scale: 1,
-    y: 0,
-    rotate: 0,
-    transition: {
-      type: 'spring' as const,
-      stiffness: 380,
-      damping: 22,
-      mass: 0.8,
-      delay: Math.min(i * 0.045, 0.35),
-    },
-  }),
-  exit: {
-    opacity: 0,
-    scale: 0.85,
-    y: -20,
-    transition: {
-      duration: 0.2,
-      ease: 'easeIn' as const,
-    },
-  },
-};
-
 export const MenuCard: React.FC<MenuCardProps> = ({
   item,
   currency,
   language,
-  index = 0,
   isAdmin = false,
   onEdit,
   onDelete,
   layoutVariant = 'vertical',
 }) => {
   const [isLiked, setIsLiked] = useState(false);
-  const [floatingParticles, setFloatingParticles] = useState<Array<{ id: number; x: number; y: number; color: string }>>([]);
   const t = translations[language] ?? translations.ar;
   const isAr = language === 'ar';
   const isKu = language === 'ku';
@@ -78,51 +43,29 @@ export const MenuCard: React.FC<MenuCardProps> = ({
     : null;
   const hasDiscountPrice = safeOriginalPrice !== null && safeOriginalPrice > safePrice;
 
-  // Playful tilt angle on hover alternating for cards
-  const hoverRotate = index % 2 === 0 ? -1.2 : 1.2;
-
-  // Trigger floating heart burst when liked
+  
+  // Toggle the like state without decorative animation.
   const handleLikeClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const nextState = !isLiked;
-    setIsLiked(nextState);
-
-    if (nextState) {
-      const colors = ['#F2292E', '#FFD11A', '#F7941D', '#78C943', '#71359B'];
-      const newParticles = Array.from({ length: 5 }).map((_, pIdx) => ({
-        id: Date.now() + pIdx,
-        x: (Math.random() - 0.5) * 40,
-        y: -30 - Math.random() * 40,
-        color: colors[pIdx % colors.length],
-      }));
-      setFloatingParticles(newParticles);
-      setTimeout(() => setFloatingParticles([]), 900);
-    }
+    setIsLiked((current) => !current);
   };
 
   // Compact list card: small image beside the meal name and description.
   if (layoutVariant === 'vertical') {
     return (
-      <motion.div
+      <div
         layout
-        custom={index}
-        variants={cardVariants}
-        initial="hidden"
-        animate="visible"
-        exit="exit"
-        whileHover={{ y: -2, transition: { type: 'spring', stiffness: 450, damping: 24 } }}
-        whileTap={{ scale: 0.995 }}
-        className={`group relative flex w-full min-w-0 items-stretch gap-3 sm:gap-4 overflow-hidden rounded-2xl border bg-[#0f2156] p-3 shadow-md transition-all duration-300 ${
+        className={`group relative flex w-full min-w-0 items-stretch gap-3 sm:gap-4 overflow-hidden rounded-2xl border bg-[#0f2156] p-3 shadow-md  ${
           item.available
             ? 'border-[#2855D9] hover:border-[#FFD11A] hover:shadow-lg hover:shadow-[#2855D9]/20'
             : 'border-red-800/40 opacity-75'
         }`}
       >
         <div className="relative h-24 w-24 sm:h-28 sm:w-28 flex-shrink-0 overflow-hidden rounded-xl bg-[#0a163e]">
-          <motion.img
+          <img
             src={item.image || 'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=600&q=80'}
             alt={displayName}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="h-full w-full object-cover transition- duration-500 "
             loading="lazy"
             onError={(e) => {
               (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=600&q=80';
@@ -171,40 +114,24 @@ export const MenuCard: React.FC<MenuCardProps> = ({
               </div>
             ) : (
               <div className="relative flex-shrink-0">
-                <AnimatePresence>
-                  {floatingParticles.map((p) => (
-                    <motion.div key={p.id} initial={{ opacity: 1, scale: 0.6, x: 0, y: 0 }} animate={{ opacity: 0, scale: 1.4, x: p.x, y: p.y }} exit={{ opacity: 0 }} transition={{ duration: 0.7, ease: 'easeOut' }} className="pointer-events-none absolute -top-1 start-2 z-30">
-                      <Heart className="h-3.5 w-3.5 fill-current" style={{ color: p.color }} />
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-                <motion.button onClick={handleLikeClick} whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.85 }} className={`flex h-8 w-8 items-center justify-center rounded-full border-2 transition-colors ${isLiked ? 'border-[#F2292E] bg-[#F2292E] text-white' : 'border-[#2855D9] bg-[#12245e] text-[#78C943] hover:border-[#F2292E] hover:text-[#F2292E]'}`} title={isLiked ? 'أعجبني!' : 'إعجاب'}>
+                
+                <button onClick={handleLikeClick} className={`flex h-8 w-8 items-center justify-center rounded-full border-2 transition-colors ${isLiked ? 'border-[#F2292E] bg-[#F2292E] text-white' : 'border-[#2855D9] bg-[#12245e] text-[#78C943] hover:border-[#F2292E] hover:text-[#F2292E]'}`} title={isLiked ? 'أعجبني!' : 'إعجاب'}>
                   <Heart className={`h-4 w-4 ${isLiked ? 'fill-current' : 'fill-transparent'}`} />
-                </motion.button>
+                </button>
               </div>
             )}
           </div>
         </div>
-      </motion.div>
+      </div>
     );
   }
 
   // Horizontal / Wide landscape card layout
   if (layoutVariant === 'horizontal') {
     return (
-      <motion.div
+      <div
         layout
-        custom={index}
-        variants={cardVariants}
-        initial="hidden"
-        animate="visible"
-        exit="exit"
-        whileHover={{ 
-          y: -5,
-          transition: { type: 'spring', stiffness: 450, damping: 20 }
-        }}
-        whileTap={{ scale: 0.99 }}
-        className={`group relative rounded-3xl bg-[#0f2156] border-2 transition-all duration-300 flex flex-col md:flex-row overflow-hidden shadow-lg ${
+        className={`group relative rounded-3xl bg-[#0f2156] border-2  flex flex-col md:flex-row overflow-hidden shadow-lg ${
           item.available 
             ? 'border-[#2855D9] hover:border-[#FFD11A] hover:shadow-2xl hover:shadow-[#2855D9]/40' 
             : 'border-red-800/40 opacity-75'
@@ -213,7 +140,7 @@ export const MenuCard: React.FC<MenuCardProps> = ({
         {/* Playful Corner Accent Ribbon for Special */}
         {item.isChefSpecial && (
           <div className="absolute top-0 start-0 z-20 overflow-hidden w-20 h-20 pointer-events-none">
-            <div className="absolute transform -rotate-45 bg-[#FFD11A] text-[#0a163e] font-black text-[9px] py-0.5 w-28 text-center -start-7 top-4 shadow-md tracking-wider flex items-center justify-center gap-0.5">
+            <div className="absolute  -rotate-45 bg-[#FFD11A] text-[#0a163e] font-black text-[9px] py-0.5 w-28 text-center -start-7 top-4 shadow-md tracking-wider flex items-center justify-center gap-0.5">
               <Star className="w-2.5 h-2.5 fill-current" />
               <span>TOP</span>
             </div>
@@ -222,10 +149,10 @@ export const MenuCard: React.FC<MenuCardProps> = ({
 
         {/* Image on start side */}
         <div className="relative w-full md:w-64 lg:w-72 md:min-w-[230px] aspect-[16/10] md:aspect-auto h-48 md:h-auto overflow-hidden bg-[#0a163e] flex-shrink-0">
-          <motion.img
+          <img
             src={item.image || 'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=600&q=80'}
             alt={displayName}
-            className="w-full h-full object-cover object-center transform transition-transform duration-700 ease-out group-hover:scale-110"
+            className="w-full h-full object-cover object-center  transition- duration-700 ease-out "
             loading="lazy"
             onError={(e) => {
               (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=600&q=80';
@@ -237,28 +164,20 @@ export const MenuCard: React.FC<MenuCardProps> = ({
           {/* Badges top right */}
           <div className="absolute top-3 end-3 flex flex-col gap-1.5 items-end z-10">
             {item.isChefSpecial && (
-              <motion.span 
-                initial={{ scale: 0, rotate: -20 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ type: 'spring', stiffness: 500, damping: 18, delay: 0.1 }}
-                whileHover={{ scale: 1.15, rotate: 5 }}
+              <span
                 className="px-2.5 py-1 rounded-full text-[11px] font-black bg-[#FFD11A] text-[#0a163e] shadow-md flex items-center gap-1 cursor-default"
               >
-                <Sparkles className="w-3.5 h-3.5 text-[#0a163e] animate-spin" style={{ animationDuration: '6s' }} />
+                <Sparkles className="w-3.5 h-3.5 text-[#0a163e] " style={{ animationDuration: '6s' }} />
                 <span>{t.specialBadge}</span>
-              </motion.span>
+              </span>
             )}
             {item.isPopular && !item.isChefSpecial && (
-              <motion.span 
-                initial={{ scale: 0, rotate: -15 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ type: 'spring', stiffness: 500, damping: 18, delay: 0.1 }}
-                whileHover={{ scale: 1.15, rotate: 5 }}
+              <span
                 className="px-2.5 py-1 rounded-full text-[11px] font-black bg-[#F7941D] text-white shadow-md flex items-center gap-1 cursor-default"
               >
-                <Flame className="w-3 h-3 animate-pulse text-[#FFD11A]" />
+                <Flame className="w-3 h-3  text-[#FFD11A]" />
                 <span>{t.popularBadge}</span>
-              </motion.span>
+              </span>
             )}
             {item.driveFileId && (
               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#71359B]/90 text-white border border-[#71359B] backdrop-blur-sm">
@@ -276,14 +195,11 @@ export const MenuCard: React.FC<MenuCardProps> = ({
               </span>
             )}
             {item.available && hasDiscountPrice && (
-              <motion.span 
-                whileHover={{ scale: 1.1, rotate: [-2, 2, -2] }}
-                animate={{ scale: [1, 1.05, 1] }}
-                transition={{ repeat: Infinity, duration: 2.5 }}
+              <span
                 className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-[#F2292E] text-white shadow-lg border border-white/20 block"
               >
                 {Math.round(((safeOriginalPrice! - safePrice) / safeOriginalPrice!) * 100)}% {t.discount}
-              </motion.span>
+              </span>
             )}
           </div>
         </div>
@@ -309,12 +225,11 @@ export const MenuCard: React.FC<MenuCardProps> = ({
           {/* Pricing & Footer Actions */}
           <div className="pt-4 mt-4 border-t border-[#1e3b96] flex items-center justify-between relative">
             <div className="flex items-baseline gap-1.5">
-              <motion.span 
-                whileHover={{ scale: 1.1 }}
+              <span
                 className="text-2xl sm:text-3xl font-black text-[#FFD11A] font-['Fredoka',sans-serif] inline-block tracking-tight"
               >
                 {safePrice.toLocaleString()}
-              </motion.span>
+              </span>
               <span className="text-xs sm:text-sm text-[#9ebbf9] font-bold">
                 {currency}
               </span>
@@ -344,26 +259,10 @@ export const MenuCard: React.FC<MenuCardProps> = ({
               </div>
             ) : (
               <div className="relative">
-                <AnimatePresence>
-                  {floatingParticles.map((p) => (
-                    <motion.div
-                      key={p.id}
-                      initial={{ opacity: 1, scale: 0.6, x: 0, y: 0 }}
-                      animate={{ opacity: 0, scale: 1.4, x: p.x, y: p.y }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.7, ease: 'easeOut' }}
-                      className="absolute pointer-events-none -top-1 start-2 z-30"
-                    >
-                      <Heart className="w-3.5 h-3.5 fill-current" style={{ color: p.color }} />
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
+                
 
-                <motion.button
+                <button
                   onClick={handleLikeClick}
-                  whileHover={{ scale: 1.25, rotate: isLiked ? -10 : 10 }}
-                  whileTap={{ scale: 0.75 }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 15 }}
                   className={`w-9 h-9 rounded-full border-2 flex items-center justify-center transition-colors shadow-sm cursor-pointer select-none ${
                     isLiked 
                       ? 'bg-[#F2292E] border-[#F2292E] text-white shadow-lg shadow-[#F2292E]/50' 
@@ -371,33 +270,22 @@ export const MenuCard: React.FC<MenuCardProps> = ({
                   }`}
                   title={isLiked ? 'أعجبني!' : 'إعجاب'}
                 >
-                  <Heart className={`w-4 h-4 transition-transform ${isLiked ? 'fill-current scale-110' : 'fill-transparent'}`} />
-                </motion.button>
+                  <Heart className={`w-4 h-4 transition- ${isLiked ? 'fill-current ' : 'fill-transparent'}`} />
+                </button>
               </div>
             )}
           </div>
         </div>
-      </motion.div>
+      </div>
     );
   }
 
   const isCarousel = layoutVariant === 'carousel';
 
   return (
-    <motion.div
+    <div
       layout
-      custom={index}
-      variants={cardVariants}
-      initial="hidden"
-      animate="visible"
-      exit="exit"
-      whileHover={{ 
-        y: -6,
-        rotate: hoverRotate,
-        transition: { type: 'spring', stiffness: 450, damping: 18 }
-      }}
-      whileTap={{ scale: 0.98 }}
-      className={`group relative rounded-3xl bg-[#0f2156] border-2 transition-all duration-300 flex flex-col overflow-hidden shadow-lg isolate ${
+      className={`group relative rounded-3xl bg-[#0f2156] border-2  flex flex-col overflow-hidden shadow-lg isolate ${
         isCarousel ? 'w-[280px] sm:w-[320px] flex-shrink-0 snap-start' : ''
       } ${
         item.available 
@@ -408,7 +296,7 @@ export const MenuCard: React.FC<MenuCardProps> = ({
       {/* Playful Corner Accent Ribbon for Kids */}
       {item.isChefSpecial && (
         <div className="absolute top-0 start-0 z-20 overflow-hidden w-20 h-20 pointer-events-none">
-          <div className="absolute transform -rotate-45 bg-[#FFD11A] text-[#0a163e] font-black text-[9px] py-0.5 w-28 text-center -start-7 top-4 shadow-md tracking-wider flex items-center justify-center gap-0.5">
+          <div className="absolute  -rotate-45 bg-[#FFD11A] text-[#0a163e] font-black text-[9px] py-0.5 w-28 text-center -start-7 top-4 shadow-md tracking-wider flex items-center justify-center gap-0.5">
             <Star className="w-2.5 h-2.5 fill-current" />
             <span>TOP</span>
           </div>
@@ -417,10 +305,10 @@ export const MenuCard: React.FC<MenuCardProps> = ({
 
       {/* Image container with bouncy zoom */}
       <div className="relative aspect-[16/10] w-full overflow-hidden bg-[#0a163e]">
-        <motion.img
+        <img
           src={item.image || 'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=600&q=80'}
           alt={displayName}
-          className="w-full h-full object-cover object-center transform transition-transform duration-700 ease-out group-hover:scale-110"
+          className="w-full h-full object-cover object-center  transition- duration-700 ease-out "
           loading="lazy"
           onError={(e) => {
             (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=600&q=80';
@@ -433,28 +321,20 @@ export const MenuCard: React.FC<MenuCardProps> = ({
         {/* Badges top right */}
         <div className="absolute top-3 end-3 flex flex-col gap-1.5 items-end z-10">
           {item.isChefSpecial && (
-            <motion.span 
-              initial={{ scale: 0, rotate: -20 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ type: 'spring', stiffness: 500, damping: 18, delay: 0.1 }}
-              whileHover={{ scale: 1.15, rotate: 5 }}
+            <span
               className="px-2.5 py-1 rounded-full text-[11px] font-black bg-[#FFD11A] text-[#0a163e] shadow-md flex items-center gap-1 cursor-default"
             >
-              <Sparkles className="w-3.5 h-3.5 text-[#0a163e] animate-spin" style={{ animationDuration: '6s' }} />
+              <Sparkles className="w-3.5 h-3.5 text-[#0a163e] " style={{ animationDuration: '6s' }} />
               <span>{t.specialBadge}</span>
-            </motion.span>
+            </span>
           )}
           {item.isPopular && !item.isChefSpecial && (
-            <motion.span 
-              initial={{ scale: 0, rotate: -15 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ type: 'spring', stiffness: 500, damping: 18, delay: 0.1 }}
-              whileHover={{ scale: 1.15, rotate: 5 }}
+            <span
               className="px-2.5 py-1 rounded-full text-[11px] font-black bg-[#F7941D] text-white shadow-md flex items-center gap-1 cursor-default"
             >
-              <Flame className="w-3 h-3 animate-pulse text-[#FFD11A]" />
+              <Flame className="w-3 h-3  text-[#FFD11A]" />
               <span>{t.popularBadge}</span>
-            </motion.span>
+            </span>
           )}
           {item.driveFileId && (
             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#71359B]/90 text-white border border-[#71359B] backdrop-blur-sm">
@@ -472,14 +352,11 @@ export const MenuCard: React.FC<MenuCardProps> = ({
             </span>
           )}
           {item.available && item.originalPrice && item.originalPrice > item.price && (
-            <motion.span 
-              whileHover={{ scale: 1.1, rotate: [-2, 2, -2] }}
-              animate={{ scale: [1, 1.05, 1] }}
-              transition={{ repeat: Infinity, duration: 2.5 }}
+            <span
               className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-[#F2292E] text-white shadow-lg border border-white/20 block"
             >
               {Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100)}% {t.discount}
-            </motion.span>
+            </span>
           )}
         </div>
 
@@ -508,12 +385,11 @@ export const MenuCard: React.FC<MenuCardProps> = ({
         {/* Pricing & Interactive Heart with Burst Animation */}
         <div className="pt-4 mt-3 border-t border-[#1e3b96] flex items-center justify-between relative">
           <div className="flex items-baseline gap-1.5">
-            <motion.span 
-              whileHover={{ scale: 1.1 }}
+            <span
               className="text-2xl font-black text-[#FFD11A] font-['Fredoka',sans-serif] inline-block tracking-tight"
             >
               {safePrice.toLocaleString()}
-            </motion.span>
+            </span>
             <span className="text-xs text-[#9ebbf9] font-bold">
               {currency}
             </span>
@@ -544,26 +420,10 @@ export const MenuCard: React.FC<MenuCardProps> = ({
           ) : (
             <div className="relative">
               {/* Floating hearts burst when liked */}
-              <AnimatePresence>
-                {floatingParticles.map((p) => (
-                  <motion.div
-                    key={p.id}
-                    initial={{ opacity: 1, scale: 0.6, x: 0, y: 0 }}
-                    animate={{ opacity: 0, scale: 1.4, x: p.x, y: p.y }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.7, ease: 'easeOut' }}
-                    className="absolute pointer-events-none -top-1 start-2 z-30"
-                  >
-                    <Heart className="w-3.5 h-3.5 fill-current" style={{ color: p.color }} />
-                  </motion.div>
-                ))}
-              </AnimatePresence>
+              
 
-              <motion.button
+              <button
                 onClick={handleLikeClick}
-                whileHover={{ scale: 1.25, rotate: isLiked ? -10 : 10 }}
-                whileTap={{ scale: 0.75 }}
-                transition={{ type: 'spring', stiffness: 500, damping: 15 }}
                 className={`w-9 h-9 rounded-full border-2 flex items-center justify-center transition-colors shadow-sm cursor-pointer select-none ${
                   isLiked 
                     ? 'bg-[#F2292E] border-[#F2292E] text-white shadow-lg shadow-[#F2292E]/50' 
@@ -571,12 +431,12 @@ export const MenuCard: React.FC<MenuCardProps> = ({
                 }`}
                 title={isLiked ? 'أعجبني!' : 'إعجاب'}
               >
-                <Heart className={`w-4 h-4 transition-transform ${isLiked ? 'fill-current scale-110' : 'fill-transparent'}`} />
-              </motion.button>
+                <Heart className={`w-4 h-4 transition- ${isLiked ? 'fill-current ' : 'fill-transparent'}`} />
+              </button>
             </div>
           )}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
