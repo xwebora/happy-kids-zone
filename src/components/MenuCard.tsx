@@ -117,12 +117,12 @@ export const MenuCard: React.FC<MenuCardProps> = ({
                 
                 <button onClick={handleLikeClick} className={`flex h-8 w-8 items-center justify-center rounded-full border-2  ${isLiked ? 'border-[#F2292E] bg-[#F2292E] text-white' : 'border-[#2855D9] bg-[#12245e] text-[#78C943] hover:border-[#F2292E] hover:text-[#F2292E]'}`} title={isLiked ? 'أعجبني!' : 'إعجاب'}>
                   <Heart className={`h-4 w-4 ${isLiked ? 'fill-current' : 'fill-transparent'}`} />
-                </button
+                </button>
               </div>
             )}
           </div>
         </div>
-      </div
+      </div>
     );
   }
 
@@ -168,7 +168,7 @@ export const MenuCard: React.FC<MenuCardProps> = ({
               >
                 <Sparkles className="w-3.5 h-3.5 text-[#0a163e] " style={{ animationDuration: '6s' }} />
                 <span>{t.specialBadge}</span>
-              </span
+              </span>
             )}
             {item.isPopular && !item.isChefSpecial && (
               <span
@@ -176,7 +176,7 @@ export const MenuCard: React.FC<MenuCardProps> = ({
               >
                 <Flame className="w-3 h-3  text-[#FFD11A]" />
                 <span>{t.popularBadge}</span>
-              </span
+              </span>
             )}
             {item.driveFileId && (
               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#71359B]/90 text-white border border-[#71359B] backdrop-blur-sm">
@@ -198,7 +198,7 @@ export const MenuCard: React.FC<MenuCardProps> = ({
                 className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-[#F2292E] text-white shadow-lg border border-white/20 block"
               >
                 {Math.round(((safeOriginalPrice! - safePrice) / safeOriginalPrice!) * 100)}% {t.discount}
-              </span
+              </span>
             )}
           </div>
         </div>
@@ -228,7 +228,7 @@ export const MenuCard: React.FC<MenuCardProps> = ({
                 className="text-2xl sm:text-3xl font-black text-[#FFD11A] font-['Fredoka',sans-serif] inline-block tracking-tight"
               >
                 {safePrice.toLocaleString()}
-              </span
+              </span>
               <span className="text-xs sm:text-sm text-[#9ebbf9] font-bold">
                 {currency}
               </span>
@@ -270,12 +270,12 @@ export const MenuCard: React.FC<MenuCardProps> = ({
                   title={isLiked ? 'أعجبني!' : 'إعجاب'}
                 >
                   <Heart className={`w-4 h-4  ${isLiked ? 'fill-current scale-110' : 'fill-transparent'}`} />
-                </button
+                </button>
               </div>
             )}
           </div>
         </div>
-      </div
+      </div>
     );
   }
 
@@ -324,7 +324,7 @@ export const MenuCard: React.FC<MenuCardProps> = ({
             >
               <Sparkles className="w-3.5 h-3.5 text-[#0a163e] " style={{ animationDuration: '6s' }} />
               <span>{t.specialBadge}</span>
-            </span
+            </span>
           )}
           {item.isPopular && !item.isChefSpecial && (
             <span
@@ -332,7 +332,7 @@ export const MenuCard: React.FC<MenuCardProps> = ({
             >
               <Flame className="w-3 h-3  text-[#FFD11A]" />
               <span>{t.popularBadge}</span>
-            </span
+            </span>
           )}
           {item.driveFileId && (
             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#71359B]/90 text-white border border-[#71359B] backdrop-blur-sm">
@@ -354,7 +354,7 @@ export const MenuCard: React.FC<MenuCardProps> = ({
               className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-[#F2292E] text-white shadow-lg border border-white/20 block"
             >
               {Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100)}% {t.discount}
-            </span
+            </span>
           )}
         </div>
 
@@ -387,7 +387,7 @@ export const MenuCard: React.FC<MenuCardProps> = ({
               className="text-2xl font-black text-[#FFD11A] font-['Fredoka',sans-serif] inline-block tracking-tight"
             >
               {safePrice.toLocaleString()}
-            </span
+            </span>
             <span className="text-xs text-[#9ebbf9] font-bold">
               {currency}
             </span>
@@ -430,11 +430,11 @@ export const MenuCard: React.FC<MenuCardProps> = ({
                 title={isLiked ? 'أعجبني!' : 'إعجاب'}
               >
                 <Heart className={`w-4 h-4  ${isLiked ? 'fill-current scale-110' : 'fill-transparent'}`} />
-              </button
+              </button>
             </div>
           )}
         </div>
       </div>
-    </div
+    </div>
   );
 };
