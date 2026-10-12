@@ -73,8 +73,17 @@ export default function App() {
     } catch { return 'ar'; }
   });
 
+  // Set below once the customer-menu subscription refs and setters are initialized.
+  const refreshCustomerMenuRef = useRef<(() => void) | null>(null);
+
   const goToMenu = (selectedLanguage: Language) => {
     const menuRoute = selectedLanguage === 'en' ? 'menu-en' : selectedLanguage === 'ku' ? 'menu-kr' : 'menu-ar';
+
+    // Reinitialize menu data when entering from welcome/portal/admin. Changing
+    // language while already in the menu keeps the current live subscriptions.
+    if (viewMode !== 'customer') {
+      refreshCustomerMenuRef.current?.();
+    }
 
     try {
       localStorage.setItem(STORAGE_KEY_LANG, selectedLanguage);
@@ -160,6 +169,7 @@ export default function App() {
   const loadedCustomerCategoriesRef = useRef<Set<string>>(new Set());
   const loadingCustomerCategoriesRef = useRef<Set<string>>(new Set());
   const [loadedCustomerCategories, setLoadedCustomerCategories] = useState<string[]>([]);
+  const [customerMenuRefreshVersion, setCustomerMenuRefreshVersion] = useState(0);
 
   const loadCustomerCategory = useCallback((categoryId: string) => {
     if (!categoryId) return;
@@ -183,15 +193,30 @@ export default function App() {
     customerCategorySubscriptionsRef.current[categoryId] = unsubscribe;
   }, []);
 
-  // Keep categories live across route changes instead of refetching them
-  // every time the user leaves and re-enters the menu.
+  // Reset the customer menu's category listeners and cache before a fresh
+  // entry, then re-subscribe to categories so their latest snapshot starts the
+  // category-based item loading flow again. This does not reload the page.
+  refreshCustomerMenuRef.current = () => {
+    Object.values(customerCategorySubscriptionsRef.current).forEach((unsubscribe) => unsubscribe());
+    customerCategorySubscriptionsRef.current = {};
+    loadedCustomerCategoriesRef.current = new Set();
+    loadingCustomerCategoriesRef.current = new Set();
+    setItems([]);
+    setLoadedCustomerCategories([]);
+    setMenuReady(false);
+    setCategoriesReady(false);
+    setCustomerMenuRefreshVersion((version) => version + 1);
+  };
+
+  // Keep category listeners live while the menu is open. A fresh entry bumps
+  // the version, which intentionally replaces the previous listener.
   useEffect(() => {
     const unsubscribe = subscribeToCategories((nextCategories) => {
       setCategories(nextCategories);
       setCategoriesReady(true);
     });
     return unsubscribe;
-  }, []);
+  }, [customerMenuRefreshVersion]);
 
   useEffect(() => {
     if (viewMode === 'admin') {
